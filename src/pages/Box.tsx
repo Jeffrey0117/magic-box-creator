@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,7 +11,83 @@ const Box = () => {
   const [email, setEmail] = useState("");
   const [result, setResult] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [boxData, setBoxData] = useState<any>(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const navigate = useNavigate();
+  const { id } = useParams();
+
+  useEffect(() => {
+    const init = async () => {
+      if (id) {
+        await fetchBoxData();
+        await checkAuthAndAutoUnlock();
+      }
+    };
+    init();
+  }, [id]);
+
+  const checkAuthAndAutoUnlock = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    setIsLoggedIn(!!session);
+    console.log("🔍 Session:", session?.user.email);
+    
+    if (!session || !id || !session.user.email) {
+      console.log("⚠️ 未通過檢查:", { hasSession: !!session, hasId: !!id, hasEmail: !!session?.user?.email });
+      return;
+    }
+
+    const { data: keywordData } = await supabase
+      .from("keywords")
+      .select("*")
+      .eq("id", id)
+      .maybeSingle();
+
+    console.log("📦 Keyword data:", keywordData);
+    if (!keywordData) return;
+
+    const { data: existingLog } = await supabase
+      .from("email_logs")
+      .select("id")
+      .eq("keyword_id", keywordData.id)
+      .eq("email", session.user.email)
+      .maybeSingle();
+
+    console.log("📋 Existing log:", existingLog);
+
+    if (!existingLog) {
+      console.log("✍️ 準備插入:", { keyword_id: keywordData.id, email: session.user.email });
+      const { data: insertedData, error } = await supabase.from("email_logs").insert({
+        keyword_id: keywordData.id,
+        email: session.user.email,
+      }).select();
+
+      if (error) {
+        console.error("❌ 插入失敗:", JSON.stringify(error, null, 2));
+        console.error("❌ Error details:", error);
+        toast.error(`自動解鎖失敗: ${error.message || "未知錯誤"}`);
+        return;
+      }
+      console.log("✅ 插入成功:", insertedData);
+    }
+
+    setResult(keywordData.content);
+    toast.success(existingLog ? "歡迎回來！" : "會員自動解鎖成功！");
+  };
+
+  const fetchBoxData = async () => {
+    const { data, error } = await supabase
+      .from("keywords")
+      .select("id, keyword, created_at")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (error || !data) {
+      toast.error("找不到此資料包");
+      navigate("/");
+    } else {
+      setBoxData(data);
+    }
+  };
 
   const handleUnlock = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -19,22 +95,47 @@ const Box = () => {
     setResult(null);
 
     try {
-      // Search for keyword
-      const { data: keywordData, error: searchError } = await supabase
-        .from("keywords")
-        .select("*")
-        .eq("keyword", keyword.toLowerCase().trim())
-        .maybeSingle();
+      let keywordData;
+      
+      if (id) {
+        const { data, error: fetchError } = await supabase
+          .from("keywords")
+          .select("*")
+          .eq("id", id)
+          .maybeSingle();
 
-      if (searchError) throw searchError;
+        if (fetchError) throw fetchError;
+        if (!data) {
+          toast.error("找不到此資料包");
+          setLoading(false);
+          return;
+        }
 
-      if (!keywordData) {
-        toast.error("找不到此關鍵字，請重新輸入");
-        setLoading(false);
-        return;
+        if (data.keyword !== keyword.toLowerCase().trim()) {
+          toast.error("關鍵字錯誤，請重新輸入");
+          setLoading(false);
+          return;
+        }
+
+        keywordData = data;
+      } else {
+        const { data, error: searchError } = await supabase
+          .from("keywords")
+          .select("*")
+          .eq("keyword", keyword.toLowerCase().trim())
+          .maybeSingle();
+
+        if (searchError) throw searchError;
+
+        if (!data) {
+          toast.error("找不到此關鍵字，請重新輸入");
+          setLoading(false);
+          return;
+        }
+
+        keywordData = data;
       }
 
-      // Log the email
       const { error: logError } = await supabase.from("email_logs").insert({
         keyword_id: keywordData.id,
         email: email.trim(),
@@ -42,7 +143,6 @@ const Box = () => {
 
       if (logError) throw logError;
 
-      // Show result
       setResult(keywordData.content);
       toast.success("解鎖成功！");
     } catch (error: any) {
@@ -68,7 +168,7 @@ const Box = () => {
                 <Lock className="w-10 h-10 text-white" />
               </div>
               <h1 className="text-4xl md:text-5xl font-bold text-gradient mb-3">
-                Magic Box
+                {id ? "專屬資料包" : "Magic Box"}
               </h1>
               <p className="text-muted-foreground text-lg">
                 ✦ 解鎖你的專屬內容 ✦
@@ -150,11 +250,11 @@ const Box = () => {
                 重新查詢
               </Button>
               <Button
-                onClick={() => navigate("/login")}
+                onClick={() => navigate(isLoggedIn ? "/creator" : "/login")}
                 variant="outline"
                 className="flex-1"
               >
-                登入管理
+                {isLoggedIn ? "查看我的管理面板 →" : "註冊 KeyBox 免費查看 →"}
               </Button>
             </div>
           </div>
