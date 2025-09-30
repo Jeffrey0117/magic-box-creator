@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Lock, Sparkles } from "lucide-react";
+import { Lock, Key, Unlock } from "lucide-react";
 
 const Box = () => {
   const [keyword, setKeyword] = useState("");
@@ -71,7 +71,7 @@ const Box = () => {
     }
 
     setResult(keywordData.content);
-    toast.success(existingLog ? "歡迎回來！" : "會員自動解鎖成功！");
+    toast.success(existingLog ? "🔓 歡迎回來！" : "🔓 自動解鎖成功！");
   };
 
   const fetchBoxData = async () => {
@@ -144,7 +144,7 @@ const Box = () => {
       if (logError) throw logError;
 
       setResult(keywordData.content);
-      toast.success("解鎖成功！");
+      toast.success("🔓 解鎖成功！");
     } catch (error: any) {
       toast.error(error.message || "解鎖失敗，請重試");
     } finally {
@@ -168,10 +168,10 @@ const Box = () => {
                 <Lock className="w-10 h-10 text-white" />
               </div>
               <h1 className="text-4xl md:text-5xl font-bold text-gradient mb-3">
-                {id ? "專屬資料包" : "Magic Box"}
+                KeyBox 🔑
               </h1>
               <p className="text-muted-foreground text-lg">
-                ✦ 解鎖你的專屬內容 ✦
+                輸入關鍵字解鎖內容
               </p>
             </div>
 
@@ -209,8 +209,8 @@ const Box = () => {
                 >
                   {loading ? "解鎖中..." : (
                     <>
-                      <Sparkles className="w-5 h-5" />
-                      Unlock ✦
+                      <Key className="w-5 h-5" />
+                      Unlock 🔓
                     </>
                   )}
                 </Button>
@@ -230,7 +230,7 @@ const Box = () => {
           <div className="glass-card rounded-2xl p-8 shadow-card glow">
             <div className="text-center mb-6">
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-accent/20 mb-4">
-                <Sparkles className="w-8 h-8 text-accent" />
+                <Unlock className="w-8 h-8 text-accent" />
               </div>
               <h2 className="text-2xl font-bold text-accent mb-2">
                 ✅ 解鎖成功！

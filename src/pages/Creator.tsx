@@ -171,7 +171,7 @@ const Creator = () => {
       <div className="max-w-6xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl md:text-4xl font-bold text-gradient">Keyword Box 管理面板</h1>
+            <h1 className="text-3xl md:text-4xl font-bold text-gradient">KeyBox 管理面板 🔑</h1>
             <p className="text-muted-foreground mt-2">
               {userEmail && <span className="font-medium text-accent">{userEmail}</span>}
               {userEmail && " - "}
