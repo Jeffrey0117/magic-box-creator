@@ -62,13 +62,13 @@ const Login = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
+      <div className="w-full max-w-md px-4 md:px-0">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gradient mb-2">🔑 KeyBox 🔑</h1>
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gradient mb-2">🔑 KeyBox 🔑</h1>
           <p className="text-muted-foreground">創作者登入</p>
         </div>
 
-        <div className="glass-card rounded-2xl p-8 shadow-card">
+        <div className="glass-card rounded-2xl p-6 md:p-8 shadow-card">
           <form onSubmit={handleAuth} className="space-y-4">
             <div>
               <Input
