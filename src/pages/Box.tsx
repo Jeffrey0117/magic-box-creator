@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,33 +14,38 @@ const Box = () => {
   const [boxData, setBoxData] = useState<any>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const navigate = useNavigate();
-  const { id } = useParams();
+  const { id, shortCode } = useParams();
+  const location = useLocation();
 
   useEffect(() => {
     const init = async () => {
-      if (id) {
+      if (id || shortCode) {
         await fetchBoxData();
         await checkAuthAndAutoUnlock();
       }
     };
     init();
-  }, [id]);
+  }, [id, shortCode]);
 
   const checkAuthAndAutoUnlock = async () => {
     const { data: { session } } = await supabase.auth.getSession();
     setIsLoggedIn(!!session);
     console.log("🔍 Session:", session?.user.email);
     
-    if (!session || !id || !session.user.email) {
-      console.log("⚠️ 未通過檢查:", { hasSession: !!session, hasId: !!id, hasEmail: !!session?.user?.email });
+    if (!session || (!id && !shortCode) || !session.user.email) {
+      console.log("⚠️ 未通過檢查:", { hasSession: !!session, hasId: !!id, hasShortCode: !!shortCode, hasEmail: !!session?.user?.email });
       return;
     }
 
-    const { data: keywordData } = await supabase
-      .from("keywords")
-      .select("*")
-      .eq("id", id)
-      .maybeSingle();
+    let query = supabase.from("keywords").select("*");
+    
+    if (shortCode && !location.pathname.startsWith('/box/')) {
+      query = query.eq("short_code", shortCode);
+    } else if (id) {
+      query = query.eq("id", id);
+    }
+    
+    const { data: keywordData } = await query.maybeSingle();
 
     console.log("📦 Keyword data:", keywordData);
     if (!keywordData) return;
@@ -75,11 +80,15 @@ const Box = () => {
   };
 
   const fetchBoxData = async () => {
-    const { data, error } = await supabase
-      .from("keywords")
-      .select("id, keyword, created_at")
-      .eq("id", id)
-      .maybeSingle();
+    let query = supabase.from("keywords").select("id, keyword, created_at");
+    
+    if (shortCode && !location.pathname.startsWith('/box/')) {
+      query = query.eq("short_code", shortCode);
+    } else if (id) {
+      query = query.eq("id", id);
+    }
+    
+    const { data, error } = await query.maybeSingle();
 
     if (error || !data) {
       toast.error("找不到此資料包");
@@ -97,12 +106,16 @@ const Box = () => {
     try {
       let keywordData;
       
-      if (id) {
-        const { data, error: fetchError } = await supabase
-          .from("keywords")
-          .select("*")
-          .eq("id", id)
-          .maybeSingle();
+      if (id || shortCode) {
+        let query = supabase.from("keywords").select("*");
+        
+        if (shortCode && !location.pathname.startsWith('/box/')) {
+          query = query.eq("short_code", shortCode);
+        } else if (id) {
+          query = query.eq("id", id);
+        }
+        
+        const { data, error: fetchError } = await query.maybeSingle();
 
         if (fetchError) throw fetchError;
         if (!data) {

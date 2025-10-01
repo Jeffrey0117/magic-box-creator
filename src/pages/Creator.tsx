@@ -5,12 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Trash2, Plus, LogOut, Download } from "lucide-react";
+import { generateUniqueShortCode } from "@/lib/shortcode";
 
 interface Keyword {
   id: string;
   keyword: string;
   content: string;
   created_at: string;
+  short_code?: string;
 }
 
 interface EmailLog {
@@ -86,10 +88,13 @@ const Creator = () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return;
 
+    const shortCode = await generateUniqueShortCode(supabase);
+
     const { error } = await supabase.from("keywords").insert({
       keyword: newKeyword.toLowerCase().trim(),
       content: newContent,
       creator_id: session.user.id,
+      short_code: shortCode,
     });
 
     if (error) {
@@ -341,14 +346,20 @@ const Creator = () => {
                       <p className="text-xs md:text-sm text-muted-foreground mb-1">專屬連結</p>
                       <div className="flex flex-col sm:flex-row gap-2">
                         <code className="text-xs bg-muted px-2 py-1 rounded truncate max-w-full sm:flex-1 break-all">
-                          {window.location.origin}/box/{item.id}
+                          {item.short_code
+                            ? `${window.location.origin}/${item.short_code}`
+                            : `${window.location.origin}/box/${item.id}`
+                          }
                         </code>
                         <div className="flex gap-2">
                           <Button
                             size="sm"
                             variant="ghost"
                             onClick={() => {
-                              navigator.clipboard.writeText(`${window.location.origin}/box/${item.id}`);
+                              const url = item.short_code
+                                ? `${window.location.origin}/${item.short_code}`
+                                : `${window.location.origin}/box/${item.id}`;
+                              navigator.clipboard.writeText(url);
                               toast.success("連結已複製！");
                             }}
                             className="flex-1 sm:flex-none"
