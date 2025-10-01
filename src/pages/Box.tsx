@@ -164,10 +164,10 @@ const Box = () => {
         {!result ? (
           <>
             <div className="text-center mb-8">
-              <div className="inline-flex items-center justify-center w-20 h-20 rounded-full gradient-magic mb-4 glow">
-                <Lock className="w-10 h-10 text-white" />
+              <div className="inline-flex items-center justify-center w-16 h-16 md:w-20 md:h-20 rounded-full gradient-magic mb-4 glow">
+                <Lock className="w-8 h-8 md:w-10 md:h-10 text-white" />
               </div>
-              <h1 className="text-4xl md:text-5xl font-bold text-gradient mb-3">
+              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gradient mb-3">
                 KeyBox 🔑
               </h1>
               <p className="text-muted-foreground text-lg">
@@ -175,7 +175,7 @@ const Box = () => {
               </p>
             </div>
 
-            <div className="glass-card rounded-2xl p-8 shadow-card glow">
+            <div className="glass-card rounded-2xl p-6 md:p-8 shadow-card glow">
               <form onSubmit={handleUnlock} className="space-y-4">
                 <div>
                   <label className="text-sm font-medium mb-2 block">
@@ -186,7 +186,7 @@ const Box = () => {
                     value={keyword}
                     onChange={(e) => setKeyword(e.target.value)}
                     required
-                    className="w-full"
+                    className="w-full h-12 text-base md:h-10 md:text-sm"
                   />
                 </div>
                 <div>
@@ -199,13 +199,13 @@ const Box = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    className="w-full"
+                    className="w-full h-12 text-base md:h-10 md:text-sm"
                   />
                 </div>
                 <Button
                   type="submit"
                   disabled={loading}
-                  className="w-full gradient-magic hover:opacity-90 transition-opacity font-medium text-lg h-12 gap-2"
+                  className="w-full gradient-magic hover:opacity-90 transition-opacity font-medium text-lg md:text-base h-14 md:h-12 gap-2"
                 >
                   {loading ? "解鎖中..." : (
                     <>
@@ -227,7 +227,7 @@ const Box = () => {
             </div>
           </>
         ) : (
-          <div className="glass-card rounded-2xl p-8 shadow-card glow">
+          <div className="glass-card rounded-2xl p-6 md:p-8 shadow-card glow">
             <div className="text-center mb-6">
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-accent/20 mb-4">
                 <Unlock className="w-8 h-8 text-accent" />
