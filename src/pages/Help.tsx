@@ -130,16 +130,16 @@ const Help = () => {
 
         <div className="flex gap-4 justify-center mt-6">
           <Button
-            onClick={() => navigate("/")}
+            onClick={() => navigate("/creator")}
             variant="outline"
           >
-            前往解鎖頁面
+            管理面板
           </Button>
           <Button
-            onClick={() => navigate("/login")}
-            className="gradient-magic"
+            onClick={() => navigate("/privacy")}
+            variant="outline"
           >
-            註冊 / 登入
+            隱私權政策
           </Button>
         </div>
       </div>

@@ -159,14 +159,8 @@ const Login = () => {
             </Button>
           </form>
 
-          <div className="mt-6 text-center space-y-2">
-            <button
-              onClick={() => navigate("/")}
-              className="text-sm text-accent hover:text-accent/80 transition-colors"
-            >
-              ← 回到解鎖頁面
-            </button>
-            <div className="flex gap-3 justify-center text-xs mt-3">
+          <div className="mt-6 text-center">
+            <div className="flex gap-3 justify-center text-xs">
               <button
                 onClick={() => navigate("/help")}
                 className="text-muted-foreground hover:text-accent transition-colors"
