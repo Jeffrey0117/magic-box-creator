@@ -12,6 +12,8 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  const PRODUCTION_URL = "https://magic-box-creator.vercel.app";
+
   useEffect(() => {
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -47,11 +49,17 @@ const Login = () => {
           email,
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}/creator`,
+            emailRedirectTo: `${PRODUCTION_URL}/creator`,
           },
         });
         if (error) throw error;
-        toast.success("註冊成功！正在登入...");
+        toast.success(
+          "註冊成功！請至信箱收取驗證信 📧",
+          {
+            description: "點擊信中的驗證連結即可開始使用",
+            duration: 8000,
+          }
+        );
       }
     } catch (error: any) {
       toast.error(error.message || "操作失敗，請重試");
@@ -65,10 +73,37 @@ const Login = () => {
       <div className="w-full max-w-md px-4 md:px-0">
         <div className="text-center mb-8">
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gradient mb-2">🔑 KeyBox 🔑</h1>
-          <p className="text-muted-foreground">創作者登入</p>
+          <p className="text-muted-foreground">創作者平台</p>
         </div>
 
         <div className="glass-card rounded-2xl p-6 md:p-8 shadow-card">
+          <div className="flex gap-2 mb-6">
+            <Button
+              type="button"
+              onClick={() => setIsLogin(true)}
+              variant={isLogin ? "default" : "outline"}
+              className={`flex-1 ${isLogin ? 'gradient-magic' : ''}`}
+            >
+              登入
+            </Button>
+            <Button
+              type="button"
+              onClick={() => setIsLogin(false)}
+              variant={!isLogin ? "default" : "outline"}
+              className={`flex-1 ${!isLogin ? 'gradient-magic' : ''}`}
+            >
+              註冊
+            </Button>
+          </div>
+
+          {!isLogin && (
+            <div className="mb-4 p-3 bg-accent/10 border border-accent/20 rounded-lg">
+              <p className="text-sm text-accent">
+                📧 註冊後請至信箱收取驗證信
+              </p>
+            </div>
+          )}
+
           <form onSubmit={handleAuth} className="space-y-4">
             <div>
               <Input
@@ -98,15 +133,6 @@ const Login = () => {
               {loading ? "處理中..." : isLogin ? "登入" : "註冊"}
             </Button>
           </form>
-
-          <div className="mt-6 text-center">
-            <button
-              onClick={() => setIsLogin(!isLogin)}
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              {isLogin ? "還沒有帳號？點此註冊" : "已有帳號？點此登入"}
-            </button>
-          </div>
 
           <div className="mt-6 text-center">
             <button

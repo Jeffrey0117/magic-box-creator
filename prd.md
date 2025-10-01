@@ -1534,3 +1534,505 @@ https://your-vercel-domain.vercel.app/aB3cD5
    - C. PMF 驗證後再做
 
 確認後我將開始實作 🚀
+
+---
+
+# V6：註冊登入體驗優化
+
+## 一、當前問題分析
+
+### 用戶測試發現的問題
+
+#### 問題 1：驗證信缺乏中文化 ⭐⭐⭐⭐
+**現況**：
+- 註冊後 Supabase 發送的驗證信為英文
+- 信件標題：`Confirm your signup`
+- 內容：全英文說明
+
+**影響**：
+- ❌ 繁體中文使用者看不懂
+- ❌ 可能誤認為垃圾郵件
+- ❌ 註冊轉換率下降
+
+---
+
+#### 問題 2：登入/註冊切換不明顯 ⭐⭐⭐⭐
+**現況**（[`src/pages/Login.tsx:102-109`](src/pages/Login.tsx:102-109)）：
+```tsx
+<button className="text-sm text-muted-foreground hover:text-foreground">
+  {isLogin ? "還沒有帳號？點此註冊" : "已有帳號？點此登入"}
+</button>
+```
+
+**問題**：
+- ❌ 按鈕樣式太小（text-sm）
+- ❌ 顏色不明顯（muted-foreground）
+- ❌ 容易被忽略
+- ❌ 新用戶不知道可以切換
+
+---
+
+#### 問題 3：驗證連結指向 localhost ⭐⭐⭐⭐⭐ 緊急
+**現況**（[`src/pages/Login.tsx:50`](src/pages/Login.tsx:50)）：
+```tsx
+emailRedirectTo: `${window.location.origin}/creator`
+```
+
+**問題**：
+- ❌ 在 Production 環境仍可能指向 localhost
+- ❌ 導致用戶無法完成驗證
+- ❌ 註冊流程完全中斷
+
+**根本原因**：
+- Supabase Dashboard → Authentication → URL Configuration 設定錯誤
+- Site URL 未設定為 Production 網址
+- Redirect URLs 未加入白名單
+
+---
+
+#### 問題 4：註冊提示不清楚 ⭐⭐⭐
+**現況**（[`src/pages/Login.tsx:54`](src/pages/Login.tsx:54)）：
+```tsx
+toast.success("註冊成功！正在登入...");
+```
+
+**問題**：
+- ❌ 未告知「需驗證信箱」
+- ❌ 使用者以為可以立即登入
+- ❌ 實際上需要去收信驗證
+
+---
+
+## 二、解決方案設計
+
+### 🔧 問題 1：驗證信中文化
+
+#### 方案 A：Supabase Dashboard 自訂信件模板 ⭐⭐⭐⭐⭐ 推薦
+
+**操作步驟**：
+1. 前往 Supabase Dashboard
+2. Authentication → Email Templates
+3. 編輯 `Confirm signup` 模板
+
+**中文模板範例**：
+```html
+<h2>歡迎加入 KeyBox！🔑</h2>
+
+<p>您好，</p>
+
+<p>感謝註冊 KeyBox！請點擊下方按鈕驗證您的電子信箱：</p>
+
+<p>
+  <a href="{{ .ConfirmationURL }}" 
+     style="display: inline-block; padding: 12px 24px; background: linear-gradient(135deg, hsl(150 70% 45%), hsl(160 60% 50%)); color: white; text-decoration: none; border-radius: 8px; font-weight: bold;">
+    驗證信箱 ✅
+  </a>
+</p>
+
+<p>如果按鈕無法點擊，請複製以下連結到瀏覽器：<br>
+{{ .ConfirmationURL }}</p>
+
+<p>此連結將在 24 小時後失效。</p>
+
+<p>如果您未註冊 KeyBox，請忽略此信件。</p>
+
+<hr>
+<p style="color: #666; font-size: 12px;">
+  KeyBox - 創作者的內容管理工具<br>
+  © 2025 KeyBox. All rights reserved.
+</p>
+```
+
+**信件標題修改**：
+```
+Subject: [KeyBox] 請驗證您的信箱 ✅
+```
+
+**優點**：
+- ✅ 完全中文化
+- ✅ 品牌一致性（使用 KeyBox 綠色主題）
+- ✅ 零程式碼修改
+- ✅ 立即生效
+
+**成本**：
+- 時間：15 分鐘（複製貼上 + 測試）
+
+---
+
+#### 方案 B：使用第三方信件服務（SendGrid, Mailgun）
+
+**優點**：
+- 更高自訂性
+- 可追蹤開信率
+
+**缺點**：
+- ❌ 需整合第三方 API
+- ❌ 月費成本（$15+）
+- ❌ 實作時間長（2+ 小時）
+
+**結論**：不推薦（方案 A 已足夠）
+
+---
+
+### 🔧 問題 2：登入/註冊切換視覺優化
+
+#### 推薦設計：Tab 切換式 UI ⭐⭐⭐⭐⭐
+
+**修改前**（[`src/pages/Login.tsx:102-109`](src/pages/Login.tsx:102-109)）：
+```tsx
+<button className="text-sm text-muted-foreground">
+  {isLogin ? "還沒有帳號？點此註冊" : "已有帳號？點此登入"}
+</button>
+```
+
+**修改後**：
+```tsx
+{/* Tab 切換區（置於表單上方）*/}
+<div className="flex gap-2 mb-6">
+  <Button
+    type="button"
+    onClick={() => setIsLogin(true)}
+    variant={isLogin ? "default" : "outline"}
+    className={`flex-1 ${isLogin ? 'gradient-magic' : ''}`}
+  >
+    登入
+  </Button>
+  <Button
+    type="button"
+    onClick={() => setIsLogin(false)}
+    variant={!isLogin ? "default" : "outline"}
+    className={`flex-1 ${!isLogin ? 'gradient-magic' : ''}`}
+  >
+    註冊
+  </Button>
+</div>
+
+{/* 表單內容 */}
+<form onSubmit={handleAuth} className="space-y-4">
+  {/* ... */}
+</form>
+```
+
+**視覺效果**：
+```
+┌─────────────────────────────┐
+│  [登入]  [註冊]             │ ← Tab 切換（明顯）
+├─────────────────────────────┤
+│  Email 輸入框               │
+│  密碼輸入框                 │
+│  [立即登入/註冊] 按鈕       │
+└─────────────────────────────┘
+```
+
+**優點**：
+- ✅ 一目了然（不需閱讀文字）
+- ✅ 符合用戶習慣（Tab UI 常見模式）
+- ✅ 視覺層級清晰
+- ✅ RWD 友善
+
+**實作時間**：10 分鐘
+
+---
+
+### 🔧 問題 3：驗證連結指向修正（最高優先級）
+
+#### 解決步驟
+
+##### Step 1：修正 Supabase Dashboard 設定 ⭐⭐⭐⭐⭐
+
+**位置**：
+Supabase Dashboard → Settings → Authentication → URL Configuration
+
+**需修改的欄位**：
+
+1. **Site URL**（主要網站網址）
+   ```
+   https://your-production-domain.vercel.app
+   ```
+   或
+   ```
+   https://keyb.ox
+   ```
+
+2. **Redirect URLs**（允許的重定向網址白名單）
+   ```
+   https://your-production-domain.vercel.app/**
+   https://keyb.ox/**
+   ```
+
+**注意**：
+- 確保使用 HTTPS
+- 確保包含 `/**` 通配符
+- 移除 localhost（或僅保留開發環境）
+
+---
+
+##### Step 2：修正前端程式碼（保險措施）
+
+**檔案**：[`src/pages/Login.tsx:46-52`](src/pages/Login.tsx:46-52)
+
+**修改前**：
+```tsx
+const { error } = await supabase.auth.signUp({
+  email,
+  password,
+  options: {
+    emailRedirectTo: `${window.location.origin}/creator`,
+  },
+});
+```
+
+**修改後**：
+```tsx
+const { error } = await supabase.auth.signUp({
+  email,
+  password,
+  options: {
+    emailRedirectTo: import.meta.env.PROD 
+      ? 'https://your-production-domain.vercel.app/creator' 
+      : `${window.location.origin}/creator`,
+  },
+});
+```
+
+**或使用環境變數**（推薦）：
+
+**新增檔案**：`.env.production`
+```bash
+VITE_APP_URL=https://your-production-domain.vercel.app
+```
+
+**修改程式碼**：
+```tsx
+const { error } = await supabase.auth.signUp({
+  email,
+  password,
+  options: {
+    emailRedirectTo: `${import.meta.env.VITE_APP_URL || window.location.origin}/creator`,
+  },
+});
+```
+
+**優點**：
+- ✅ 跨環境通用
+- ✅ 易於維護
+- ✅ 避免硬編碼
+
+---
+
+### 🔧 問題 4：註冊提示優化
+
+**修改前**（[`src/pages/Login.tsx:54`](src/pages/Login.tsx:54)）：
+```tsx
+toast.success("註冊成功！正在登入...");
+```
+
+**修改後**：
+```tsx
+toast.success(
+  "註冊成功！請至信箱收取驗證信 📧",
+  {
+    description: "點擊信中的驗證連結即可開始使用",
+    duration: 8000, // 延長顯示時間
+  }
+);
+```
+
+**額外提示**（在 UI 顯示）：
+```tsx
+{!isLogin && (
+  <div className="mt-4 p-3 bg-accent/10 border border-accent/20 rounded-lg">
+    <p className="text-sm text-accent">
+      📧 註冊後請至信箱收取驗證信
+    </p>
+  </div>
+)}
+```
+
+---
+
+## 三、優先級排序
+
+| 問題 | 嚴重度 | 緊急度 | 修復時間 | 推薦順序 |
+|------|--------|--------|---------|---------|
+| **驗證連結錯誤（localhost）** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | 10 分鐘 | **1 (立即修)** |
+| 驗證信中文化 | ⭐⭐⭐⭐ | ⭐⭐⭐ | 15 分鐘 | 2 |
+| 登入/註冊切換優化 | ⭐⭐⭐ | ⭐⭐ | 10 分鐘 | 3 |
+| 註冊提示優化 | ⭐⭐ | ⭐⭐ | 5 分鐘 | 4 |
+
+---
+
+## 四、完整實作計畫
+
+### Phase 1：緊急修復 - 驗證連結錯誤（10 分鐘）
+
+**步驟**：
+1. 登入 Supabase Dashboard
+2. Settings → Authentication → URL Configuration
+3. 修改 Site URL：`https://your-production-domain.vercel.app`
+4. 修改 Redirect URLs：`https://your-production-domain.vercel.app/**`
+5. 點擊 Save
+
+**驗證**：
+- 註冊測試帳號
+- 檢查驗證信中的連結
+- 確保指向正確網域
+
+---
+
+### Phase 2：驗證信中文化（15 分鐘）
+
+**步驟**：
+1. Supabase Dashboard → Authentication → Email Templates
+2. 選擇 `Confirm signup`
+3. 修改 Subject：`[KeyBox] 請驗證您的信箱 ✅`
+4. 貼上中文模板（見方案 A）
+5. 點擊 Save
+
+**測試**：
+- 註冊測試帳號
+- 檢查信件標題 & 內容
+- 點擊驗證連結確認可用
+
+---
+
+### Phase 3：UI 優化（10 分鐘）
+
+**檔案**：[`src/pages/Login.tsx`](src/pages/Login.tsx)
+
+**修改內容**：
+1. Tab 切換 UI（登入/註冊按鈕）
+2. 註冊提示文案
+3. 註冊後的說明提示框
+
+**Commit**：
+```bash
+git add src/pages/Login.tsx
+git commit -m "feat: 優化登入註冊體驗（Tab UI + 提示文案）"
+git push
+```
+
+---
+
+### Phase 4：環境變數設定（5 分鐘）
+
+**新增檔案**：`.env.production`
+```bash
+VITE_APP_URL=https://your-production-domain.vercel.app
+```
+
+**修改 Vercel 環境變數**：
+1. Vercel Dashboard → Settings → Environment Variables
+2. 新增：`VITE_APP_URL` = `https://your-production-domain.vercel.app`
+3. 選擇 Scope：Production
+4. Save
+
+**更新程式碼**（[`src/pages/Login.tsx:50`](src/pages/Login.tsx:50)）
+
+---
+
+## 五、測試檢查清單
+
+### 註冊流程測試
+- [ ] 點擊「註冊」Tab → UI 切換明顯
+- [ ] 輸入 Email + 密碼 → 送出
+- [ ] Toast 顯示「請至信箱收取驗證信」
+- [ ] 信箱收到驗證信（標題為中文）
+- [ ] 信件內容為繁體中文
+- [ ] 點擊驗證連結 → 跳轉到 Production 網站（非 localhost）
+- [ ] 自動登入並進入 `/creator` 頁面
+
+### 登入流程測試
+- [ ] 點擊「登入」Tab → UI 切換明顯
+- [ ] 輸入已驗證帳號 → 成功登入
+- [ ] 跳轉到 `/creator` 頁面
+
+---
+
+## 六、總成本與時間
+
+### 金錢成本
+- **$0**（純設定調整，無需付費服務）
+
+### 時間成本
+- Phase 1: 驗證連結修復（10 分鐘）⭐⭐⭐⭐⭐
+- Phase 2: 驗證信中文化（15 分鐘）⭐⭐⭐⭐
+- Phase 3: UI 優化（10 分鐘）⭐⭐⭐
+- Phase 4: 環境變數（5 分鐘）⭐⭐
+
+**總計：40 分鐘**
+
+---
+
+## 七、決策建議
+
+### 推薦執行順序
+
+#### 立即執行（今天）：
+1. ✅ **Phase 1：驗證連結修復**（10 分鐘）
+   - 影響：極高（註冊流程完全中斷）
+   - 緊急度：最高
+   - 成本：0 元 + 10 分鐘
+
+#### 今日完成（如有時間）：
+2. ✅ **Phase 2：驗證信中文化**（15 分鐘）
+   - 影響：高（使用者體驗）
+   - 成本：0 元 + 15 分鐘
+
+#### 本週完成：
+3. ✅ **Phase 3：UI 優化**（10 分鐘）
+4. ✅ **Phase 4：環境變數**（5 分鐘）
+
+---
+
+## 八、風險評估
+
+### 潛在問題
+
+1. **DNS 生效時間**
+   - 風險：低
+   - 影響：Redirect URL 設定需等待（通常 < 5 分鐘）
+
+2. **環境變數未生效**
+   - 風險：中
+   - 解決：重新部署 Vercel
+
+3. **驗證信進垃圾郵件**
+   - 風險：中
+   - 解決：
+     - 在信件模板加入明確主旨：`[KeyBox] 請驗證...`
+     - 提示用戶檢查垃圾郵件
+     - 未來可升級到自訂 SMTP（SendGrid）
+
+---
+
+## 九、成功標準
+
+### 技術指標
+- ✅ 驗證連結指向 Production 網址（非 localhost）
+- ✅ 驗證信標題 & 內容為繁體中文
+- ✅ 登入/註冊切換 UI 明顯易用
+- ✅ Toast 提示清楚告知流程
+
+### 用戶體驗指標
+- ✅ 註冊完成率提升（減少因看不懂英文而放棄）
+- ✅ 驗證信開信率提升
+- ✅ 用戶不再困惑「為什麼是 localhost」
+
+---
+
+**接下來我需要你確認**：
+
+1. **立即執行 Phase 1（驗證連結修復）？**
+   - 需要你提供：
+     - Supabase Project URL
+     - Production 網址（Vercel 網址或自訂網域）
+
+2. **一次完成所有 Phases（總 40 分鐘）？**
+   - 建議：至少先完成 Phase 1 + 2（25 分鐘）
+
+3. **是否已有自訂網域（keyb.ox）？**
+   - 若有 → 使用自訂網域
+   - 若無 → 使用 Vercel 預設網址
+
+確認後我將開始實作 🚀
