@@ -247,7 +247,7 @@ const Box = () => {
                     className="w-full h-12 text-base md:h-10 md:text-sm"
                   />
                   <p className="text-xs text-muted-foreground mt-1">
-                    🔒 您的 Email 僅用於領取記錄，創作者可見，不會轉售第三方
+                    🔒 僅創作者可見
                   </p>
                 </div>
                 <Button
@@ -258,7 +258,7 @@ const Box = () => {
                   {loading ? "解鎖中..." : (
                     <>
                       <Key className="w-5 h-5" />
-                      Unlock 🔓
+                      立即解鎖 🔓
                     </>
                   )}
                 </Button>
