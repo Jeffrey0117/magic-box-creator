@@ -86,7 +86,10 @@ const Privacy = () => {
 
         <div className="text-center mt-6">
           <button
-            onClick={() => window.history.back()}
+            onClick={() => {
+              window.scrollTo(0, 0);
+              window.history.back();
+            }}
             className="text-sm text-accent hover:text-accent/80 transition-colors"
           >
             ← 返回上一頁
