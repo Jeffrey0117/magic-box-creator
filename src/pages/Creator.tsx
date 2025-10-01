@@ -169,10 +169,10 @@ const Creator = () => {
   return (
     <div className="min-h-screen p-4 md:p-8">
       <div className="max-w-6xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl md:text-4xl font-bold text-gradient">KeyBox 管理面板 🔑</h1>
-            <p className="text-muted-foreground mt-2">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+          <div className="flex-1 min-w-0">
+            <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gradient">KeyBox 管理面板 🔑</h1>
+            <p className="text-sm md:text-base text-muted-foreground mt-2 break-all">
               {userEmail && <span className="font-medium text-accent">{userEmail}</span>}
               {userEmail && " - "}
               管理您的關鍵字與內容
@@ -181,19 +181,19 @@ const Creator = () => {
           <Button
             onClick={handleLogout}
             variant="ghost"
-            className="gap-2"
+            className="gap-2 shrink-0"
           >
             <LogOut className="w-4 h-4" />
-            登出
+            <span className="hidden sm:inline">登出</span>
           </Button>
         </div>
 
         <div className="glass-card rounded-2xl p-6 md:p-8 shadow-card">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold">關鍵字列表</h2>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6">
+            <h2 className="text-lg md:text-xl font-semibold">關鍵字列表</h2>
             <Button
               onClick={() => setShowAddForm(!showAddForm)}
-              className="gradient-magic gap-2"
+              className="gradient-magic gap-2 w-full sm:w-auto"
             >
               <Plus className="w-4 h-4" />
               新增關鍵字
@@ -224,29 +224,30 @@ const Creator = () => {
                 </div>
               ) : (
                 <div className="space-y-2 max-h-60 overflow-y-auto">
-                  {myRecords.map((record) => (
-                    <div
-                      key={record.id}
-                      className="flex justify-between items-center p-3 bg-background rounded"
-                    >
-                      <div className="flex-1">
-                        <p className="font-medium">
-                          關鍵字：{record.keywords?.keyword}
-                        </p>
-                        <p className="text-sm text-muted-foreground truncate">
-                          {record.keywords?.content}
-                        </p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {new Date(record.unlocked_at).toLocaleString('zh-TW')}
-                        </p>
-                      </div>
-                      <Button
-                        size="sm"
-                        onClick={() => navigate(`/box/${record.keyword_id}`)}
-                      >
-                        重新查看
-                      </Button>
-                    </div>
+                 {myRecords.map((record) => (
+                   <div
+                     key={record.id}
+                     className="flex flex-col sm:flex-row gap-3 p-3 bg-background rounded"
+                   >
+                     <div className="flex-1 min-w-0">
+                       <p className="font-medium text-sm md:text-base">
+                         關鍵字：{record.keywords?.keyword}
+                       </p>
+                       <p className="text-xs md:text-sm text-muted-foreground truncate">
+                         {record.keywords?.content}
+                       </p>
+                       <p className="text-xs text-muted-foreground mt-1">
+                         {new Date(record.unlocked_at).toLocaleString('zh-TW')}
+                       </p>
+                     </div>
+                     <Button
+                       size="sm"
+                       onClick={() => navigate(`/box/${record.keyword_id}`)}
+                       className="shrink-0 w-full sm:w-auto"
+                     >
+                       重新查看
+                     </Button>
+                   </div>
                   ))}
                 </div>
               )}
@@ -254,20 +255,22 @@ const Creator = () => {
           )}
 
           {showAddForm && (
-            <form onSubmit={handleAddKeyword} className="mb-6 p-4 rounded-lg bg-muted/50 space-y-3">
+            <form onSubmit={handleAddKeyword} className="mb-6 p-4 md:p-6 rounded-lg bg-muted/50 space-y-3 md:space-y-4">
               <Input
                 placeholder="關鍵字（例如：hello）"
                 value={newKeyword}
                 onChange={(e) => setNewKeyword(e.target.value)}
                 required
+                className="h-12 md:h-10"
               />
               <Input
                 placeholder="回覆內容（例如：https://example.com/ebook）"
                 value={newContent}
                 onChange={(e) => setNewContent(e.target.value)}
                 required
+                className="h-12 md:h-10"
               />
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <Button type="submit" className="gradient-magic">
                   確認新增
                 </Button>
@@ -297,42 +300,46 @@ const Creator = () => {
               {keywords.map((item) => (
                 <div
                   key={item.id}
-                  className="flex items-center justify-between p-4 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors"
+                  className="flex flex-col md:flex-row gap-4 p-4 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors"
                 >
-                  <div className="flex-1 space-y-3">
+                  <div className="flex-1 space-y-3 min-w-0">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <p className="text-sm text-muted-foreground mb-1">關鍵字</p>
-                        <p className="font-medium text-accent">{item.keyword}</p>
+                        <p className="text-xs md:text-sm text-muted-foreground mb-1">關鍵字</p>
+                        <p className="font-medium text-accent text-sm md:text-base">{item.keyword}</p>
                       </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground mb-1">回覆內容</p>
-                        <p className="font-medium truncate">{item.content}</p>
+                      <div className="min-w-0">
+                        <p className="text-xs md:text-sm text-muted-foreground mb-1">回覆內容</p>
+                        <p className="font-medium truncate text-sm md:text-base">{item.content}</p>
                       </div>
                     </div>
                     <div>
-                      <p className="text-sm text-muted-foreground mb-1">專屬連結</p>
-                      <div className="flex gap-2">
-                        <code className="text-xs bg-muted px-2 py-1 rounded flex-1 truncate">
+                      <p className="text-xs md:text-sm text-muted-foreground mb-1">專屬連結</p>
+                      <div className="flex flex-col sm:flex-row gap-2">
+                        <code className="text-xs bg-muted px-2 py-1 rounded truncate max-w-full sm:flex-1 break-all">
                           {window.location.origin}/box/{item.id}
                         </code>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => {
-                            navigator.clipboard.writeText(`${window.location.origin}/box/${item.id}`);
-                            toast.success("連結已複製！");
-                          }}
-                        >
-                          複製
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => fetchEmailLogs(item.id)}
-                        >
-                          查看記錄
-                        </Button>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => {
+                              navigator.clipboard.writeText(`${window.location.origin}/box/${item.id}`);
+                              toast.success("連結已複製！");
+                            }}
+                            className="flex-1 sm:flex-none"
+                          >
+                            複製
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => fetchEmailLogs(item.id)}
+                            className="flex-1 sm:flex-none"
+                          >
+                            查看記錄
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -340,7 +347,7 @@ const Creator = () => {
                     onClick={() => handleDelete(item.id)}
                     variant="ghost"
                     size="icon"
-                    className="ml-4 text-destructive hover:text-destructive/80"
+                    className="self-start md:self-center text-destructive hover:text-destructive/80 shrink-0"
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>
@@ -366,9 +373,9 @@ const Creator = () => {
               </div>
               <div className="space-y-2 max-h-60 overflow-y-auto">
                 {emailLogs.map((log, idx) => (
-                  <div key={idx} className="flex justify-between text-sm p-2 bg-background rounded">
-                    <span className="font-medium">{log.email}</span>
-                    <span className="text-muted-foreground">
+                  <div key={idx} className="flex flex-col sm:flex-row justify-between gap-1 sm:gap-2 text-xs md:text-sm p-2 bg-background rounded">
+                    <span className="font-medium truncate">{log.email}</span>
+                    <span className="text-muted-foreground text-xs shrink-0">
                       {new Date(log.unlocked_at).toLocaleString('zh-TW')}
                     </span>
                   </div>
