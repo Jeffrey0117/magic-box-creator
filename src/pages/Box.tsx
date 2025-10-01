@@ -19,13 +19,30 @@ const Box = () => {
 
   useEffect(() => {
     const init = async () => {
-      if (id || shortCode) {
+      if (id) {
+        await redirectToShortCode();
+      } else if (shortCode) {
         await fetchBoxData();
         await checkAuthAndAutoUnlock();
       }
     };
     init();
   }, [id, shortCode]);
+
+  const redirectToShortCode = async () => {
+    const { data } = await supabase
+      .from("keywords")
+      .select("short_code")
+      .eq("id", id)
+      .maybeSingle();
+    
+    if (data?.short_code) {
+      navigate(`/${data.short_code}`, { replace: true });
+    } else {
+      toast.error("找不到此資料包");
+      navigate("/");
+    }
+  };
 
   const checkAuthAndAutoUnlock = async () => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -149,15 +166,27 @@ const Box = () => {
         keywordData = data;
       }
 
-      const { error: logError } = await supabase.from("email_logs").insert({
-        keyword_id: keywordData.id,
-        email: email.trim(),
-      });
+      const { data: existingLog } = await supabase
+        .from("email_logs")
+        .select("id")
+        .eq("keyword_id", keywordData.id)
+        .eq("email", email.trim())
+        .maybeSingle();
 
-      if (logError) throw logError;
+      if (existingLog) {
+        setResult(keywordData.content);
+        toast.success("🔓 歡迎回來！您已領取過此資料包");
+      } else {
+        const { error: logError } = await supabase.from("email_logs").insert({
+          keyword_id: keywordData.id,
+          email: email.trim(),
+        });
 
-      setResult(keywordData.content);
-      toast.success("🔓 解鎖成功！");
+        if (logError) throw logError;
+
+        setResult(keywordData.content);
+        toast.success("🔓 解鎖成功！");
+      }
     } catch (error: any) {
       toast.error(error.message || "解鎖失敗，請重試");
     } finally {
@@ -201,6 +230,9 @@ const Box = () => {
                     required
                     className="w-full h-12 text-base md:h-10 md:text-sm"
                   />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    💡 請向創作者索取關鍵字（不分大小寫）
+                  </p>
                 </div>
                 <div>
                   <label className="text-sm font-medium mb-2 block">
@@ -214,6 +246,9 @@ const Box = () => {
                     required
                     className="w-full h-12 text-base md:h-10 md:text-sm"
                   />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    🔒 您的 Email 僅用於領取記錄，創作者可見，不會轉售第三方
+                  </p>
                 </div>
                 <Button
                   type="submit"
@@ -230,15 +265,22 @@ const Box = () => {
               </form>
 
               <div className="mt-6 text-center space-y-2">
+                <div className="bg-accent/10 border border-accent/30 rounded-lg p-3 mb-3">
+                  <p className="text-sm font-medium text-accent mb-1">
+                    ✨ 註冊會員享受更多便利
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    • 自動解鎖，無需重複輸入<br/>
+                    • 查看我的領取記錄<br/>
+                    • 一鍵管理所有資料包
+                  </p>
+                </div>
                 <button
                   onClick={() => navigate(`/login?returnTo=${location.pathname}`)}
                   className="text-sm font-medium text-foreground hover:text-accent transition-colors"
                 >
-                  會員登入 →
+                  立即註冊／登入 →
                 </button>
-                <p className="text-xs text-muted-foreground">
-                  註冊後自動解鎖，無需重複輸入 ✨
-                </p>
               </div>
             </div>
           </>
