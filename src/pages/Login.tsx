@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,26 +11,30 @@ const Login = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const PRODUCTION_URL = "https://magic-box-creator.vercel.app";
 
   useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const returnTo = params.get('returnTo');
+
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        navigate("/creator");
+        navigate(returnTo || "/creator");
       }
     };
     checkUser();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
-        navigate("/creator");
+        navigate(returnTo || "/creator");
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, location.search]);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();

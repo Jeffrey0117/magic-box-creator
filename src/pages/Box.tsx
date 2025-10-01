@@ -231,7 +231,7 @@ const Box = () => {
 
               <div className="mt-6 text-center space-y-2">
                 <button
-                  onClick={() => navigate("/login")}
+                  onClick={() => navigate(`/login?returnTo=${location.pathname}`)}
                   className="text-sm font-medium text-foreground hover:text-accent transition-colors"
                 >
                   會員登入 →
