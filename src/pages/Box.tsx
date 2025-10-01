@@ -86,7 +86,7 @@ const Box = () => {
       if (error) {
         console.error("❌ 插入失敗:", JSON.stringify(error, null, 2));
         console.error("❌ Error details:", error);
-        toast.error(`自動解鎖失敗: ${error.message || "未知錯誤"}`);
+        toast.error("自動解鎖失敗，請稍後再試");
         return;
       }
       console.log("✅ 插入成功:", insertedData);
@@ -136,13 +136,13 @@ const Box = () => {
 
         if (fetchError) throw fetchError;
         if (!data) {
-          toast.error("找不到此資料包");
+          toast.error("找不到此資料包，請確認關鍵字是否正確");
           setLoading(false);
           return;
         }
 
         if (data.keyword !== keyword.toLowerCase().trim()) {
-          toast.error("關鍵字錯誤，請重新輸入");
+          toast.error("❌ 關鍵字錯誤，請重新輸入");
           setLoading(false);
           return;
         }
@@ -158,7 +158,7 @@ const Box = () => {
         if (searchError) throw searchError;
 
         if (!data) {
-          toast.error("找不到此關鍵字，請重新輸入");
+          toast.error("❌ 找不到此關鍵字，請確認是否正確");
           setLoading(false);
           return;
         }
@@ -188,7 +188,8 @@ const Box = () => {
         toast.success("🔓 解鎖成功！");
       }
     } catch (error: any) {
-      toast.error(error.message || "解鎖失敗，請重試");
+      console.error("解鎖錯誤:", error);
+      toast.error("解鎖失敗，請稍後再試或聯繫創作者");
     } finally {
       setLoading(false);
     }
@@ -255,7 +256,12 @@ const Box = () => {
                   disabled={loading}
                   className="w-full gradient-magic hover:opacity-90 transition-opacity font-medium text-lg md:text-base h-14 md:h-12 gap-2"
                 >
-                  {loading ? "解鎖中..." : (
+                  {loading ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      解鎖中...
+                    </div>
+                  ) : (
                     <>
                       <Key className="w-5 h-5" />
                       立即解鎖 🔓
@@ -281,6 +287,21 @@ const Box = () => {
                 >
                   立即註冊／登入 →
                 </button>
+                <div className="flex gap-3 justify-center text-xs mt-3">
+                  <button
+                    onClick={() => navigate("/help")}
+                    className="text-muted-foreground hover:text-accent transition-colors"
+                  >
+                    使用說明
+                  </button>
+                  <span className="text-muted-foreground">•</span>
+                  <button
+                    onClick={() => navigate("/privacy")}
+                    className="text-muted-foreground hover:text-accent transition-colors"
+                  >
+                    隱私權政策
+                  </button>
+                </div>
               </div>
             </div>
           </>

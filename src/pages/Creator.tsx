@@ -98,7 +98,8 @@ const Creator = () => {
     });
 
     if (error) {
-      toast.error(error.message || "新增失敗");
+      console.error("新增關鍵字失敗:", error);
+      toast.error("新增失敗，請確認關鍵字是否重複");
     } else {
       toast.success("關鍵字已新增！");
       setNewKeyword("");
@@ -112,7 +113,8 @@ const Creator = () => {
     const { error } = await supabase.from("keywords").delete().eq("id", id);
 
     if (error) {
-      toast.error("刪除失敗");
+      console.error("刪除關鍵字失敗:", error);
+      toast.error("刪除失敗，請稍後再試");
     } else {
       toast.success("已刪除");
       fetchKeywords();
@@ -127,7 +129,8 @@ const Creator = () => {
       .order("unlocked_at", { ascending: false });
 
     if (error) {
-      toast.error("無法載入領取記錄");
+      console.error("載入領取記錄失敗:", error);
+      toast.error("無法載入領取記錄，請重新整理頁面");
     } else {
       setEmailLogs(data || []);
       setSelectedKeywordId(keywordId);
@@ -159,7 +162,8 @@ const Creator = () => {
       .order("unlocked_at", { ascending: false });
 
     if (error) {
-      toast.error("無法載入領取記錄");
+      console.error("載入我的領取記錄失敗:", error);
+      toast.error("無法載入領取記錄，請稍後再試");
     } else {
       setMyRecords(data || []);
     }
@@ -319,7 +323,12 @@ const Creator = () => {
           )}
 
           {loading ? (
-            <div className="text-center py-12 text-muted-foreground">載入中...</div>
+            <div className="text-center py-12">
+              <div className="inline-flex items-center gap-2 text-muted-foreground">
+                <div className="w-5 h-5 border-2 border-accent border-t-transparent rounded-full animate-spin"></div>
+                載入中...
+              </div>
+            </div>
           ) : keywords.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
               還沒有任何關鍵字，點擊上方按鈕新增第一個！
@@ -364,7 +373,22 @@ const Creator = () => {
                             }}
                             className="flex-1 sm:flex-none"
                           >
-                            複製
+                            複製連結
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              const url = item.short_code
+                                ? `${window.location.origin}/${item.short_code}`
+                                : `${window.location.origin}/box/${item.id}`;
+                              const shareText = `🎁 我為你準備了一份專屬資料包！\n\n輸入關鍵字「${item.keyword}」即可免費領取：\n${url}\n\n👉 立即解鎖專屬內容！`;
+                              navigator.clipboard.writeText(shareText);
+                              toast.success("分享文案已複製！");
+                            }}
+                            className="flex-1 sm:flex-none"
+                          >
+                            複製文案
                           </Button>
                           <Button
                             size="sm"

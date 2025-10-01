@@ -66,7 +66,21 @@ const Login = () => {
         );
       }
     } catch (error: any) {
-      toast.error(error.message || "操作失敗，請重試");
+      console.error("登入/註冊錯誤:", error);
+      
+      let errorMessage = "操作失敗，請稍後再試";
+      
+      if (error.message?.includes("Invalid login credentials")) {
+        errorMessage = "❌ Email 或密碼錯誤";
+      } else if (error.message?.includes("User already registered")) {
+        errorMessage = "此 Email 已註冊，請直接登入";
+      } else if (error.message?.includes("Password should be")) {
+        errorMessage = "密碼至少需要 6 個字元";
+      } else if (error.message?.includes("Email not confirmed")) {
+        errorMessage = "請先至信箱點擊驗證連結";
+      }
+      
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -134,17 +148,39 @@ const Login = () => {
               disabled={loading}
               className="w-full gradient-magic hover:opacity-90 transition-opacity font-medium"
             >
-              {loading ? "處理中..." : isLogin ? "登入" : "註冊"}
+              {loading ? (
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  處理中...
+                </div>
+              ) : (
+                isLogin ? "登入" : "註冊"
+              )}
             </Button>
           </form>
 
-          <div className="mt-6 text-center">
+          <div className="mt-6 text-center space-y-2">
             <button
               onClick={() => navigate("/")}
               className="text-sm text-accent hover:text-accent/80 transition-colors"
             >
               ← 回到解鎖頁面
             </button>
+            <div className="flex gap-3 justify-center text-xs mt-3">
+              <button
+                onClick={() => navigate("/help")}
+                className="text-muted-foreground hover:text-accent transition-colors"
+              >
+                使用說明
+              </button>
+              <span className="text-muted-foreground">•</span>
+              <button
+                onClick={() => navigate("/privacy")}
+                className="text-muted-foreground hover:text-accent transition-colors"
+              >
+                隱私權政策
+              </button>
+            </div>
           </div>
         </div>
       </div>

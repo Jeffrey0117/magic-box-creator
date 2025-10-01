@@ -7,6 +7,8 @@ import Box from "./pages/Box";
 import Login from "./pages/Login";
 import Creator from "./pages/Creator";
 import NotFound from "./pages/NotFound";
+import Privacy from "./pages/Privacy";
+import Help from "./pages/Help";
 
 const queryClient = new QueryClient();
 
@@ -20,6 +22,8 @@ const App = () => (
           <Route path="/" element={<Box />} />
           <Route path="/login" element={<Login />} />
           <Route path="/creator" element={<Creator />} />
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/help" element={<Help />} />
           <Route path="/box/:id" element={<Box />} />
           <Route path="/:shortCode" element={<Box />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
