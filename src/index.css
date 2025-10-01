@@ -26,8 +26,9 @@ All colors MUST be HSL.
     --muted: 240 20% 20%;
     --muted-foreground: 240 10% 70%;
 
-    --accent: 45 100% 60%;
+    --accent: 51 100% 50%;
     --accent-foreground: 240 30% 7%;
+    --key-gold: 51 100% 50%;
 
     --destructive: 0 70% 50%;
     --destructive-foreground: 0 0% 100%;
@@ -79,7 +80,7 @@ All colors MUST be HSL.
     --muted: 240 20% 20%;
     --muted-foreground: 240 10% 70%;
 
-    --accent: 45 100% 60%;
+    --accent: 51 100% 50%;
     --accent-foreground: 240 30% 7%;
 
     --destructive: 0 70% 50%;
