@@ -459,13 +459,25 @@ const Creator = () => {
           )}
 
           <div className="mt-8 pt-6 border-t border-border">
-            <Button
-              onClick={() => navigate("/")}
-              variant="outline"
-              className="w-full md:w-auto"
-            >
-              查看 Box 頁面
-            </Button>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <Button
+                onClick={() => navigate("/help")}
+                variant="outline"
+                className="w-full"
+              >
+                📖 使用說明
+              </Button>
+              <Button
+                onClick={() => navigate("/privacy")}
+                variant="outline"
+                className="w-full"
+              >
+                🔒 隱私權政策
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground text-center mt-3">
+              需要協助？查看使用說明或聯繫支援團隊
+            </p>
           </div>
         </div>
       </div>
