@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Trash2, Plus, LogOut } from "lucide-react";
+import { Trash2, Plus, LogOut, Download } from "lucide-react";
 
 interface Keyword {
   id: string;
@@ -164,6 +164,30 @@ const Creator = () => {
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate("/login");
+  };
+
+  const exportToCSV = (keywordId: string, keywordName: string) => {
+    const logs = emailLogs.filter(log => log.email);
+    
+    if (logs.length === 0) {
+      toast.error("沒有可匯出的記錄");
+      return;
+    }
+    
+    const csvContent = [
+      'Email,領取時間',
+      ...logs.map(log => `${log.email},${new Date(log.unlocked_at).toLocaleString('zh-TW')}`)
+    ].join('\n');
+    
+    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `keybox_${keywordName}_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+    
+    toast.success('已匯出 CSV 檔案！');
   };
 
   return (
@@ -358,18 +382,33 @@ const Creator = () => {
 
           {selectedKeywordId && emailLogs.length > 0 && (
             <div className="mt-6 p-4 bg-muted/30 rounded-lg">
-              <div className="flex justify-between items-center mb-3">
-                <h3 className="font-semibold">領取記錄</h3>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => {
-                    setSelectedKeywordId(null);
-                    setEmailLogs([]);
-                  }}
-                >
-                  關閉
-                </Button>
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-3">
+                <h3 className="font-semibold">領取記錄 ({emailLogs.length})</h3>
+                <div className="flex gap-2 w-full sm:w-auto">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      const keyword = keywords.find(k => k.id === selectedKeywordId);
+                      if (keyword) exportToCSV(selectedKeywordId, keyword.keyword);
+                    }}
+                    className="gap-2 flex-1 sm:flex-none"
+                  >
+                    <Download className="w-4 h-4" />
+                    匯出 CSV
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => {
+                      setSelectedKeywordId(null);
+                      setEmailLogs([]);
+                    }}
+                    className="shrink-0"
+                  >
+                    關閉
+                  </Button>
+                </div>
               </div>
               <div className="space-y-2 max-h-60 overflow-y-auto">
                 {emailLogs.map((log, idx) => (
