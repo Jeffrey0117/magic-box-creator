@@ -229,13 +229,16 @@ const Box = () => {
                 </Button>
               </form>
 
-              <div className="mt-6 text-center">
+              <div className="mt-6 text-center space-y-2">
                 <button
                   onClick={() => navigate("/login")}
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  className="text-sm font-medium text-foreground hover:text-accent transition-colors"
                 >
-                  創作者登入 →
+                  會員登入 →
                 </button>
+                <p className="text-xs text-muted-foreground">
+                  註冊後自動解鎖，無需重複輸入 ✨
+                </p>
               </div>
             </div>
           </>
