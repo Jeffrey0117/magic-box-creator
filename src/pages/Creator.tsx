@@ -267,10 +267,24 @@ const Creator = () => {
       toast.error("刪除失敗，請稍後再試");
     } else {
       toast.success("已刪除該筆記錄");
+      
       if (selectedKeywordId) {
         await fetchEmailLogs(selectedKeywordId);
       }
+      
       await fetchKeywords();
+      
+      setKeywords(prevKeywords =>
+        prevKeywords.map(kw => {
+          if (kw.id === selectedKeywordId) {
+            return {
+              ...kw,
+              email_count: Math.max(0, (kw.email_count || 0) - 1)
+            };
+          }
+          return kw;
+        })
+      );
     }
   };
 
@@ -545,9 +559,9 @@ const Creator = () => {
                             </Button>
                             <Button
                               size="sm"
-                              variant="default"
+                              variant="outline"
                               onClick={() => fetchEmailLogs(item.id)}
-                              className="flex-1 sm:flex-none bg-accent hover:bg-accent/90 gap-2"
+                              className="flex-1 sm:flex-none border-accent text-accent hover:bg-accent/10 gap-2"
                             >
                               <ClipboardList className="w-4 h-4" />
                               查看領取記錄
