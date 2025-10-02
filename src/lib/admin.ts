@@ -1,5 +1,5 @@
 const ADMIN_EMAILS = [
-  'jeffbcreative@gmail.com',
+  'jeffby8@gmail.com',
 ];
 
 export function isAdmin(email: string | null | undefined): boolean {
