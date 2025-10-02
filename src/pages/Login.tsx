@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { Lock } from "lucide-react";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -90,7 +91,10 @@ const Login = () => {
     <div className="min-h-screen flex items-center justify-center p-4">
       <div className="w-full max-w-md px-4 md:px-0">
         <div className="text-center mb-8">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gradient mb-2">🔑 KeyBox 🔑</h1>
+          <div className="inline-flex items-center justify-center w-16 h-16 md:w-20 md:h-20 rounded-full gradient-magic mb-4 glow">
+            <Lock className="w-8 h-8 md:w-10 md:h-10 text-white" />
+          </div>
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gradient mb-3">KeyBox 🔑</h1>
           <p className="text-muted-foreground">創作者平台</p>
         </div>
 

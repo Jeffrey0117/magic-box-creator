@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Lock } from "lucide-react";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -9,11 +10,11 @@ const Index = () => {
     <div className="min-h-screen bg-gradient-to-b from-background to-secondary/20">
       <div className="container mx-auto px-4 py-16 max-w-4xl">
         <div className="text-center mb-16">
-          <div className="mb-6">
-            <span className="text-6xl">🔑</span>
+          <div className="inline-flex items-center justify-center w-16 h-16 md:w-20 md:h-20 rounded-full gradient-magic mb-4 glow">
+            <Lock className="w-8 h-8 md:w-10 md:h-10 text-white" />
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">
-            KeyBox
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gradient mb-3">
+            KeyBox 🔑
           </h1>
           <p className="text-xl text-muted-foreground mb-8">
             關鍵字解鎖 Email 收集工具
