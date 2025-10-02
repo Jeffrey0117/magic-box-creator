@@ -1,517 +1,216 @@
-# 🔐 KeyBox Admin 後台系統規劃
+# 🔧 Admin 後台數據修復方案
 
-**文件類型**：技術規劃  
-**創建日期**：2025-10-02  
-**規劃目標**：建立 Admin 管理後台，監控平台運營數據
-
----
-
-## 📌 需求背景
-
-作為 KeyBox 平台管理者，需要一個後台系統來：
-1. 監控平台整體數據（會員數、資料包數、領取數）
-2. 查看所有用戶列表（創作者、使用者）
-3. 管理資料包內容（審核、下架違規內容）
-4. 追蹤系統健康狀態（Supabase 用量、API 請求）
+**問題**：總資料包顯示 0，本週新增顯示 4  
+**原因**：RLS Policy 衝突或查詢邏輯錯誤  
+**目標**：修正統計數據，確保 Admin 可以查看所有資料
 
 ---
 
-## 🎯 核心功能需求
+## 🚨 問題診斷
 
-### 1. 儀表板總覽 (Dashboard)
-**一眼掌握平台關鍵數據**
-
-#### 數據指標：
-- **用戶統計**
-  - 總註冊用戶數
-  - 本週新註冊用戶
-  - 創作者數量（至少建立 1 個資料包）
-  - 一般使用者數量（僅領取）
-
-- **資料包統計**
-  - 總資料包數量
-  - 本週新建資料包
-  - 平均每個資料包領取數
-  - 最熱門資料包 TOP 5
-
-- **領取統計**
-  - 總領取次數
-  - 本週領取次數
-  - 今日領取次數
-  - 領取趨勢圖表（7 日 / 30 日）
-
-- **系統狀態**
-  - Supabase 儲存空間使用率
-  - API 請求次數（本月）
-  - 系統健康狀態
-
----
-
-### 2. 用戶管理 (Users)
-**查看所有註冊用戶**
-
-#### 用戶列表：
-| 欄位 | 說明 |
-|------|------|
-| Email | 用戶信箱 |
-| 註冊日期 | created_at |
-| 角色 | 創作者 / 使用者 / 兩者 |
-| 建立資料包數 | 創作數量 |
-| 領取資料包數 | 消費數量 |
-| 最後活動時間 | last_sign_in_at |
-| 操作 | 查看詳情 / 停權（進階功能） |
-
-#### 篩選功能：
-- 依角色篩選（創作者 / 使用者）
-- 依註冊時間排序
-- 依活躍度排序
-- 搜尋功能（Email）
-
----
-
-### 3. 資料包管理 (Keywords)
-**查看所有資料包內容**
-
-#### 資料包列表：
-| 欄位 | 說明 |
-|------|------|
-| 標題 | title |
-| 關鍵字 | keyword |
-| 短網址 | short_code |
-| 創作者 | creator_email |
-| 領取數 | total_claims |
-| 剩餘數 | remaining_quota |
-| 建立日期 | created_at |
-| 操作 | 查看詳情 / 下架（進階功能） |
-
-#### 篩選功能：
-- 依領取數排序（熱門度）
-- 依建立日期排序
-- 搜尋功能（標題、關鍵字、創作者）
-- 狀態篩選（已用完 / 仍可領取）
-
----
-
-### 4. 領取記錄 (Email Logs)
-**查看所有領取活動**
-
-#### 領取記錄列表：
-| 欄位 | 說明 |
-|------|------|
-| Email | 領取者信箱 |
-| 資料包標題 | keyword.title |
-| 關鍵字 | keyword.keyword |
-| 創作者 | keyword.user_id |
-| 領取時間 | claimed_at |
-
-#### 篩選功能：
-- 依時間範圍篩選（今日 / 本週 / 本月）
-- 依資料包篩選
-- 依領取者篩選
-
----
-
-## 🔐 權限設計
-
-### Admin 角色識別方案
-
-#### 方案 A：特定 Email 白名單（✅ 推薦）
-**優點**：
-- 實作簡單（5 分鐘）
-- 無需修改資料庫結構
-- 安全性高（硬編碼）
-
-**實作方式**：
-```typescript
-// src/lib/admin.ts
-const ADMIN_EMAILS = [
-  'your-admin-email@example.com',
-  // 可新增多個管理員
-];
-
-export function isAdmin(email: string | null): boolean {
-  return email ? ADMIN_EMAILS.includes(email.toLowerCase()) : false;
-}
+### 當前狀況：
+```
+總資料包：0
+本週新增：4
 ```
 
-**路由保護**：
-```typescript
-// src/pages/Admin.tsx
-useEffect(() => {
-  if (!user) {
-    navigate('/login');
-    return;
-  }
-  
-  if (!isAdmin(user.email)) {
-    toast.error('⛔ 權限不足');
-    navigate('/');
-  }
-}, [user]);
-```
+### 問題分析：
+1. **RLS Policy 衝突**：可能有其他 Policy 限制 Admin 查看全部資料
+2. **查詢方式錯誤**：`count` 查詢可能被 RLS 阻擋
+3. **Policy 未生效**：新建立的 Admin Policy 可能沒有正確套用
 
 ---
 
-#### 方案 B：資料庫 role 欄位（進階）
-**優點**：
-- 可動態新增管理員
-- 支援多種角色（admin / moderator）
+## 🔍 步驟 1：檢查現有 RLS Policy
 
-**缺點**：
-- 需要 Migration
-- 需要管理員管理介面
+### 執行以下 SQL 檢查 keywords 資料表的所有 Policy：
 
-**實作方式**：
 ```sql
--- 新增 role 欄位到 auth.users metadata
-ALTER TABLE auth.users 
-ADD COLUMN IF NOT EXISTS raw_user_meta_data jsonb DEFAULT '{}';
-
--- 設定特定用戶為 admin
-UPDATE auth.users
-SET raw_user_meta_data = jsonb_set(
-  raw_user_meta_data, 
-  '{role}', 
-  '"admin"'
-)
-WHERE email = 'your-admin-email@example.com';
+SELECT 
+  schemaname,
+  tablename,
+  policyname,
+  permissive,
+  roles,
+  cmd,
+  qual,
+  with_check
+FROM pg_policies 
+WHERE tablename = 'keywords';
 ```
 
-**建議**：先用方案 A，PMF 後再考慮方案 B
+### 預期結果：
+應該看到類似這樣的 Policy：
+- `Users can view own keywords` - 限制一般用戶只能看自己的
+- `Admin can view all keywords` - 允許 Admin 看全部
 
----
-
-## 🎨 UI/UX 設計
-
-### 路由規劃
-```
-/admin              - 儀表板總覽
-/admin/users        - 用戶管理
-/admin/keywords     - 資料包管理
-/admin/logs         - 領取記錄
-```
-
-### 導航設計
-```tsx
-<Sidebar>
-  <NavItem icon={<LayoutDashboard />} to="/admin">儀表板</NavItem>
-  <NavItem icon={<Users />} to="/admin/users">用戶管理</NavItem>
-  <NavItem icon={<Package />} to="/admin/keywords">資料包管理</NavItem>
-  <NavItem icon={<History />} to="/admin/logs">領取記錄</NavItem>
-</Sidebar>
-```
-
-### 入口設計
-**選項 A：隱藏入口（✅ 推薦）**
-- 不在主導航顯示
-- Admin 用戶直接訪問 `/admin`
-- 非 Admin 自動重導向
-
-**選項 B：顯示入口（進階）**
-- Creator 頁面顯示「管理後台」按鈕
-- 僅 Admin 可見（條件渲染）
-
----
-
-## 📊 資料查詢設計
-
-### Supabase RLS Policy
-
-#### Admin 專用 Policy（讀取所有資料）
+### 如果發現問題：
+可能有衝突的 Policy，例如：
 ```sql
--- 允許 Admin 讀取所有 keywords
+-- 錯誤範例：這會讓 Admin 也被限制
+CREATE POLICY "Users can view own keywords"
+ON keywords FOR SELECT
+USING (auth.uid() = user_id);
+```
+
+---
+
+## ✅ 步驟 2：修正 RLS Policy
+
+### 方案 A：確保 Admin Policy 優先（✅ 推薦）
+
+```sql
+-- 先刪除所有舊的 SELECT Policy
+DROP POLICY IF EXISTS "Users can view own keywords" ON keywords;
+DROP POLICY IF EXISTS "Admin can view all keywords" ON keywords;
+DROP POLICY IF EXISTS "Enable read access for all users" ON keywords;
+
+-- 重新建立正確的 Policy（Admin 優先）
 CREATE POLICY "Admin can view all keywords"
 ON keywords FOR SELECT
 USING (
-  auth.jwt() ->> 'email' IN (
-    'your-admin-email@example.com'
-  )
+  auth.jwt() ->> 'email' = 'jeffby8@gmail.com'
 );
 
--- 允許 Admin 讀取所有 email_logs
+-- 一般用戶只能看自己的
+CREATE POLICY "Users can view own keywords"
+ON keywords FOR SELECT
+USING (
+  auth.uid() = user_id
+  OR auth.jwt() ->> 'email' = 'jeffby8@gmail.com'
+);
+```
+
+### 方案 B：檢查 email_logs 的 Policy
+
+```sql
+-- 同樣的邏輯套用到 email_logs
+DROP POLICY IF EXISTS "Users can view own email logs" ON email_logs;
+DROP POLICY IF EXISTS "Admin can view all email_logs" ON email_logs;
+
 CREATE POLICY "Admin can view all email_logs"
 ON email_logs FOR SELECT
 USING (
-  auth.jwt() ->> 'email' IN (
-    'your-admin-email@example.com'
+  auth.jwt() ->> 'email' = 'jeffby8@gmail.com'
+);
+
+CREATE POLICY "Users can view own email logs"
+ON email_logs FOR SELECT
+USING (
+  keyword_id IN (
+    SELECT id FROM keywords WHERE user_id = auth.uid()
   )
+  OR auth.jwt() ->> 'email' = 'jeffby8@gmail.com'
 );
 ```
 
-### 查詢範例
+---
 
-#### 用戶統計
+## 🛠️ 步驟 3：修正查詢邏輯
+
+### 問題：`head: true` 可能導致 count 不正確
+
+### 修正前：
 ```typescript
-// 總註冊用戶數
-const { count: totalUsers } = await supabase
-  .from('auth.users')
-  .select('*', { count: 'exact', head: true });
-
-// 創作者數量（至少建立 1 個資料包）
-const { data: creators } = await supabase
+const { count: totalKeywords } = await supabase
   .from('keywords')
-  .select('user_id')
-  .not('user_id', 'is', null);
-
-const uniqueCreators = new Set(creators?.map(k => k.user_id)).size;
+  .select('user_id', { count: 'exact', head: true });
 ```
 
-#### 資料包統計
+### 修正後：
 ```typescript
-// 總資料包數
+// 方式 1：不使用 head（✅ 推薦）
+const { data, count: totalKeywords } = await supabase
+  .from('keywords')
+  .select('id', { count: 'exact' });
+
+// 方式 2：使用 count-only 查詢
 const { count: totalKeywords } = await supabase
   .from('keywords')
   .select('*', { count: 'exact', head: true });
-
-// 本週新建資料包
-const { count: weeklyKeywords } = await supabase
-  .from('keywords')
-  .select('*', { count: 'exact', head: true })
-  .gte('created_at', startOfWeek);
 ```
 
-#### 領取統計
+---
+
+## 📝 步驟 4：更新 Admin.tsx
+
+### 修正查詢邏輯：
+
 ```typescript
-// 總領取次數
-const { count: totalClaims } = await supabase
-  .from('email_logs')
-  .select('*', { count: 'exact', head: true });
+const fetchStats = async () => {
+  try {
+    setLoading(true);
 
-// 今日領取次數
-const { count: todayClaims } = await supabase
-  .from('email_logs')
-  .select('*', { count: 'exact', head: true })
-  .gte('claimed_at', startOfDay);
+    const startOfWeek = new Date();
+    startOfWeek.setDate(startOfWeek.getDate() - 7);
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+
+    // 修正：移除 head: true，改用 data 查詢
+    const [
+      { data: allKeywords, count: totalKeywords },
+      { count: weeklyKeywords },
+      { count: totalClaims },
+      { count: todayClaims }
+    ] = await Promise.all([
+      supabase.from('keywords').select('id, user_id', { count: 'exact' }),
+      supabase.from('keywords').select('*', { count: 'exact', head: true }).gte('created_at', startOfWeek.toISOString()),
+      supabase.from('email_logs').select('*', { count: 'exact', head: true }),
+      supabase.from('email_logs').select('*', { count: 'exact', head: true }).gte('claimed_at', startOfDay.toISOString()),
+    ]);
+
+    // 計算創作者數量
+    const uniqueCreators = new Set(allKeywords?.map(k => k.user_id).filter(Boolean)).size;
+
+    setStats({
+      totalUsers: 0,
+      weeklyUsers: 0,
+      totalKeywords: totalKeywords || 0,
+      weeklyKeywords: weeklyKeywords || 0,
+      totalClaims: totalClaims || 0,
+      todayClaims: todayClaims || 0,
+      totalCreators: uniqueCreators,
+    });
+  } catch (error) {
+    console.error('Failed to fetch stats:', error);
+    toast.error('載入統計數據失敗');
+  } finally {
+    setLoading(false);
+  }
+};
 ```
 
 ---
 
-## 🚀 實作階段規劃
+## 🎯 執行順序
 
-### Phase 1：基礎框架（30 分鐘）⭐⭐⭐⭐⭐
-- [ ] 建立 Admin 權限判定 (`isAdmin()`)
-- [ ] 建立 `/admin` 路由與保護機制
-- [ ] 建立 Admin Layout（Sidebar + Header）
-- [ ] 建立儀表板頁面框架
-
-**優先級**：🔥 最高（必須先有權限管理）
-
----
-
-### Phase 2：儀表板總覽（45 分鐘）⭐⭐⭐⭐⭐
-- [ ] 實作用戶統計卡片
-- [ ] 實作資料包統計卡片
-- [ ] 實作領取統計卡片
-- [ ] 實作 Supabase 用量顯示
-
-**優先級**：🔥 最高（快速掌握平台狀態）
-
----
-
-### Phase 3：用戶管理（60 分鐘）⭐⭐⭐⭐
-- [ ] 建立用戶列表頁面
-- [ ] 實作篩選功能（角色、時間）
-- [ ] 實作搜尋功能（Email）
-- [ ] 實作用戶詳情查看
-
-**優先級**：🔴 高（了解用戶行為）
-
----
-
-### Phase 4：資料包管理（60 分鐘）⭐⭐⭐⭐
-- [ ] 建立資料包列表頁面
-- [ ] 實作篩選功能（領取數、日期）
-- [ ] 實作搜尋功能（標題、關鍵字）
-- [ ] 實作資料包詳情查看
-
-**優先級**：🔴 高（監控內容品質）
-
----
-
-### Phase 5：領取記錄（45 分鐘）⭐⭐⭐
-- [ ] 建立領取記錄列表頁面
-- [ ] 實作時間範圍篩選
-- [ ] 實作資料包篩選
-- [ ] 實作即時更新（optional）
-
-**優先級**：🟡 中（進階分析用途）
-
----
-
-### Phase 6：進階功能（選做）⭐⭐
-- [ ] 用戶停權功能
-- [ ] 資料包下架功能
-- [ ] 圖表視覺化（Chart.js）
-- [ ] 匯出報表（CSV / PDF）
-
-**優先級**：🟢 低（PMF 後再做）
-
----
-
-## 📋 資料庫 Migration 需求
-
-### RLS Policy 新增
+### 1. 在 Supabase Dashboard 執行 SQL（修正 RLS Policy）
 ```sql
--- 20251002_add_admin_policies.sql
-
--- Admin 可查看所有 keywords
-CREATE POLICY "Admin can view all keywords"
-ON keywords FOR SELECT
-USING (
-  auth.jwt() ->> 'email' = 'your-admin-email@example.com'
-);
-
--- Admin 可查看所有 email_logs
-CREATE POLICY "Admin can view all email_logs"
-ON email_logs FOR SELECT
-USING (
-  auth.jwt() ->> 'email' = 'your-admin-email@example.com'
-);
-
--- Admin 可查看所有 users（需要 auth.users view）
--- 注意：Supabase 預設不允許直接查詢 auth.users
--- 需要建立 view 或使用 Service Role Key
+-- 複製上面「步驟 2」的 SQL
+-- 在 Supabase Dashboard → SQL Editor 執行
 ```
 
-### 替代方案：使用現有 Policy + Service Role
-```typescript
-// 在 Admin 後台使用 Service Role Key（僅後端）
-import { createClient } from '@supabase/supabase-js';
+### 2. 更新 Admin.tsx 查詢邏輯
+- 移除 `head: true` 從總數查詢
+- 改用 `data` 查詢
 
-const supabaseAdmin = createClient(
-  process.env.VITE_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!, // 需要新增環境變數
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
-  }
-);
-
-// 查詢所有用戶（繞過 RLS）
-const { data: users } = await supabaseAdmin.auth.admin.listUsers();
-```
-
-**安全提醒**：
-- ⚠️ Service Role Key 擁有完整權限
-- ⚠️ 絕對不可暴露於前端
-- ✅ 建議：將 Admin 查詢包裝成 Supabase Edge Functions
+### 3. 測試驗證
+- 用 `jeffby8@gmail.com` 登入
+- 前往 `/admin`
+- 檢查統計數字是否正確
 
 ---
 
-## 🔒 安全性考量
+## ✅ 成功標準
 
-### 1. 環境變數保護
-```env
-# .env
-VITE_SUPABASE_URL=your-supabase-url
-VITE_SUPABASE_ANON_KEY=your-anon-key
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key  # ⚠️ 僅後端使用
-```
-
-### 2. 前端路由保護
-```typescript
-// 所有 /admin/* 路由都需檢查權限
-const ProtectedAdminRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user } = useAuth();
-  
-  if (!user) return <Navigate to="/login" />;
-  if (!isAdmin(user.email)) return <Navigate to="/" />;
-  
-  return <>{children}</>;
-};
-```
-
-### 3. API 請求驗證
-```typescript
-// 每次 API 請求都驗證 Admin 身份
-const fetchAdminData = async () => {
-  const { data, error } = await supabase
-    .from('keywords')
-    .select('*');
-  
-  if (error?.code === 'PGRST301') {
-    // Policy 拒絕存取
-    toast.error('⛔ 權限不足');
-    navigate('/');
-  }
-};
-```
+- [ ] 總資料包數 > 0（應該顯示實際數量）
+- [ ] 本週新增數正確
+- [ ] 總領取次數正確
+- [ ] 今日領取次數正確
+- [ ] 創作者數量正確
 
 ---
 
-## 🎯 決策建議
+## 🚀 完成後
 
-### 立即執行（V9.0）：
-1. **Phase 1：基礎框架**（30 分鐘）
-2. **Phase 2：儀表板總覽**（45 分鐘）
-
-**理由**：
-- ✅ 快速上線（1.5 小時即可看到成果）
-- ✅ 立即掌握平台關鍵數據
-- ✅ 無需複雜的資料庫修改
-
----
-
-### 近期執行（V9.1）：
-1. **Phase 3：用戶管理**（60 分鐘）
-2. **Phase 4：資料包管理**（60 分鐘）
-
-**理由**：
-- ✅ 深入了解用戶行為
-- ✅ 監控內容品質
-- ✅ 為未來審核機制打基礎
-
----
-
-### 選做（V9.2+）：
-1. **Phase 5：領取記錄**（45 分鐘）
-2. **Phase 6：進階功能**（依需求）
-
-**理由**：
-- 🟡 非緊急需求
-- 🟡 可用 Supabase Dashboard 暫時替代
-- 🟡 等用戶規模擴大再做
-
----
-
-## 📊 預期效益
-
-### 對平台管理者：
-- ✅ 一眼掌握平台健康狀態
-- ✅ 快速識別異常行為（濫用、違規）
-- ✅ 數據驅動決策（哪些功能受歡迎）
-
-### 對產品發展：
-- ✅ 了解用戶行為模式
-- ✅ 優化功能優先順序
-- ✅ 建立內容審核機制
-
-### 時間成本：
-- **MVP（儀表板）**：1.5 小時
-- **完整版（含管理功能）**：4 小時
-- **進階版（含圖表與匯出）**：6 小時
-
----
-
-## 🚀 總結
-
-### 建議執行順序：
-1. ✅ **立即做**：Phase 1 + Phase 2（儀表板總覽）
-2. 🔜 **本週做**：Phase 3 + Phase 4（用戶與資料包管理）
-3. 🔮 **未來做**：Phase 5 + Phase 6（領取記錄與進階功能）
-
-### 技術選型：
-- **權限管理**：方案 A（Email 白名單）
-- **資料查詢**：前端直接查詢（搭配 RLS Policy）
-- **進階查詢**：Supabase Edge Functions + Service Role Key
-
-### 安全性優先：
-- ⚠️ 絕不暴露 Service Role Key
-- ✅ 前端路由保護
-- ✅ API 請求驗證
-
----
-
-**KeyBox Admin 後台系統 - 讓數據說話！** 📊
+將修復方案整合到 todo-test.md，作為 V9.1 的修復任務執行。

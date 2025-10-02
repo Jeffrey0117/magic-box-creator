@@ -60,23 +60,27 @@ export default function Admin() {
       const startOfDay = new Date();
       startOfDay.setHours(0, 0, 0, 0);
 
-      const [keywordsRes, weeklyKeywordsRes, claimsRes, todayClaimsRes] = await Promise.all([
-        supabase.from('keywords').select('user_id', { count: 'exact', head: true }),
+      const [
+        { data: allKeywords, count: totalKeywords },
+        { count: weeklyKeywords },
+        { count: totalClaims },
+        { count: todayClaims }
+      ] = await Promise.all([
+        supabase.from('keywords').select('id, user_id', { count: 'exact' }),
         supabase.from('keywords').select('*', { count: 'exact', head: true }).gte('created_at', startOfWeek.toISOString()),
         supabase.from('email_logs').select('*', { count: 'exact', head: true }),
         supabase.from('email_logs').select('*', { count: 'exact', head: true }).gte('claimed_at', startOfDay.toISOString()),
       ]);
 
-      const { data: keywordsData } = await supabase.from('keywords').select('user_id');
-      const uniqueCreators = new Set(keywordsData?.map(k => k.user_id).filter(Boolean)).size;
+      const uniqueCreators = new Set(allKeywords?.map(k => k.user_id).filter(Boolean)).size;
 
       setStats({
         totalUsers: 0,
         weeklyUsers: 0,
-        totalKeywords: keywordsRes.count || 0,
-        weeklyKeywords: weeklyKeywordsRes.count || 0,
-        totalClaims: claimsRes.count || 0,
-        todayClaims: todayClaimsRes.count || 0,
+        totalKeywords: totalKeywords || 0,
+        weeklyKeywords: weeklyKeywords || 0,
+        totalClaims: totalClaims || 0,
+        todayClaims: todayClaims || 0,
         totalCreators: uniqueCreators,
       });
     } catch (error) {
