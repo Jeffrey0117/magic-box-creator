@@ -257,35 +257,36 @@ const Creator = () => {
       return;
     }
 
-    const { error } = await supabase
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      toast.error("請先登入");
+      navigate("/login");
+      return;
+    }
+
+    const { data, error } = await supabase
       .from("email_logs")
       .delete()
-      .eq("id", logId);
+      .eq("id", logId)
+      .select();
 
     if (error) {
       console.error("刪除領取記錄失敗:", error);
-      toast.error("刪除失敗，請稍後再試");
-    } else {
-      toast.success("已刪除該筆記錄");
-      
-      if (selectedKeywordId) {
-        await fetchEmailLogs(selectedKeywordId);
-      }
-      
-      await fetchKeywords();
-      
-      setKeywords(prevKeywords =>
-        prevKeywords.map(kw => {
-          if (kw.id === selectedKeywordId) {
-            return {
-              ...kw,
-              email_count: Math.max(0, (kw.email_count || 0) - 1)
-            };
-          }
-          return kw;
-        })
-      );
+      toast.error(`刪除失敗：${error.message || "請稍後再試"}`);
+      return;
     }
+
+    if (!data || data.length === 0) {
+      console.warn("刪除似乎沒有影響任何記錄");
+    }
+    
+    toast.success("已刪除該筆記錄");
+    
+    if (selectedKeywordId) {
+      await fetchEmailLogs(selectedKeywordId);
+    }
+    
+    await fetchKeywords();
   };
 
   const exportToCSV = (keywordId: string, keywordName: string) => {
