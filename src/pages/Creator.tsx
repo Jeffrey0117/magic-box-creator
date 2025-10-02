@@ -482,29 +482,29 @@ const Creator = () => {
                       </div>
                     </form>
                   ) : (
-                    <div className="flex-1 space-y-3 min-w-0">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <>
+                      <div className="flex-1 space-y-3 min-w-0">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <p className="text-xs md:text-sm text-muted-foreground mb-1">關鍵字</p>
+                            <p className="font-medium text-accent text-sm md:text-base">{item.keyword}</p>
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-xs md:text-sm text-muted-foreground mb-1">回覆內容</p>
+                            <p className="font-medium text-sm md:text-base whitespace-pre-line line-clamp-2">{item.content}</p>
+                          </div>
+                        </div>
+                        <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+                          <span>📊 總領取：{item.email_count || 0} 人</span>
+                          <span>📈 今日：+{item.today_count || 0}</span>
+                          {item.quota && (
+                            <span className="text-accent font-medium">
+                              🔥 剩餘：{Math.max(0, item.quota - (item.email_count || 0))} 份
+                            </span>
+                          )}
+                        </div>
                         <div>
-                          <p className="text-xs md:text-sm text-muted-foreground mb-1">關鍵字</p>
-                          <p className="font-medium text-accent text-sm md:text-base">{item.keyword}</p>
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-xs md:text-sm text-muted-foreground mb-1">回覆內容</p>
-                          <p className="font-medium text-sm md:text-base whitespace-pre-line line-clamp-2">{item.content}</p>
-                        </div>
-                      </div>
-                      <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-                        <span>📊 總領取：{item.email_count || 0} 人</span>
-                        <span>📈 今日：+{item.today_count || 0}</span>
-                        {item.quota && (
-                          <span className="text-accent font-medium">
-                            🔥 剩餘：{Math.max(0, item.quota - (item.email_count || 0))} 份
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    <div>
-                      <p className="text-xs md:text-sm text-muted-foreground mb-1">專屬連結</p>
+                          <p className="text-xs md:text-sm text-muted-foreground mb-1">專屬連結</p>
                       <div className="flex flex-col sm:flex-row gap-2">
                         <code className="text-xs bg-muted px-2 py-1 rounded truncate max-w-full sm:flex-1 break-all">
                           {item.short_code
@@ -552,9 +552,9 @@ const Creator = () => {
                             查看領取記錄
                           </Button>
                         </div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
+                    </>
                 )}
                 {editingKeywordId !== item.id && (
                     <div className="flex md:flex-col gap-2 self-start md:self-center shrink-0">
