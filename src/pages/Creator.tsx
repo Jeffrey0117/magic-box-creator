@@ -502,7 +502,7 @@ const Creator = () => {
                           </span>
                         )}
                       </div>
-                      </div>
+                    </div>
                     <div>
                       <p className="text-xs md:text-sm text-muted-foreground mb-1">專屬連結</p>
                       <div className="flex flex-col sm:flex-row gap-2">
