@@ -318,7 +318,7 @@ const Box = () => {
             </div>
 
             <div className="bg-muted/50 rounded-lg p-6 mb-6">
-              <p className="text-lg break-all">{result}</p>
+              <p className="text-lg break-all whitespace-pre-line">{result}</p>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3">
