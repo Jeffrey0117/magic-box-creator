@@ -11,6 +11,7 @@ import Creator from "./pages/Creator";
 import NotFound from "./pages/NotFound";
 import Privacy from "./pages/Privacy";
 import Help from "./pages/Help";
+import Admin from "./pages/Admin";
 
 const queryClient = new QueryClient();
 
@@ -35,6 +36,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/login" element={<Login />} />
           <Route path="/creator" element={<Creator />} />
+          <Route path="/admin" element={<Admin />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/help" element={<Help />} />
           <Route path="/box/:id" element={<Box />} />

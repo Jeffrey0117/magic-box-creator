@@ -1,258 +1,517 @@
-# V8 領取記錄功能問題修復報告（最終版）
+# 🔐 KeyBox Admin 後台系統規劃
 
-## 問題回報
+**文件類型**：技術規劃  
+**創建日期**：2025-10-02  
+**規劃目標**：建立 Admin 管理後台，監控平台運營數據
 
-用戶反映：
-1. ✅ **UI 問題已修復**：「查看領取記錄」按鈕配色改善，文字清晰可讀
-2. ⚠️ **功能問題未完全解決**：刪除記錄後，統計數字暫時更新了，但重新整理頁面後又恢復原狀
+---
 
-## 根本原因分析
+## 📌 需求背景
 
-### 當前實作的問題
+作為 KeyBox 平台管理者，需要一個後台系統來：
+1. 監控平台整體數據（會員數、資料包數、領取數）
+2. 查看所有用戶列表（創作者、使用者）
+3. 管理資料包內容（審核、下架違規內容）
+4. 追蹤系統健康狀態（Supabase 用量、API 請求）
 
-```tsx
-// src/pages/Creator.tsx:255-288
-const handleDeleteEmailLog = async (logId: string, email: string) => {
-  if (!confirm(`確定要刪除 ${email} 的領取記錄嗎？`)) {
-    return;
-  }
+---
 
-  const { error } = await supabase
-    .from("email_logs")
-    .delete()
-    .eq("id", logId);
+## 🎯 核心功能需求
 
-  if (error) {
-    console.error("刪除領取記錄失敗:", error);
-    toast.error("刪除失敗，請稍後再試");
-  } else {
-    toast.success("已刪除該筆記錄");
-    
-    if (selectedKeywordId) {
-      await fetchEmailLogs(selectedKeywordId);  // ✅ 更新領取記錄列表
-    }
-    
-    await fetchKeywords();  // ✅ 重新計算統計數字
-    
-    setKeywords(prevKeywords =>   // ⚠️ 問題：這只是前端樂觀更新
-      prevKeywords.map(kw => {
-        if (kw.id === selectedKeywordId) {
-          return {
-            ...kw,
-            email_count: Math.max(0, (kw.email_count || 0) - 1)
-          };
-        }
-        return kw;
-      })
-    );
-  }
-};
+### 1. 儀表板總覽 (Dashboard)
+**一眼掌握平台關鍵數據**
+
+#### 數據指標：
+- **用戶統計**
+  - 總註冊用戶數
+  - 本週新註冊用戶
+  - 創作者數量（至少建立 1 個資料包）
+  - 一般使用者數量（僅領取）
+
+- **資料包統計**
+  - 總資料包數量
+  - 本週新建資料包
+  - 平均每個資料包領取數
+  - 最熱門資料包 TOP 5
+
+- **領取統計**
+  - 總領取次數
+  - 本週領取次數
+  - 今日領取次數
+  - 領取趨勢圖表（7 日 / 30 日）
+
+- **系統狀態**
+  - Supabase 儲存空間使用率
+  - API 請求次數（本月）
+  - 系統健康狀態
+
+---
+
+### 2. 用戶管理 (Users)
+**查看所有註冊用戶**
+
+#### 用戶列表：
+| 欄位 | 說明 |
+|------|------|
+| Email | 用戶信箱 |
+| 註冊日期 | created_at |
+| 角色 | 創作者 / 使用者 / 兩者 |
+| 建立資料包數 | 創作數量 |
+| 領取資料包數 | 消費數量 |
+| 最後活動時間 | last_sign_in_at |
+| 操作 | 查看詳情 / 停權（進階功能） |
+
+#### 篩選功能：
+- 依角色篩選（創作者 / 使用者）
+- 依註冊時間排序
+- 依活躍度排序
+- 搜尋功能（Email）
+
+---
+
+### 3. 資料包管理 (Keywords)
+**查看所有資料包內容**
+
+#### 資料包列表：
+| 欄位 | 說明 |
+|------|------|
+| 標題 | title |
+| 關鍵字 | keyword |
+| 短網址 | short_code |
+| 創作者 | creator_email |
+| 領取數 | total_claims |
+| 剩餘數 | remaining_quota |
+| 建立日期 | created_at |
+| 操作 | 查看詳情 / 下架（進階功能） |
+
+#### 篩選功能：
+- 依領取數排序（熱門度）
+- 依建立日期排序
+- 搜尋功能（標題、關鍵字、創作者）
+- 狀態篩選（已用完 / 仍可領取）
+
+---
+
+### 4. 領取記錄 (Email Logs)
+**查看所有領取活動**
+
+#### 領取記錄列表：
+| 欄位 | 說明 |
+|------|------|
+| Email | 領取者信箱 |
+| 資料包標題 | keyword.title |
+| 關鍵字 | keyword.keyword |
+| 創作者 | keyword.user_id |
+| 領取時間 | claimed_at |
+
+#### 篩選功能：
+- 依時間範圍篩選（今日 / 本週 / 本月）
+- 依資料包篩選
+- 依領取者篩選
+
+---
+
+## 🔐 權限設計
+
+### Admin 角色識別方案
+
+#### 方案 A：特定 Email 白名單（✅ 推薦）
+**優點**：
+- 實作簡單（5 分鐘）
+- 無需修改資料庫結構
+- 安全性高（硬編碼）
+
+**實作方式**：
+```typescript
+// src/lib/admin.ts
+const ADMIN_EMAILS = [
+  'your-admin-email@example.com',
+  // 可新增多個管理員
+];
+
+export function isAdmin(email: string | null): boolean {
+  return email ? ADMIN_EMAILS.includes(email.toLowerCase()) : false;
+}
 ```
 
-### 問題所在
+**路由保護**：
+```typescript
+// src/pages/Admin.tsx
+useEffect(() => {
+  if (!user) {
+    navigate('/login');
+    return;
+  }
+  
+  if (!isAdmin(user.email)) {
+    toast.error('⛔ 權限不足');
+    navigate('/');
+  }
+}, [user]);
+```
 
-1. **樂觀更新 (Optimistic Update) 只是前端暫時修改**
-   - `setKeywords()` 只改變 React state
-   - 重新整理頁面後，state 會重置
-   - `fetchKeywords()` 會重新從資料庫載入
+---
 
-2. **`fetchKeywords()` 執行順序問題**
-   ```tsx
-   await fetchKeywords();           // 步驟 1：從 DB 重新計算
-   
-   setKeywords(prevKeywords => ...); // 步驟 2：覆蓋掉步驟 1 的結果！
-   ```
-   
-   ❌ **錯誤**：步驟 2 會覆蓋步驟 1 從資料庫取得的正確數據
+#### 方案 B：資料庫 role 欄位（進階）
+**優點**：
+- 可動態新增管理員
+- 支援多種角色（admin / moderator）
 
-3. **真正的問題：`fetchKeywords()` 的查詢結果不正確**
-   
-   查看 `fetchKeywords()` 函數（Line 74-119）：
-   ```tsx
-   const fetchKeywords = async () => {
-     // ... 省略 ...
-     
-     const keywordsWithStats = await Promise.all(
-       (data || []).map(async (keyword) => {
-         const { count: totalCount } = await supabase
-           .from("email_logs")
-           .select("*", { count: "exact", head: true })
-           .eq("keyword_id", keyword.id);  // ✅ 正確：應該會反映刪除後的數量
-         
-         // ... 省略 today count ...
-       })
-     );
-   };
-   ```
-   
-   **理論上**：`fetchKeywords()` 應該會從資料庫取得正確的最新數量（因為記錄已被刪除）
-   
-   **實際上**：用戶回報刷新後數字又恢復 → 表示資料庫的記錄可能沒有真正被刪除！
+**缺點**：
+- 需要 Migration
+- 需要管理員管理介面
 
-## 真正的問題：RLS 政策阻止刪除
-
-### 檢查 Supabase RLS 設定
-
-查看我們的 migration 檔案：`supabase/migrations/20251001010000_fix_email_logs_rls.sql`
-
+**實作方式**：
 ```sql
-CREATE POLICY "Creators can manage their keyword email logs"
-ON email_logs
-FOR ALL
-TO authenticated
+-- 新增 role 欄位到 auth.users metadata
+ALTER TABLE auth.users 
+ADD COLUMN IF NOT EXISTS raw_user_meta_data jsonb DEFAULT '{}';
+
+-- 設定特定用戶為 admin
+UPDATE auth.users
+SET raw_user_meta_data = jsonb_set(
+  raw_user_meta_data, 
+  '{role}', 
+  '"admin"'
+)
+WHERE email = 'your-admin-email@example.com';
+```
+
+**建議**：先用方案 A，PMF 後再考慮方案 B
+
+---
+
+## 🎨 UI/UX 設計
+
+### 路由規劃
+```
+/admin              - 儀表板總覽
+/admin/users        - 用戶管理
+/admin/keywords     - 資料包管理
+/admin/logs         - 領取記錄
+```
+
+### 導航設計
+```tsx
+<Sidebar>
+  <NavItem icon={<LayoutDashboard />} to="/admin">儀表板</NavItem>
+  <NavItem icon={<Users />} to="/admin/users">用戶管理</NavItem>
+  <NavItem icon={<Package />} to="/admin/keywords">資料包管理</NavItem>
+  <NavItem icon={<History />} to="/admin/logs">領取記錄</NavItem>
+</Sidebar>
+```
+
+### 入口設計
+**選項 A：隱藏入口（✅ 推薦）**
+- 不在主導航顯示
+- Admin 用戶直接訪問 `/admin`
+- 非 Admin 自動重導向
+
+**選項 B：顯示入口（進階）**
+- Creator 頁面顯示「管理後台」按鈕
+- 僅 Admin 可見（條件渲染）
+
+---
+
+## 📊 資料查詢設計
+
+### Supabase RLS Policy
+
+#### Admin 專用 Policy（讀取所有資料）
+```sql
+-- 允許 Admin 讀取所有 keywords
+CREATE POLICY "Admin can view all keywords"
+ON keywords FOR SELECT
 USING (
-  keyword_id IN (
-    SELECT id FROM keywords WHERE creator_id = auth.uid()
+  auth.jwt() ->> 'email' IN (
+    'your-admin-email@example.com'
+  )
+);
+
+-- 允許 Admin 讀取所有 email_logs
+CREATE POLICY "Admin can view all email_logs"
+ON email_logs FOR SELECT
+USING (
+  auth.jwt() ->> 'email' IN (
+    'your-admin-email@example.com'
   )
 );
 ```
 
-**問題分析**：
-- `FOR ALL` 包含 SELECT, INSERT, **DELETE**
-- `USING` 條件檢查 `keyword_id` 是否屬於當前用戶
-- 理論上應該可以刪除
+### 查詢範例
 
-**但是**：如果 Policy 有問題或者前端執行刪除時沒有正確的認證狀態，刪除會失敗但前端可能沒有正確處理錯誤。
+#### 用戶統計
+```typescript
+// 總註冊用戶數
+const { count: totalUsers } = await supabase
+  .from('auth.users')
+  .select('*', { count: 'exact', head: true });
 
-### 驗證刪除是否成功
+// 創作者數量（至少建立 1 個資料包）
+const { data: creators } = await supabase
+  .from('keywords')
+  .select('user_id')
+  .not('user_id', 'is', null);
 
-現在的程式碼：
-```tsx
-const { error } = await supabase
-  .from("email_logs")
-  .delete()
-  .eq("id", logId);
-
-if (error) {
-  console.error("刪除領取記錄失敗:", error);  // ❌ 用戶可能沒看到這個
-  toast.error("刪除失敗，請稍後再試");
-}
+const uniqueCreators = new Set(creators?.map(k => k.user_id)).size;
 ```
 
-**問題**：如果刪除失敗，只會在 console 顯示，用戶可能沒注意到。
+#### 資料包統計
+```typescript
+// 總資料包數
+const { count: totalKeywords } = await supabase
+  .from('keywords')
+  .select('*', { count: 'exact', head: true });
 
-## 完整修復方案
+// 本週新建資料包
+const { count: weeklyKeywords } = await supabase
+  .from('keywords')
+  .select('*', { count: 'exact', head: true })
+  .gte('created_at', startOfWeek);
+```
 
-### 修復 1：移除樂觀更新（避免覆蓋真實數據）
+#### 領取統計
+```typescript
+// 總領取次數
+const { count: totalClaims } = await supabase
+  .from('email_logs')
+  .select('*', { count: 'exact', head: true });
 
-```tsx
-const handleDeleteEmailLog = async (logId: string, email: string) => {
-  if (!confirm(`確定要刪除 ${email} 的領取記錄嗎？`)) {
-    return;
+// 今日領取次數
+const { count: todayClaims } = await supabase
+  .from('email_logs')
+  .select('*', { count: 'exact', head: true })
+  .gte('claimed_at', startOfDay);
+```
+
+---
+
+## 🚀 實作階段規劃
+
+### Phase 1：基礎框架（30 分鐘）⭐⭐⭐⭐⭐
+- [ ] 建立 Admin 權限判定 (`isAdmin()`)
+- [ ] 建立 `/admin` 路由與保護機制
+- [ ] 建立 Admin Layout（Sidebar + Header）
+- [ ] 建立儀表板頁面框架
+
+**優先級**：🔥 最高（必須先有權限管理）
+
+---
+
+### Phase 2：儀表板總覽（45 分鐘）⭐⭐⭐⭐⭐
+- [ ] 實作用戶統計卡片
+- [ ] 實作資料包統計卡片
+- [ ] 實作領取統計卡片
+- [ ] 實作 Supabase 用量顯示
+
+**優先級**：🔥 最高（快速掌握平台狀態）
+
+---
+
+### Phase 3：用戶管理（60 分鐘）⭐⭐⭐⭐
+- [ ] 建立用戶列表頁面
+- [ ] 實作篩選功能（角色、時間）
+- [ ] 實作搜尋功能（Email）
+- [ ] 實作用戶詳情查看
+
+**優先級**：🔴 高（了解用戶行為）
+
+---
+
+### Phase 4：資料包管理（60 分鐘）⭐⭐⭐⭐
+- [ ] 建立資料包列表頁面
+- [ ] 實作篩選功能（領取數、日期）
+- [ ] 實作搜尋功能（標題、關鍵字）
+- [ ] 實作資料包詳情查看
+
+**優先級**：🔴 高（監控內容品質）
+
+---
+
+### Phase 5：領取記錄（45 分鐘）⭐⭐⭐
+- [ ] 建立領取記錄列表頁面
+- [ ] 實作時間範圍篩選
+- [ ] 實作資料包篩選
+- [ ] 實作即時更新（optional）
+
+**優先級**：🟡 中（進階分析用途）
+
+---
+
+### Phase 6：進階功能（選做）⭐⭐
+- [ ] 用戶停權功能
+- [ ] 資料包下架功能
+- [ ] 圖表視覺化（Chart.js）
+- [ ] 匯出報表（CSV / PDF）
+
+**優先級**：🟢 低（PMF 後再做）
+
+---
+
+## 📋 資料庫 Migration 需求
+
+### RLS Policy 新增
+```sql
+-- 20251002_add_admin_policies.sql
+
+-- Admin 可查看所有 keywords
+CREATE POLICY "Admin can view all keywords"
+ON keywords FOR SELECT
+USING (
+  auth.jwt() ->> 'email' = 'your-admin-email@example.com'
+);
+
+-- Admin 可查看所有 email_logs
+CREATE POLICY "Admin can view all email_logs"
+ON email_logs FOR SELECT
+USING (
+  auth.jwt() ->> 'email' = 'your-admin-email@example.com'
+);
+
+-- Admin 可查看所有 users（需要 auth.users view）
+-- 注意：Supabase 預設不允許直接查詢 auth.users
+-- 需要建立 view 或使用 Service Role Key
+```
+
+### 替代方案：使用現有 Policy + Service Role
+```typescript
+// 在 Admin 後台使用 Service Role Key（僅後端）
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseAdmin = createClient(
+  process.env.VITE_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!, // 需要新增環境變數
+  {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
   }
+);
 
-  const { error } = await supabase
-    .from("email_logs")
-    .delete()
-    .eq("id", logId);
+// 查詢所有用戶（繞過 RLS）
+const { data: users } = await supabaseAdmin.auth.admin.listUsers();
+```
 
-  if (error) {
-    console.error("刪除領取記錄失敗:", error);
-    toast.error(`刪除失敗：${error.message}`);  // ✅ 顯示詳細錯誤訊息
-    return;  // ✅ 失敗時不更新 UI
-  }
+**安全提醒**：
+- ⚠️ Service Role Key 擁有完整權限
+- ⚠️ 絕對不可暴露於前端
+- ✅ 建議：將 Admin 查詢包裝成 Supabase Edge Functions
+
+---
+
+## 🔒 安全性考量
+
+### 1. 環境變數保護
+```env
+# .env
+VITE_SUPABASE_URL=your-supabase-url
+VITE_SUPABASE_ANON_KEY=your-anon-key
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key  # ⚠️ 僅後端使用
+```
+
+### 2. 前端路由保護
+```typescript
+// 所有 /admin/* 路由都需檢查權限
+const ProtectedAdminRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user } = useAuth();
   
-  toast.success("已刪除該筆記錄");
+  if (!user) return <Navigate to="/login" />;
+  if (!isAdmin(user.email)) return <Navigate to="/" />;
   
-  // ✅ 刪除成功後，重新載入最新數據
-  if (selectedKeywordId) {
-    await fetchEmailLogs(selectedKeywordId);
-  }
-  
-  await fetchKeywords();  // ✅ 從資料庫取得正確統計
-  
-  // ❌ 移除樂觀更新（避免覆蓋 fetchKeywords 的結果）
+  return <>{children}</>;
 };
 ```
 
-### 修復 2：加強錯誤處理與驗證
-
-```tsx
-const handleDeleteEmailLog = async (logId: string, email: string) => {
-  if (!confirm(`確定要刪除 ${email} 的領取記錄嗎？`)) {
-    return;
-  }
-
-  // ✅ 先檢查認證狀態
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) {
-    toast.error("請先登入");
-    navigate("/login");
-    return;
-  }
-
+### 3. API 請求驗證
+```typescript
+// 每次 API 請求都驗證 Admin 身份
+const fetchAdminData = async () => {
   const { data, error } = await supabase
-    .from("email_logs")
-    .delete()
-    .eq("id", logId)
-    .select();  // ✅ 加上 select() 確認刪除成功
-
-  if (error) {
-    console.error("刪除領取記錄失敗:", error);
-    toast.error(`刪除失敗：${error.message || "請稍後再試"}`);
-    return;
-  }
-
-  // ✅ 檢查是否真的刪除了
-  if (!data || data.length === 0) {
-    console.warn("刪除似乎沒有影響任何記錄");
-  }
+    .from('keywords')
+    .select('*');
   
-  toast.success("已刪除該筆記錄");
-  
-  if (selectedKeywordId) {
-    await fetchEmailLogs(selectedKeywordId);
+  if (error?.code === 'PGRST301') {
+    // Policy 拒絕存取
+    toast.error('⛔ 權限不足');
+    navigate('/');
   }
-  
-  await fetchKeywords();
 };
 ```
 
-## 測試計畫
+---
 
-### 步驟 1：確認刪除是否成功
-1. 開啟瀏覽器開發者工具（F12）
-2. 切換到 Console 分頁
-3. 刪除一筆記錄
-4. 檢查 Console 是否有錯誤訊息
+## 🎯 決策建議
 
-### 步驟 2：確認資料庫狀態
-1. 登入 Supabase Dashboard
-2. 打開 Table Editor → email_logs
-3. 刪除前記下 total rows 數量
-4. 執行刪除
-5. 重新整理 Supabase，確認 rows 數量 -1
+### 立即執行（V9.0）：
+1. **Phase 1：基礎框架**（30 分鐘）
+2. **Phase 2：儀表板總覽**（45 分鐘）
 
-### 步驟 3：前端測試
-1. 刪除記錄
-2. 觀察「總領取」數字是否立即更新
-3. 重新整理頁面（F5）
-4. 確認數字維持正確
+**理由**：
+- ✅ 快速上線（1.5 小時即可看到成果）
+- ✅ 立即掌握平台關鍵數據
+- ✅ 無需複雜的資料庫修改
 
-## 總結
+---
 
-**當前狀況**：
-- ✅ UI 已優化（按鈕配色清晰）
-- ⚠️ 刪除功能：前端暫時更新，但重新整理後恢復
+### 近期執行（V9.1）：
+1. **Phase 3：用戶管理**（60 分鐘）
+2. **Phase 4：資料包管理**（60 分鐘）
 
-**根本原因**：
-1. 樂觀更新覆蓋了資料庫的真實數據
-2. 可能的 RLS 權限問題導致刪除失敗
-3. 錯誤處理不足，用戶沒看到失敗訊息
+**理由**：
+- ✅ 深入了解用戶行為
+- ✅ 監控內容品質
+- ✅ 為未來審核機制打基礎
 
-**修復方案**：
-1. 移除樂觀更新，完全依賴資料庫數據
-2. 加強錯誤處理，顯示詳細錯誤訊息
-3. 加上 `.select()` 確認刪除成功
+---
 
-**預期效果**：
-- 如果刪除成功：統計數字會永久更新
-- 如果刪除失敗：會顯示明確錯誤訊息
+### 選做（V9.2+）：
+1. **Phase 5：領取記錄**（45 分鐘）
+2. **Phase 6：進階功能**（依需求）
 
-## 實作步驟
+**理由**：
+- 🟡 非緊急需求
+- 🟡 可用 Supabase Dashboard 暫時替代
+- 🟡 等用戶規模擴大再做
 
-1. ✅ 更新 `handleDeleteEmailLog` 函數
-2. ✅ 測試刪除功能
-3. ✅ 確認資料庫記錄真正被刪除
-4. ✅ 測試重新整理後數字是否正確
-5. ✅ Commit 並 Push
+---
+
+## 📊 預期效益
+
+### 對平台管理者：
+- ✅ 一眼掌握平台健康狀態
+- ✅ 快速識別異常行為（濫用、違規）
+- ✅ 數據驅動決策（哪些功能受歡迎）
+
+### 對產品發展：
+- ✅ 了解用戶行為模式
+- ✅ 優化功能優先順序
+- ✅ 建立內容審核機制
+
+### 時間成本：
+- **MVP（儀表板）**：1.5 小時
+- **完整版（含管理功能）**：4 小時
+- **進階版（含圖表與匯出）**：6 小時
+
+---
+
+## 🚀 總結
+
+### 建議執行順序：
+1. ✅ **立即做**：Phase 1 + Phase 2（儀表板總覽）
+2. 🔜 **本週做**：Phase 3 + Phase 4（用戶與資料包管理）
+3. 🔮 **未來做**：Phase 5 + Phase 6（領取記錄與進階功能）
+
+### 技術選型：
+- **權限管理**：方案 A（Email 白名單）
+- **資料查詢**：前端直接查詢（搭配 RLS Policy）
+- **進階查詢**：Supabase Edge Functions + Service Role Key
+
+### 安全性優先：
+- ⚠️ 絕不暴露 Service Role Key
+- ✅ 前端路由保護
+- ✅ API 請求驗證
+
+---
+
+**KeyBox Admin 後台系統 - 讓數據說話！** 📊

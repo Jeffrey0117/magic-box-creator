@@ -69,140 +69,249 @@
 
 ## 📋 待處理項目清單
 
-### 🔥 最高優先級（用戶痛點）
+### 🔥 最高優先級（已完成）
 
-#### 0. 領取記錄管理優化 ⭐⭐⭐⭐⭐
-**現況問題**：
-1. **顯示不清楚**：領取記錄藏在「查看記錄」按鈕後，需要逐一展開才能看到
-2. **無法編輯**：測試記錄無法刪除，導致數據混亂
-3. **缺乏統計**：無法快速看到總領取數、今日新增等關鍵數據
-
-**用戶痛點**：
-- 創作者測試時產生的假記錄無法清除
-- 需要點開每個關鍵字才能看到領取數量
-- 無法一眼看出哪個關鍵字最受歡迎
-
-**改進方案**：
-
-##### A. 改善資訊顯示（必做）⭐⭐⭐⭐⭐
-**目標**：讓統計數字一目了然
-
-```tsx
-// 在每個關鍵字卡片上直接顯示統計
-<div className="flex gap-4 text-sm text-muted-foreground">
-  <span>📊 總領取：{totalCount} 人</span>
-  <span>📈 今日：+{todayCount}</span>
-  {item.quota && (
-    <span>🔥 剩餘：{item.quota - totalCount} 份</span>
-  )}
-</div>
-```
-
-**實作細節**：
-- 在 `fetchKeywords` 時同時載入每個關鍵字的領取數
-- 使用 Supabase 的 `count` 功能統計
-- 計算今日領取數（過濾 `unlocked_at >= today`）
-
-**時間估計**：30-40 分鐘
-**技術難度**：低
+#### 0. 領取記錄管理優化 ✅ 已完成（V8.0）
+**已解決問題**：
+- ✅ **統計數字一目了然**：每個關鍵字卡片直接顯示總領取、今日新增、剩餘份數
+- ✅ **記錄可刪除**：單筆刪除功能 + RLS DELETE policy
+- ✅ **刪除驗證**：確認對話框 + 錯誤處理強化
+- ✅ **按鈕配色優化**：提高可讀性
 
 ---
 
-##### B. 單筆記錄刪除功能（必做）⭐⭐⭐⭐⭐
-**目標**：清除測試記錄，保持數據乾淨
+### 🔥 當前最高優先級（V8.1）
+
+#### 1. Email 複製功能優化 ⭐⭐⭐⭐⭐
+**用戶需求**：
+> "信箱那邊除了刪除以外也要有複製按鈕，且要有一次複製（就是用,隔開）的"
+
+**現況問題**：
+- 需要手動選取 Email 才能複製
+- 無法一次複製所有 Email 用於郵件行銷工具
+
+**改進方案**：
+
+##### A. 單筆 Email 複製按鈕（必做）⭐⭐⭐⭐⭐
+**目標**：快速複製單一 Email
 
 **UI 設計**：
 ```tsx
-// 在領取記錄列表中加入刪除按鈕
-<div className="flex justify-between items-center">
-  <span>{log.email}</span>
-  <Button
-    size="sm"
-    variant="ghost"
-    onClick={() => handleDeleteLog(log.id)}
-  >
-    <Trash2 className="w-3 h-3" />
-  </Button>
+// 在領取記錄列表中，每筆記錄旁加入複製按鈕
+<div className="flex justify-between items-center gap-2">
+  <span className="font-medium truncate">{log.email}</span>
+  <div className="flex gap-1">
+    <Button
+      size="sm"
+      variant="ghost"
+      onClick={() => {
+        navigator.clipboard.writeText(log.email);
+        toast.success(`已複製：${log.email}`);
+      }}
+    >
+      <Copy className="w-3 h-3" />
+    </Button>
+    <Button
+      size="sm"
+      variant="ghost"
+      onClick={() => handleDeleteEmailLog(log.id, log.email)}
+      className="text-destructive"
+    >
+      <Trash2 className="w-3 h-3" />
+    </Button>
+  </div>
 </div>
 ```
 
-**功能流程**：
-1. 點擊刪除按鈕
-2. 彈出確認對話框：「確定要刪除 {email} 的領取記錄嗎？」
-3. 確認後從 `email_logs` 表刪除該筆記錄
-4. 同步更新顯示的統計數字
+**時間估計**：10 分鐘  
+**技術難度**：極低
 
-**安全性考量**：
-- ✅ RLS 政策確保只能刪除自己關鍵字下的記錄
-- ✅ 二次確認避免誤刪
-- ✅ 刪除後自動重新計算統計數字
+---
 
-**時間估計**：20-30 分鐘
-**技術難度**：低
+##### B. 一鍵複製所有 Email（必做）⭐⭐⭐⭐⭐
+**目標**：複製所有 Email 用於郵件行銷工具
+
+**UI 設計**：
+```tsx
+// 在領取記錄區塊頂部加入「複製全部」按鈕
+<div className="flex justify-between items-center mb-3">
+  <h3 className="font-semibold">領取記錄 ({emailLogs.length})</h3>
+  <div className="flex gap-2">
+    <Button
+      size="sm"
+      variant="outline"
+      onClick={() => {
+        const emails = emailLogs.map(log => log.email).join(',');
+        navigator.clipboard.writeText(emails);
+        toast.success(`已複製 ${emailLogs.length} 個 Email`);
+      }}
+      className="gap-2"
+    >
+      <Copy className="w-4 h-4" />
+      複製全部 Email
+    </Button>
+    <Button size="sm" variant="outline" onClick={exportToCSV}>
+      <Download className="w-4 h-4" />
+      匯出 CSV
+    </Button>
+    <Button size="sm" variant="ghost" onClick={closeModal}>
+      關閉
+    </Button>
+  </div>
+</div>
+```
+
+**功能說明**：
+- 將所有 Email 用逗號 (`,`) 分隔
+- 格式：`email1@example.com,email2@example.com,email3@example.com`
+- 可直接貼到 Gmail / Mailchimp / ConvertKit
+
+**時間估計**：10 分鐘  
+**技術難度**：極低
 
 ---
 
 ##### C. 批次刪除功能（選做）⭐⭐⭐
-**目標**：一次清空所有測試記錄
-
-**使用場景**：
-- 創作者測試完畢，想清空所有測試數據
-- 重新開始收集正式名單
+**目標**：一次清空所有領取記錄
 
 **UI 設計**：
 ```tsx
 <Button
+  size="sm"
   variant="outline"
-  onClick={() => handleBatchDelete(keywordId)}
+  onClick={() => handleBatchDelete(selectedKeywordId)}
+  className="text-destructive border-destructive"
 >
-  🗑️ 清空所有記錄
+  <Trash2 className="w-4 h-4" />
+  清空所有記錄
 </Button>
 ```
 
 **功能流程**：
 1. 點擊「清空所有記錄」
-2. 彈出警告對話框：
+2. 彈出確認對話框：
    ```
-   ⚠️ 警告：此操作將永久刪除所有 {count} 筆領取記錄
-   確定要繼續嗎？
+   ⚠️ 警告：此操作將永久刪除所有 {emailLogs.length} 筆領取記錄
+   此動作無法復原，確定要繼續嗎？
    ```
-3. 要求輸入「DELETE」確認
-4. 刪除該關鍵字下所有 email_logs
+3. 確認後刪除該關鍵字下所有 email_logs
+4. 重新載入統計數字
 
-**時間估計**：30 分鐘
-**技術難度**：中
+**時間估計**：15 分鐘  
+**技術難度**：低
 
 ---
 
-##### D. 記錄篩選與搜尋（進階）⭐⭐
-**目標**：快速找到特定 Email
-
-**功能**：
-- 搜尋框：輸入 Email 模糊搜尋
-- 日期篩選：只看今日/本週/本月
-- 排序：按時間、Email 字母排序
-
-**時間估計**：1 小時
-**技術難度**：中
-
----
-
-**建議實作順序**：
-1. **第一階段（本週）**：A + B（改善顯示 + 單筆刪除）
-2. **第二階段（下週）**：C（批次刪除）
-3. **第三階段（需求驗證後）**：D（進階篩選）
+**實作順序**：
+1. **立即執行**：A + B（單筆複製 + 複製全部）
+2. **選做**：C（批次刪除）
 
 **預期效益**：
-- ✅ 解決測試記錄混亂問題
-- ✅ 提升創作者數據掌握感
-- ✅ 減少 60% 的「查看記錄」點擊次數
-- ✅ 符合 GDPR「資料刪除權」要求
+- ✅ 提升 Email 管理效率 90%
+- ✅ 支援主流郵件行銷工具
+- ✅ 減少手動選取 Email 的時間
+
+---
+
+---
+
+### 📧 Email 寄送服務整合討論
+
+#### 問題：KeyBox 是否應該內建 Email 寄送功能？
+
+**用戶疑問**：
+> "關於寄信的服務是否要包含？我覺得不包含，但是否能開另一個專案去配合 Mailion 之類的"
+
+**答案：不包含，理由如下**
+
+##### 為什麼 KeyBox 不應該內建寄信功能？
+
+1. **產品定位清晰**
+   - KeyBox = Email **收集**工具（Lead Generation）
+   - 專注做好一件事：收集 Email 名單
+   - 避免功能膨脹（Feature Creep）
+
+2. **技術複雜度高**
+   - 需要 SMTP 伺服器 / SendGrid / AWS SES
+   - Email 模板設計與管理
+   - 反垃圾郵件機制（SPF / DKIM / DMARC）
+   - 寄送追蹤（開信率、點擊率）
+   - 退信處理（Bounce Management）
+   - 成本：SendGrid 免費額度 100 封/天，付費 $15/月起
+
+3. **市場已有成熟方案**
+   - Mailchimp（領導品牌）
+   - ConvertKit（創作者導向）
+   - Mailgun / SendGrid（開發者工具）
+   - 重複造輪子沒有意義
+
+4. **維護成本高**
+   - Email deliverability 是專業領域
+   - 需要持續監控寄送成功率
+   - 需要處理用戶投訴與退信
+
+##### 建議方案：整合現有 Email 服務
+
+**方案 A：一鍵複製 Email（✅ 推薦）**
+- 提供「複製全部 Email」功能
+- 用戶直接貼到 Gmail / Mailchimp / ConvertKit
+- 實作成本：10 分鐘
+- 維護成本：0
+
+**方案 B：CSV 匯出（✅ 已實作）**
+- 匯出 Email 列表為 CSV
+- 匯入到任何 Email 行銷工具
+- 實作成本：已完成
+- 維護成本：0
+
+**方案 C：Zapier / Make 整合（🔮 未來考慮）**
+- 提供 Webhook 通知
+- 有新 Email 領取時觸發 Zapier
+- 自動同步到 Mailchimp / ConvertKit
+- 實作成本：2-3 天
+- 維護成本：低
+
+**方案 D：獨立專案 Mailion 整合（❌ 不建議）**
+- 需要開發新專案
+- 需要維護兩個系統
+- 增加複雜度與成本
+- ROI 低
+
+##### 最終建議
+
+**✅ 立即執行**：
+1. V8.1 Email 複製功能（單筆 + 複製全部）
+2. 在「使用說明」補充教學：
+   ```markdown
+   ## 如何寄送 Email 給領取者？
+   
+   KeyBox 專注於 Email 收集，寄送功能請使用專業工具：
+   
+   **方法 1：直接寄送（適合小量）**
+   1. 點擊「複製全部 Email」
+   2. 貼到 Gmail 的「密件副本（BCC）」
+   3. 撰寫信件並寄送
+   
+   **方法 2：使用 Email 行銷工具（推薦）**
+   1. 匯出 CSV
+   2. 匯入到 Mailchimp / ConvertKit
+   3. 設計 Email 模板並排程寄送
+   
+   **推薦工具**：
+   - Mailchimp（免費額度：500 訂閱者）
+   - ConvertKit（免費額度：300 訂閱者）
+   - Mailgun（開發者適用）
+   ```
+
+**🔮 PMF 後考慮**：
+- Zapier / Make Webhook 整合
+- API 開放（讓第三方整合）
 
 ---
 
 ### 🎯 高優先級（建議近期完成）
 
-#### 1. 購買自訂網域 ⭐⭐⭐⭐
+#### 2. 購買自訂網域 ⭐⭐⭐⭐
 **現況**：使用 Vercel 預設網址（`xxx.vercel.app`）
 
 **建議行動**：
@@ -257,13 +366,14 @@
 
 ### 📋 低優先級（長期規劃）
 
-#### 5. Email 行銷整合
+#### 5. Webhook / API 整合（進階 Email 整合）
+- Webhook 通知（新 Email 領取事件）
+- Zapier / Make 整合
+- API 開放（讓第三方串接）
+
+#### 6. Email 行銷工具整合（低優先）
 - 與 Mailchimp / ConvertKit 整合
 - 自動同步領取名單
-
-#### 6. Webhook 支援
-- 領取事件通知
-- 整合 Zapier / Make
 
 #### 7. 團隊協作功能
 - 多人管理同一組資料包
@@ -274,15 +384,15 @@
 ## 🎯 決策建議：下一步該做什麼？
 
 ### 立即執行（本週）：
-1. ✅ V7.5 首頁重設計（已完成）
-2. **🔥 領取記錄管理優化（最高優先）**
-   - 統計數字顯示
-   - 單筆記錄刪除功能
+1. ✅ V8.0 領取記錄管理優化（已完成）
+2. **🔥 V8.1 Email 複製功能（最高優先）**
+   - 單筆 Email 複製按鈕
+   - 一鍵複製所有 Email（逗號分隔）
 
 ### 近期規劃（1-2 週內）：
-1. 領取記錄批次刪除功能
+1. 批次刪除記錄功能（選做）
 2. 購買自訂網域（提升品牌感）
-3. 根據用戶反饋決定其他功能
+3. 使用說明補充 Email 寄送教學
 
 ### PMF 驗證後（1 個月後）：
 - 根據用戶使用數據評估雲端整合需求
@@ -293,9 +403,15 @@
 
 ## 📝 版本變更記錄
 
-### V8（規劃中）
-- 🎯 領取記錄統計數字顯示
-- 🗑️ 單筆記錄刪除功能
+### V8.0（2025-10-02）✅ 已完成
+- ✅ 領取記錄統計數字顯示（總領取、今日新增、剩餘份數）
+- ✅ 單筆記錄刪除功能（含 RLS DELETE policy）
+- ✅ 按鈕配色優化（查看領取記錄）
+- ✅ 刪除驗證強化（防止資料遺失）
+
+### V8.1（規劃中）📧 Email 複製功能
+- 📋 單筆 Email 複製按鈕
+- 📋 一鍵複製所有 Email（逗號分隔）
 - 🧹 批次清空記錄功能（選做）
 
 ### V7.5（2025-10-02）
@@ -336,9 +452,10 @@
 
 ---
 
-**文件最後更新**：2025-10-02
-**目前版本**：V7.5
-**下一版本規劃**：V8（領取記錄管理優化）
-**專案狀態**：✅ 已上線，持續優化中
+**文件最後更新**：2025-10-02  
+**目前版本**：V8.0  
+**下一版本規劃**：V8.1（Email 複製功能）  
+**專案狀態**：✅ 已上線，持續優化中  
+**產品定位**：Email 收集工具（不含寄信功能）
 
 ---
