@@ -3,8 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Trash2, Plus, LogOut, Download } from "lucide-react";
+import { Trash2, Plus, LogOut, Download, Edit } from "lucide-react";
 import { generateUniqueShortCode } from "@/lib/shortcode";
 
 interface Keyword {
@@ -44,6 +45,9 @@ const Creator = () => {
   const [myRecords, setMyRecords] = useState<MyRecord[]>([]);
   const [loadingRecords, setLoadingRecords] = useState(false);
   const [userEmail, setUserEmail] = useState("");
+  const [editingKeywordId, setEditingKeywordId] = useState<string | null>(null);
+  const [editKeyword, setEditKeyword] = useState("");
+  const [editContent, setEditContent] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -119,6 +123,42 @@ const Creator = () => {
       toast.success("已刪除");
       fetchKeywords();
     }
+  };
+
+  const handleEdit = (item: Keyword) => {
+    setEditingKeywordId(item.id);
+    setEditKeyword(item.keyword);
+    setEditContent(item.content);
+  };
+
+  const handleUpdateKeyword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingKeywordId) return;
+
+    const { error } = await supabase
+      .from("keywords")
+      .update({
+        keyword: editKeyword.toLowerCase().trim(),
+        content: editContent,
+      })
+      .eq("id", editingKeywordId);
+
+    if (error) {
+      console.error("更新關鍵字失敗:", error);
+      toast.error("更新失敗，請稍後再試");
+    } else {
+      toast.success("更新成功！");
+      setEditingKeywordId(null);
+      setEditKeyword("");
+      setEditContent("");
+      fetchKeywords();
+    }
+  };
+
+  const cancelEdit = () => {
+    setEditingKeywordId(null);
+    setEditKeyword("");
+    setEditContent("");
   };
 
   const fetchEmailLogs = async (keywordId: string) => {
@@ -296,12 +336,12 @@ const Creator = () => {
                 required
                 className="h-12 md:h-10"
               />
-              <Input
-                placeholder="回覆內容（例如：https://example.com/ebook）"
+              <Textarea
+                placeholder="回覆內容（支援多行）&#10;例如：&#10;🎉 恭喜領取！&#10;&#10;📋 Notion 連結：https://notion.so/xxx&#10;🎨 素材包：https://drive.google.com/xxx"
                 value={newContent}
                 onChange={(e) => setNewContent(e.target.value)}
                 required
-                className="h-12 md:h-10"
+                className="min-h-[120px] resize-y"
               />
               <div className="flex flex-col sm:flex-row gap-2">
                 <Button type="submit" className="gradient-magic">
@@ -340,17 +380,43 @@ const Creator = () => {
                   key={item.id}
                   className="flex flex-col md:flex-row gap-4 p-4 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors"
                 >
-                  <div className="flex-1 space-y-3 min-w-0">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <p className="text-xs md:text-sm text-muted-foreground mb-1">關鍵字</p>
-                        <p className="font-medium text-accent text-sm md:text-base">{item.keyword}</p>
+                  {editingKeywordId === item.id ? (
+                    <form onSubmit={handleUpdateKeyword} className="flex-1 space-y-3">
+                      <Input
+                        placeholder="關鍵字"
+                        value={editKeyword}
+                        onChange={(e) => setEditKeyword(e.target.value)}
+                        required
+                        className="h-10"
+                      />
+                      <Textarea
+                        placeholder="回覆內容"
+                        value={editContent}
+                        onChange={(e) => setEditContent(e.target.value)}
+                        required
+                        className="min-h-[100px]"
+                      />
+                      <div className="flex gap-2">
+                        <Button type="submit" size="sm" className="gradient-magic">
+                          儲存
+                        </Button>
+                        <Button type="button" size="sm" variant="ghost" onClick={cancelEdit}>
+                          取消
+                        </Button>
                       </div>
-                      <div className="min-w-0">
-                        <p className="text-xs md:text-sm text-muted-foreground mb-1">回覆內容</p>
-                        <p className="font-medium truncate text-sm md:text-base">{item.content}</p>
+                    </form>
+                  ) : (
+                    <div className="flex-1 space-y-3 min-w-0">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-xs md:text-sm text-muted-foreground mb-1">關鍵字</p>
+                          <p className="font-medium text-accent text-sm md:text-base">{item.keyword}</p>
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-xs md:text-sm text-muted-foreground mb-1">回覆內容</p>
+                          <p className="font-medium text-sm md:text-base whitespace-pre-line line-clamp-2">{item.content}</p>
+                        </div>
                       </div>
-                    </div>
                     <div>
                       <p className="text-xs md:text-sm text-muted-foreground mb-1">專屬連結</p>
                       <div className="flex flex-col sm:flex-row gap-2">
@@ -402,14 +468,26 @@ const Creator = () => {
                       </div>
                     </div>
                   </div>
-                  <Button
-                    onClick={() => handleDelete(item.id)}
-                    variant="ghost"
-                    size="icon"
-                    className="self-start md:self-center text-destructive hover:text-destructive/80 shrink-0"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
+                  {editingKeywordId !== item.id && (
+                    <div className="flex md:flex-col gap-2 self-start md:self-center shrink-0">
+                      <Button
+                        onClick={() => handleEdit(item)}
+                        variant="ghost"
+                        size="icon"
+                        className="text-accent hover:text-accent/80"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        onClick={() => handleDelete(item.id)}
+                        variant="ghost"
+                        size="icon"
+                        className="text-destructive hover:text-destructive/80"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
