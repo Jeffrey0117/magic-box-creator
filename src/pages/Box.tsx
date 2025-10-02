@@ -13,6 +13,7 @@ const Box = () => {
   const [loading, setLoading] = useState(false);
   const [boxData, setBoxData] = useState<any>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [currentCount, setCurrentCount] = useState(0);
   const navigate = useNavigate();
   const { id, shortCode } = useParams();
   const location = useLocation();
@@ -97,7 +98,7 @@ const Box = () => {
   };
 
   const fetchBoxData = async () => {
-    let query = supabase.from("keywords").select("id, keyword, created_at");
+    let query = supabase.from("keywords").select("id, keyword, created_at, quota");
     
     if (shortCode && !location.pathname.startsWith('/box/')) {
       query = query.eq("short_code", shortCode);
@@ -112,6 +113,14 @@ const Box = () => {
       navigate("/");
     } else {
       setBoxData(data);
+      
+      if (data.quota) {
+        const { count } = await supabase
+          .from("email_logs")
+          .select("*", { count: "exact", head: true })
+          .eq("keyword_id", data.id);
+        setCurrentCount(count || 0);
+      }
     }
   };
 
@@ -166,6 +175,19 @@ const Box = () => {
         keywordData = data;
       }
 
+      if (keywordData.quota) {
+        const { count } = await supabase
+          .from("email_logs")
+          .select("*", { count: "exact", head: true })
+          .eq("keyword_id", keywordData.id);
+        
+        if (count !== null && count >= keywordData.quota) {
+          toast.error("❌ 此資料包已額滿！");
+          setLoading(false);
+          return;
+        }
+      }
+
       const { data: existingLog } = await supabase
         .from("email_logs")
         .select("id")
@@ -216,6 +238,13 @@ const Box = () => {
               <p className="text-muted-foreground text-lg">
                 輸入關鍵字解鎖內容
               </p>
+              {boxData?.quota && (
+                <div className="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-accent/10 border border-accent/30 rounded-lg">
+                  <p className="text-sm font-medium text-accent">
+                    🔥 限量 {boxData.quota} 份 · 剩餘 {Math.max(0, boxData.quota - currentCount)} 份
+                  </p>
+                </div>
+              )}
             </div>
 
             <div className="glass-card rounded-2xl p-6 md:p-8 shadow-card glow">

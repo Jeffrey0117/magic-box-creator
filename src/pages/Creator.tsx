@@ -14,6 +14,7 @@ interface Keyword {
   content: string;
   created_at: string;
   short_code?: string;
+  quota?: number | null;
 }
 
 interface EmailLog {
@@ -48,6 +49,8 @@ const Creator = () => {
   const [editingKeywordId, setEditingKeywordId] = useState<string | null>(null);
   const [editKeyword, setEditKeyword] = useState("");
   const [editContent, setEditContent] = useState("");
+  const [newQuota, setNewQuota] = useState("");
+  const [editQuota, setEditQuota] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -99,6 +102,7 @@ const Creator = () => {
       content: newContent,
       creator_id: session.user.id,
       short_code: shortCode,
+      quota: newQuota ? parseInt(newQuota) : null,
     });
 
     if (error) {
@@ -108,6 +112,7 @@ const Creator = () => {
       toast.success("關鍵字已新增！");
       setNewKeyword("");
       setNewContent("");
+      setNewQuota("");
       setShowAddForm(false);
       fetchKeywords();
     }
@@ -129,6 +134,7 @@ const Creator = () => {
     setEditingKeywordId(item.id);
     setEditKeyword(item.keyword);
     setEditContent(item.content);
+    setEditQuota(item.quota?.toString() || "");
   };
 
   const handleUpdateKeyword = async (e: React.FormEvent) => {
@@ -140,6 +146,7 @@ const Creator = () => {
       .update({
         keyword: editKeyword.toLowerCase().trim(),
         content: editContent,
+        quota: editQuota ? parseInt(editQuota) : null,
       })
       .eq("id", editingKeywordId);
 
@@ -151,6 +158,7 @@ const Creator = () => {
       setEditingKeywordId(null);
       setEditKeyword("");
       setEditContent("");
+      setEditQuota("");
       fetchKeywords();
     }
   };
@@ -159,6 +167,7 @@ const Creator = () => {
     setEditingKeywordId(null);
     setEditKeyword("");
     setEditContent("");
+    setEditQuota("");
   };
 
   const fetchEmailLogs = async (keywordId: string) => {
@@ -343,6 +352,14 @@ const Creator = () => {
                 required
                 className="min-h-[120px] resize-y"
               />
+              <Input
+                type="number"
+                placeholder="限額數量（選填，留空=無限制）"
+                value={newQuota}
+                onChange={(e) => setNewQuota(e.target.value)}
+                min="1"
+                className="h-12 md:h-10"
+              />
               <div className="flex flex-col sm:flex-row gap-2">
                 <Button type="submit" className="gradient-magic">
                   確認新增
@@ -354,6 +371,7 @@ const Creator = () => {
                     setShowAddForm(false);
                     setNewKeyword("");
                     setNewContent("");
+                    setNewQuota("");
                   }}
                 >
                   取消
@@ -396,6 +414,14 @@ const Creator = () => {
                         required
                         className="min-h-[100px]"
                       />
+                      <Input
+                        type="number"
+                        placeholder="限額數量（留空=無限制）"
+                        value={editQuota}
+                        onChange={(e) => setEditQuota(e.target.value)}
+                        min="1"
+                        className="h-10"
+                      />
                       <div className="flex gap-2">
                         <Button type="submit" size="sm" className="gradient-magic">
                           儲存
@@ -416,6 +442,14 @@ const Creator = () => {
                           <p className="text-xs md:text-sm text-muted-foreground mb-1">回覆內容</p>
                           <p className="font-medium text-sm md:text-base whitespace-pre-line line-clamp-2">{item.content}</p>
                         </div>
+                        {item.quota && (
+                          <div>
+                            <p className="text-xs md:text-sm text-muted-foreground mb-1">限額設定</p>
+                            <p className="font-medium text-accent text-sm md:text-base">
+                              🔥 限量 {item.quota} 份 · 已領取 {emailLogs.filter(log => log.email).length} 份
+                            </p>
+                          </div>
+                        )}
                       </div>
                     <div>
                       <p className="text-xs md:text-sm text-muted-foreground mb-1">專屬連結</p>
