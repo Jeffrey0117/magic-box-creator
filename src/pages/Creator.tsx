@@ -651,14 +651,27 @@ const Creator = () => {
                         {new Date(log.unlocked_at).toLocaleString('zh-TW')}
                       </span>
                     </div>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => handleDeleteEmailLog(log.id, log.email)}
-                      className="text-destructive hover:text-destructive/80 shrink-0"
-                    >
-                      <Trash2 className="w-3 h-3" />
-                    </Button>
+                    <div className="flex gap-2 shrink-0">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          navigator.clipboard.writeText(log.email);
+                          toast.success("Email 已複製！");
+                        }}
+                        className="text-accent hover:text-accent/80"
+                      >
+                        複製
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => handleDeleteEmailLog(log.id, log.email)}
+                        className="text-destructive hover:text-destructive/80"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>
