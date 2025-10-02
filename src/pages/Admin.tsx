@@ -67,9 +67,9 @@ export default function Admin() {
         { count: todayClaims }
       ] = await Promise.all([
         supabase.from('keywords').select('id, user_id', { count: 'exact' }),
-        supabase.from('keywords').select('*', { count: 'exact', head: true }).gte('created_at', startOfWeek.toISOString()),
-        supabase.from('email_logs').select('*', { count: 'exact', head: true }),
-        supabase.from('email_logs').select('*', { count: 'exact', head: true }).gte('claimed_at', startOfDay.toISOString()),
+        supabase.from('keywords').select('id', { count: 'exact' }).gte('created_at', startOfWeek.toISOString()),
+        supabase.from('email_logs').select('id', { count: 'exact' }),
+        supabase.from('email_logs').select('id', { count: 'exact' }).gte('claimed_at', startOfDay.toISOString()),
       ]);
 
       const uniqueCreators = new Set(allKeywords?.map(k => k.user_id).filter(Boolean)).size;

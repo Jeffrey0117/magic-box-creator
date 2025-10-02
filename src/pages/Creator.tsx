@@ -609,6 +609,18 @@ const Creator = () => {
                     size="sm"
                     variant="outline"
                     onClick={() => {
+                      const emails = emailLogs.map(log => log.email).join(',');
+                      navigator.clipboard.writeText(emails);
+                      toast.success(`已複製 ${emailLogs.length} 個 Email（逗號分隔）`);
+                    }}
+                    className="gap-2 flex-1 sm:flex-none border-accent text-accent hover:bg-accent/10"
+                  >
+                    複製全部 Email
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
                       const keyword = keywords.find(k => k.id === selectedKeywordId);
                       if (keyword) exportToCSV(selectedKeywordId, keyword.keyword);
                     }}
