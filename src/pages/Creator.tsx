@@ -503,55 +503,56 @@ const Creator = () => {
                             </span>
                           )}
                         </div>
-                        <div>
-                          <p className="text-xs md:text-sm text-muted-foreground mb-1">專屬連結</p>
-                      <div className="flex flex-col sm:flex-row gap-2">
-                        <code className="text-xs bg-muted px-2 py-1 rounded truncate max-w-full sm:flex-1 break-all">
-                          {item.short_code
-                            ? `${window.location.origin}/${item.short_code}`
-                            : `${window.location.origin}/box/${item.id}`
-                          }
-                        </code>
-                        <div className="flex gap-2">
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => {
-                              const url = item.short_code
-                                ? `${window.location.origin}/${item.short_code}`
-                                : `${window.location.origin}/box/${item.id}`;
-                              navigator.clipboard.writeText(url);
-                              toast.success("連結已複製！");
-                            }}
-                            className="flex-1 sm:flex-none"
-                          >
-                            複製連結
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => {
-                              const url = item.short_code
-                                ? `${window.location.origin}/${item.short_code}`
-                                : `${window.location.origin}/box/${item.id}`;
-                              const shareText = `🎁 我為你準備了一份專屬資料包！\n\n輸入關鍵字「${item.keyword}」即可免費領取：\n${url}\n\n👉 立即解鎖專屬內容！`;
-                              navigator.clipboard.writeText(shareText);
-                              toast.success("分享文案已複製！");
-                            }}
-                            className="flex-1 sm:flex-none"
-                          >
-                            複製文案
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="default"
-                            onClick={() => fetchEmailLogs(item.id)}
-                            className="flex-1 sm:flex-none bg-accent hover:bg-accent/90 gap-2"
-                          >
-                            <ClipboardList className="w-4 h-4" />
-                            查看領取記錄
-                          </Button>
-                        </div>
+                      </div>
+                      <div>
+                        <p className="text-xs md:text-sm text-muted-foreground mb-1">專屬連結</p>
+                        <div className="flex flex-col sm:flex-row gap-2">
+                          <code className="text-xs bg-muted px-2 py-1 rounded truncate max-w-full sm:flex-1 break-all">
+                            {item.short_code
+                              ? `${window.location.origin}/${item.short_code}`
+                              : `${window.location.origin}/box/${item.id}`
+                            }
+                          </code>
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => {
+                                const url = item.short_code
+                                  ? `${window.location.origin}/${item.short_code}`
+                                  : `${window.location.origin}/box/${item.id}`;
+                                navigator.clipboard.writeText(url);
+                                toast.success("連結已複製！");
+                              }}
+                              className="flex-1 sm:flex-none"
+                            >
+                              複製連結
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                const url = item.short_code
+                                  ? `${window.location.origin}/${item.short_code}`
+                                  : `${window.location.origin}/box/${item.id}`;
+                                const shareText = `🎁 我為你準備了一份專屬資料包！\n\n輸入關鍵字「${item.keyword}」即可免費領取：\n${url}\n\n👉 立即解鎖專屬內容！`;
+                                navigator.clipboard.writeText(shareText);
+                                toast.success("分享文案已複製！");
+                              }}
+                              className="flex-1 sm:flex-none"
+                            >
+                              複製文案
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="default"
+                              onClick={() => fetchEmailLogs(item.id)}
+                              className="flex-1 sm:flex-none bg-accent hover:bg-accent/90 gap-2"
+                            >
+                              <ClipboardList className="w-4 h-4" />
+                              查看領取記錄
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     </>
