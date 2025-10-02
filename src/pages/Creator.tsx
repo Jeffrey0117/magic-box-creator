@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Trash2, Plus, LogOut, Download, Edit } from "lucide-react";
+import { Trash2, Plus, LogOut, Download, Edit, ClipboardList } from "lucide-react";
 import { generateUniqueShortCode } from "@/lib/shortcode";
 
 interface Keyword {
@@ -15,9 +15,12 @@ interface Keyword {
   created_at: string;
   short_code?: string;
   quota?: number | null;
+  email_count?: number;
+  today_count?: number;
 }
 
 interface EmailLog {
+  id: string;
   email: string;
   unlocked_at: string;
 }
@@ -84,9 +87,34 @@ const Creator = () => {
 
     if (error) {
       toast.error("無法載入關鍵字列表");
-    } else {
-      setKeywords(data || []);
+      setLoading(false);
+      return;
     }
+
+    const keywordsWithStats = await Promise.all(
+      (data || []).map(async (keyword) => {
+        const { count: totalCount } = await supabase
+          .from("email_logs")
+          .select("*", { count: "exact", head: true })
+          .eq("keyword_id", keyword.id);
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const { count: todayCount } = await supabase
+          .from("email_logs")
+          .select("*", { count: "exact", head: true })
+          .eq("keyword_id", keyword.id)
+          .gte("unlocked_at", today.toISOString());
+
+        return {
+          ...keyword,
+          email_count: totalCount || 0,
+          today_count: todayCount || 0,
+        };
+      })
+    );
+
+    setKeywords(keywordsWithStats);
     setLoading(false);
   };
 
@@ -173,7 +201,7 @@ const Creator = () => {
   const fetchEmailLogs = async (keywordId: string) => {
     const { data, error } = await supabase
       .from("email_logs")
-      .select("email, unlocked_at")
+      .select("id, email, unlocked_at")
       .eq("keyword_id", keywordId)
       .order("unlocked_at", { ascending: false });
 
@@ -222,6 +250,28 @@ const Creator = () => {
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate("/login");
+  };
+
+  const handleDeleteEmailLog = async (logId: string, email: string) => {
+    if (!confirm(`確定要刪除 ${email} 的領取記錄嗎？`)) {
+      return;
+    }
+
+    const { error } = await supabase
+      .from("email_logs")
+      .delete()
+      .eq("id", logId);
+
+    if (error) {
+      console.error("刪除領取記錄失敗:", error);
+      toast.error("刪除失敗，請稍後再試");
+    } else {
+      toast.success("已刪除該筆記錄");
+      if (selectedKeywordId) {
+        await fetchEmailLogs(selectedKeywordId);
+      }
+      await fetchKeywords();
+    }
   };
 
   const exportToCSV = (keywordId: string, keywordName: string) => {
@@ -442,14 +492,16 @@ const Creator = () => {
                           <p className="text-xs md:text-sm text-muted-foreground mb-1">回覆內容</p>
                           <p className="font-medium text-sm md:text-base whitespace-pre-line line-clamp-2">{item.content}</p>
                         </div>
+                      </div>
+                      <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+                        <span>📊 總領取：{item.email_count || 0} 人</span>
+                        <span>📈 今日：+{item.today_count || 0}</span>
                         {item.quota && (
-                          <div>
-                            <p className="text-xs md:text-sm text-muted-foreground mb-1">限額設定</p>
-                            <p className="font-medium text-accent text-sm md:text-base">
-                              🔥 限量 {item.quota} 份 · 已領取 {emailLogs.filter(log => log.email).length} 份
-                            </p>
-                          </div>
+                          <span className="text-accent font-medium">
+                            🔥 剩餘：{Math.max(0, item.quota - (item.email_count || 0))} 份
+                          </span>
                         )}
+                      </div>
                       </div>
                     <div>
                       <p className="text-xs md:text-sm text-muted-foreground mb-1">專屬連結</p>
@@ -492,11 +544,12 @@ const Creator = () => {
                           </Button>
                           <Button
                             size="sm"
-                            variant="outline"
+                            variant="default"
                             onClick={() => fetchEmailLogs(item.id)}
-                            className="flex-1 sm:flex-none"
+                            className="flex-1 sm:flex-none bg-accent hover:bg-accent/90 gap-2"
                           >
-                            查看記錄
+                            <ClipboardList className="w-4 h-4" />
+                            查看領取記錄
                           </Button>
                         </div>
                       </div>
@@ -559,12 +612,22 @@ const Creator = () => {
                 </div>
               </div>
               <div className="space-y-2 max-h-60 overflow-y-auto">
-                {emailLogs.map((log, idx) => (
-                  <div key={idx} className="flex flex-col sm:flex-row justify-between gap-1 sm:gap-2 text-xs md:text-sm p-2 bg-background rounded">
-                    <span className="font-medium truncate">{log.email}</span>
-                    <span className="text-muted-foreground text-xs shrink-0">
-                      {new Date(log.unlocked_at).toLocaleString('zh-TW')}
-                    </span>
+                {emailLogs.map((log) => (
+                  <div key={log.id} className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 text-xs md:text-sm p-2 bg-background rounded">
+                    <div className="flex-1 min-w-0">
+                      <span className="font-medium truncate block">{log.email}</span>
+                      <span className="text-muted-foreground text-xs">
+                        {new Date(log.unlocked_at).toLocaleString('zh-TW')}
+                      </span>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handleDeleteEmailLog(log.id, log.email)}
+                      className="text-destructive hover:text-destructive/80 shrink-0"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </Button>
                   </div>
                 ))}
               </div>

@@ -27,7 +27,7 @@ const Index = () => {
         <div className="grid md:grid-cols-2 gap-8 mb-16">
           <Card className="border-2 hover:border-accent transition-colors">
             <CardContent className="pt-6">
-              <div className="text-4xl mb-4">👤</div>
+              <div className="text-4xl mb-4">🙌</div>
               <h3 className="text-2xl font-bold mb-4">我是使用者</h3>
               <ol className="space-y-3 text-muted-foreground">
                 <li className="flex items-start">
@@ -48,7 +48,7 @@ const Index = () => {
 
           <Card className="border-2 hover:border-accent transition-colors">
             <CardContent className="pt-6">
-              <div className="text-4xl mb-4">✨</div>
+              <div className="text-4xl mb-4">💻</div>
               <h3 className="text-2xl font-bold mb-4">我是創作者</h3>
               <ol className="space-y-3 text-muted-foreground">
                 <li className="flex items-start">
