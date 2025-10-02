@@ -278,8 +278,11 @@ const Creator = () => {
 
     if (!data || data.length === 0) {
       console.warn("刪除似乎沒有影響任何記錄");
+      toast.error("刪除失敗：找不到該記錄或無權限刪除");
+      return;
     }
     
+    console.log("刪除成功，受影響的記錄:", data);
     toast.success("已刪除該筆記錄");
     
     if (selectedKeywordId) {
