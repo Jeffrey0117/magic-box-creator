@@ -602,33 +602,9 @@ const Creator = () => {
 
           {selectedKeywordId && emailLogs.length > 0 && (
             <div className="mt-6 p-4 bg-muted/30 rounded-lg">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-3">
-                <h3 className="font-semibold">領取記錄 ({emailLogs.length})</h3>
-                <div className="flex gap-2 w-full sm:w-auto">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => {
-                      const emails = emailLogs.map(log => log.email).join(',');
-                      navigator.clipboard.writeText(emails);
-                      toast.success(`已複製 ${emailLogs.length} 個 Email（逗號分隔）`);
-                    }}
-                    className="gap-2 flex-1 sm:flex-none border-accent text-accent hover:bg-accent/10"
-                  >
-                    複製全部 Email
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => {
-                      const keyword = keywords.find(k => k.id === selectedKeywordId);
-                      if (keyword) exportToCSV(selectedKeywordId, keyword.keyword);
-                    }}
-                    className="gap-2 flex-1 sm:flex-none"
-                  >
-                    <Download className="w-4 h-4" />
-                    匯出 CSV
-                  </Button>
+              <div className="flex flex-col gap-3 mb-3">
+                <div className="flex justify-between items-center">
+                  <h3 className="font-semibold">領取記錄 ({emailLogs.length})</h3>
                   <Button
                     size="sm"
                     variant="ghost"
@@ -639,6 +615,32 @@ const Creator = () => {
                     className="shrink-0"
                   >
                     關閉
+                  </Button>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      const emails = emailLogs.map(log => log.email).join(',');
+                      navigator.clipboard.writeText(emails);
+                      toast.success(`已複製 ${emailLogs.length} 個 Email（逗號分隔）`);
+                    }}
+                    className="gap-2 w-full sm:flex-1 border-accent text-accent hover:bg-accent/10"
+                  >
+                    複製全部 Email
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      const keyword = keywords.find(k => k.id === selectedKeywordId);
+                      if (keyword) exportToCSV(selectedKeywordId, keyword.keyword);
+                    }}
+                    className="gap-2 w-full sm:flex-1"
+                  >
+                    <Download className="w-4 h-4" />
+                    匯出 CSV
                   </Button>
                 </div>
               </div>
