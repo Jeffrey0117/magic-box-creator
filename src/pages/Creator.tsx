@@ -468,7 +468,8 @@ const Creator = () => {
                       </div>
                     </div>
                   </div>
-                  {editingKeywordId !== item.id && (
+                )}
+                {editingKeywordId !== item.id && (
                     <div className="flex md:flex-col gap-2 self-start md:self-center shrink-0">
                       <Button
                         onClick={() => handleEdit(item)}
