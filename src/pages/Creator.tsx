@@ -95,14 +95,14 @@ const Creator = () => {
       (data || []).map(async (keyword) => {
         const { count: totalCount } = await supabase
           .from("email_logs")
-          .select("*", { count: "exact", head: true })
+          .select("*", { count: "exact" })
           .eq("keyword_id", keyword.id);
 
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         const { count: todayCount } = await supabase
           .from("email_logs")
-          .select("*", { count: "exact", head: true })
+          .select("*", { count: "exact" })
           .eq("keyword_id", keyword.id)
           .gte("unlocked_at", today.toISOString());
 
