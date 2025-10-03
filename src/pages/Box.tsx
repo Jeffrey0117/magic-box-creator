@@ -117,7 +117,7 @@ const Box = () => {
       if (data.quota) {
         const { count } = await supabase
           .from("email_logs")
-          .select("*", { count: "exact", head: true })
+          .select("*", { count: "exact" })
           .eq("keyword_id", data.id);
         setCurrentCount(count || 0);
       }
