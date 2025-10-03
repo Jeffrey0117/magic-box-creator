@@ -93,11 +93,6 @@ const Creator = () => {
 
     const keywordsWithStats = await Promise.all(
       (data || []).map(async (keyword) => {
-        const { count: totalCount } = await supabase
-          .from("email_logs")
-          .select("*", { count: "exact" })
-          .eq("keyword_id", keyword.id);
-
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         const { count: todayCount } = await supabase
@@ -108,7 +103,7 @@ const Creator = () => {
 
         return {
           ...keyword,
-          email_count: totalCount || 0,
+          email_count: keyword.current_count || 0,
           today_count: todayCount || 0,
         };
       })

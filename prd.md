@@ -409,10 +409,210 @@
 - ✅ 按鈕配色優化（查看領取記錄）
 - ✅ 刪除驗證強化（防止資料遺失）
 
-### V8.1（規劃中）📧 Email 複製功能
+### V8.1（規劃中）📧 Email 複製功能 + 🔥 限量顯示修正
 - 📋 單筆 Email 複製按鈕
 - 📋 一鍵複製所有 Email（逗號分隔）
 - 🧹 批次清空記錄功能（選做）
+- 🔥 **前台限量份數顯示修正（CRITICAL）**
+
+---
+
+### 🚨 V8.1 關鍵問題：前台限量份數顯示邏輯錯誤
+
+#### 問題現況
+- ❌ 後台（Creator.tsx）：正確顯示剩餘份數
+- ❌ 前台（Box.tsx）：永遠顯示 100 份（即使已領取）
+- ❌ **原因**：前台查詢限量次數時，**沒有權限訪問 email_logs 資料表**
+
+#### 根本原因分析
+
+**問題 1：RLS Policy 權限不足**
+```sql
+-- 目前的 email_logs SELECT policy（從 fix.md 推測）
+CREATE POLICY "allow_select_own_logs" ON email_logs
+  FOR SELECT
+  USING (auth.uid() = (SELECT creator_id FROM keywords WHERE id = keyword_id));
+```
+
+這個 policy 的問題：
+- ✅ **已登入創作者**可以看到自己資料包的領取記錄
+- ❌ **未登入用戶**無法查詢任何資料（包括 count）
+- ❌ **一般用戶**無法查詢不屬於自己的資料包
+
+**問題 2：前台查詢邏輯有誤**
+```typescript
+// Box.tsx:117-123（目前程式碼）
+if (data.quota) {
+  const { count } = await supabase
+    .from("email_logs")
+    .select("*", { count: "exact" })  // ❌ 未登入用戶無權限
+    .eq("keyword_id", data.id);
+  setCurrentCount(count || 0);  // count 永遠是 null → 顯示 100 份
+}
+```
+
+#### 解決方案規劃
+
+##### 方案 A：開放公開的 count 查詢（✅ 推薦）
+
+**1. 修改 RLS Policy**
+```sql
+-- 新增專門用於 count 的 SELECT policy
+CREATE POLICY "allow_count_for_quota_display" ON email_logs
+  FOR SELECT
+  USING (
+    -- 允許任何人查詢「有設定 quota」的資料包的領取次數
+    EXISTS (
+      SELECT 1 FROM keywords
+      WHERE keywords.id = email_logs.keyword_id
+      AND keywords.quota IS NOT NULL
+    )
+  );
+```
+
+**優點**：
+- ✅ 前台可以正確顯示剩餘份數
+- ✅ 不會洩漏 Email 內容（只有 count）
+- ✅ 實作簡單（只需改 SQL）
+
+**缺點**：
+- ⚠️ 有 quota 的資料包，任何人都能查詢領取次數
+- ⚠️ 可能有隱私疑慮（但只有 count，無 email）
+
+---
+
+##### 方案 B：後端 Edge Function 提供 count API（❌ 複雜）
+
+**架構**：
+```
+前台 → Supabase Edge Function → 查詢 count → 回傳數字
+```
+
+**優點**：
+- ✅ 完全控制權限邏輯
+- ✅ 不需修改 RLS policy
+
+**缺點**：
+- ❌ 需要開發 Edge Function（1-2 小時）
+- ❌ 增加架構複雜度
+- ❌ Edge Function 有額度限制
+
+---
+
+##### 方案 C：將 current_count 快取到 keywords 資料表（⭐⭐ 可考慮）
+
+**架構改動**：
+```sql
+-- keywords 資料表新增欄位
+ALTER TABLE keywords
+ADD COLUMN current_count INTEGER DEFAULT 0;
+
+-- 每次有人領取時，更新 current_count
+-- 使用 Supabase Trigger 自動更新
+CREATE OR REPLACE FUNCTION update_keyword_count()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF TG_OP = 'INSERT' THEN
+    UPDATE keywords
+    SET current_count = current_count + 1
+    WHERE id = NEW.keyword_id;
+  ELSIF TG_OP = 'DELETE' THEN
+    UPDATE keywords
+    SET current_count = GREATEST(current_count - 1, 0)
+    WHERE id = OLD.keyword_id;
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER update_count_on_claim
+  AFTER INSERT OR DELETE ON email_logs
+  FOR EACH ROW EXECUTE FUNCTION update_keyword_count();
+```
+
+**前台查詢**：
+```typescript
+// Box.tsx 修改後
+const { data, error } = await supabase
+  .from("keywords")
+  .select("id, keyword, created_at, quota, current_count")  // 直接讀取 count
+  .eq("short_code", shortCode)
+  .maybeSingle();
+
+if (data?.quota) {
+  setCurrentCount(data.current_count || 0);  // ✅ 直接使用快取值
+}
+```
+
+**優點**：
+- ✅ 前台不需查詢 email_logs（效能最佳）
+- ✅ 不需修改 RLS policy
+- ✅ 即時更新（Trigger 自動維護）
+
+**缺點**：
+- ⚠️ 需要新增資料表欄位
+- ⚠️ 需要撰寫 Trigger（但只需寫一次）
+- ⚠️ 可能有 race condition（極少發生）
+
+---
+
+#### 最終建議方案
+
+**✅ 推薦：方案 A + 方案 C 混合**
+
+**Phase 1：立即修正（使用方案 A）**
+1. 新增 RLS policy 允許公開查詢 count
+2. 前台正常運作
+3. 時間：10 分鐘
+
+**Phase 2：效能優化（使用方案 C）**
+1. 新增 current_count 欄位到 keywords
+2. 建立 Trigger 自動更新
+3. 前台改讀 current_count
+4. 移除 Phase 1 的 RLS policy
+5. 時間：30 分鐘
+
+---
+
+#### 實作步驟（方案 A：立即修正）
+
+**Step 1：新增 RLS Policy**
+```sql
+-- 在 Supabase Dashboard → SQL Editor 執行
+CREATE POLICY "allow_count_for_quota_display" ON email_logs
+  FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1 FROM keywords
+      WHERE keywords.id = email_logs.keyword_id
+      AND keywords.quota IS NOT NULL
+    )
+  );
+```
+
+**Step 2：驗證前台顯示**
+- 開無痕視窗訪問 https://magic-box-creator.vercel.app/UywTwg
+- 確認「剩餘份數」正確顯示
+
+**Step 3：後續優化（方案 C）**
+- 有時間時實作 current_count + Trigger
+- 提升效能 + 降低資料庫查詢次數
+
+---
+
+#### 修正後的行為
+
+**前台（未登入用戶）**：
+- ✅ 可以看到「限量 100 份 · 剩餘 87 份」
+- ✅ 可以輸入關鍵字解鎖
+- ✅ 無法看到已領取的 Email 列表
+
+**後台（創作者）**：
+- ✅ 可以看到完整領取記錄
+- ✅ 可以刪除/匯出/複製 Email
+- ✅ 可以看到統計數字
+
+---
 
 ### V7.5（2025-10-02）
 - 🎨 首頁重新設計（品牌介紹 + 雙動線教學）

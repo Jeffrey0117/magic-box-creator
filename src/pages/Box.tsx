@@ -98,7 +98,7 @@ const Box = () => {
   };
 
   const fetchBoxData = async () => {
-    let query = supabase.from("keywords").select("id, keyword, created_at, quota");
+    let query = supabase.from("keywords").select("id, keyword, created_at, quota, current_count");
     
     if (shortCode && !location.pathname.startsWith('/box/')) {
       query = query.eq("short_code", shortCode);
@@ -115,11 +115,7 @@ const Box = () => {
       setBoxData(data);
       
       if (data.quota) {
-        const { count } = await supabase
-          .from("email_logs")
-          .select("*", { count: "exact" })
-          .eq("keyword_id", data.id);
-        setCurrentCount(count || 0);
+        setCurrentCount(data.current_count || 0);
       }
     }
   };
@@ -176,12 +172,9 @@ const Box = () => {
       }
 
       if (keywordData.quota) {
-        const { count } = await supabase
-          .from("email_logs")
-          .select("*", { count: "exact" })
-          .eq("keyword_id", keywordData.id);
+        const currentCount = keywordData.current_count || 0;
         
-        if (count !== null && count >= keywordData.quota) {
+        if (currentCount >= keywordData.quota) {
           toast.error("❌ 此資料包已額滿！");
           setLoading(false);
           return;
