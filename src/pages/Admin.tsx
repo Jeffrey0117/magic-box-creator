@@ -205,11 +205,11 @@ export default function Admin() {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-emerald-50 to-white p-6">
+    <div className="min-h-screen bg-gradient-to-b from-background to-secondary/20 p-6">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-emerald-900 mb-2">🔐 Admin 後台</h1>
-          <p className="text-emerald-600">KeyBox 平台管理系統</p>
+          <h1 className="text-4xl font-bold mb-2">🔐 Admin 後台</h1>
+          <p className="text-muted-foreground">KeyBox 平台管理系統</p>
         </div>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
@@ -410,14 +410,14 @@ export default function Admin() {
                                     <DialogTitle>📦 {kw.keyword}</DialogTitle>
                                   </DialogHeader>
                                   <div className="space-y-4">
-                                    <div className="bg-emerald-50 p-4 rounded-lg">
-                                      <p className="text-sm text-gray-600 mb-2">短碼：{kw.short_code}</p>
-                                      <p className="text-sm text-gray-600 mb-2">創作者：{kw.creator_email}</p>
-                                      <p className="text-sm text-gray-600">領取進度：{progress}</p>
+                                    <div className="bg-secondary/30 p-4 rounded-lg">
+                                      <p className="text-sm text-muted-foreground mb-2">短碼：{kw.short_code}</p>
+                                      <p className="text-sm text-muted-foreground mb-2">創作者：{kw.creator_email}</p>
+                                      <p className="text-sm text-muted-foreground">領取進度：{progress}</p>
                                     </div>
-                                    <div className="bg-gray-50 p-4 rounded-lg">
-                                      <p className="text-sm font-medium mb-2 text-gray-800">資料包內容：</p>
-                                      <pre className="whitespace-pre-wrap text-sm text-gray-700">{kw.content}</pre>
+                                    <div className="bg-secondary/30 p-4 rounded-lg">
+                                      <p className="text-sm font-medium mb-2">資料包內容：</p>
+                                      <pre className="whitespace-pre-wrap text-sm">{kw.content}</pre>
                                     </div>
                                   </div>
                                 </DialogContent>
