@@ -295,19 +295,19 @@ const Box = () => {
               <div className="mt-6 text-center space-y-2">
                 <div className="bg-accent/10 border border-accent/30 rounded-lg p-3 mb-3">
                   <p className="text-sm font-medium text-accent mb-1">
-                    ✨ 註冊會員享受更多便利
+                    ✨ 註冊會員免輸入關鍵字
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    • 自動解鎖，無需重複輸入<br/>
+                    • 登入後自動解鎖，無需輸入關鍵字<br/>
                     • 查看我的領取記錄<br/>
-                    • 一鍵管理所有資料包
+                    • 創建資料包，分享給你的受眾
                   </p>
                 </div>
                 <button
                   onClick={() => navigate(`/login?returnTo=${location.pathname}`)}
                   className="text-sm font-medium text-foreground hover:text-accent transition-colors"
                 >
-                  立即註冊／登入 →
+                  免費註冊／登入 →
                 </button>
                 <div className="flex gap-3 justify-center text-xs mt-3">
                   <button
@@ -355,7 +355,7 @@ const Box = () => {
                 variant="outline"
                 className="flex-1"
               >
-                {isLoggedIn ? "查看我的管理面板 →" : "註冊 KeyBox 免費查看 →"}
+                {isLoggedIn ? "前往創作者面板 →" : "註冊 KeyBox 創建資料包 →"}
               </Button>
             </div>
           </div>

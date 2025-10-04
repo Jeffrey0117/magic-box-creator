@@ -399,12 +399,34 @@ export default function Admin() {
                               <Badge variant={status.variant}>{status.label}</Badge>
                             </TableCell>
                             <TableCell className="text-right space-x-2">
+                              <Dialog>
+                                <DialogTrigger asChild>
+                                  <Button variant="ghost" size="sm">
+                                    <Eye className="h-4 w-4" />
+                                  </Button>
+                                </DialogTrigger>
+                                <DialogContent className="max-w-2xl">
+                                  <DialogHeader>
+                                    <DialogTitle>📦 {kw.keyword}</DialogTitle>
+                                  </DialogHeader>
+                                  <div className="space-y-4">
+                                    <div className="bg-emerald-50 p-4 rounded-lg">
+                                      <p className="text-sm text-gray-600 mb-2">短碼：{kw.short_code}</p>
+                                      <p className="text-sm text-gray-600 mb-2">創作者：{kw.creator_email}</p>
+                                      <p className="text-sm text-gray-600">領取進度：{progress}</p>
+                                    </div>
+                                    <div className="bg-gray-50 p-4 rounded-lg">
+                                      <p className="text-sm font-medium mb-2 text-gray-800">資料包內容：</p>
+                                      <pre className="whitespace-pre-wrap text-sm text-gray-700">{kw.content}</pre>
+                                    </div>
+                                  </div>
+                                </DialogContent>
+                              </Dialog>
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => navigate(`/admin/packages/${kw.id}`)}
+                                onClick={() => navigate(`/admin/packages/${kw.short_code}`)}
                               >
-                                <Eye className="h-4 w-4 mr-2" />
                                 查看詳情
                               </Button>
                               <Button
