@@ -187,7 +187,7 @@ export default function PackageDetail() {
     : 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-emerald-50/30 to-blue-50/20 p-6">
+    <div className="min-h-screen bg-gradient-to-b from-background to-secondary/20 p-6">
       <div className="max-w-7xl mx-auto">
         <Button
           variant="ghost"
@@ -198,7 +198,7 @@ export default function PackageDetail() {
           返回後台
         </Button>
 
-        <Card className="mb-6 border-emerald-200 bg-white/80 backdrop-blur-sm">
+        <Card className="mb-6">
           <CardHeader>
             <div className="flex items-start justify-between">
               <div className="flex-1">
@@ -236,7 +236,7 @@ export default function PackageDetail() {
         </Card>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-6">
-          <Card className="border-emerald-200 bg-white/80 backdrop-blur-sm hover:shadow-md transition-shadow">
+          <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">總領取次數</CardTitle>
             </CardHeader>
@@ -245,7 +245,7 @@ export default function PackageDetail() {
             </CardContent>
           </Card>
 
-          <Card className="border-emerald-200 bg-white/80 backdrop-blur-sm hover:shadow-md transition-shadow">
+          <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">額度設定</CardTitle>
             </CardHeader>
@@ -254,7 +254,7 @@ export default function PackageDetail() {
             </CardContent>
           </Card>
 
-          <Card className="border-emerald-200 bg-white/80 backdrop-blur-sm hover:shadow-md transition-shadow">
+          <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">完成度</CardTitle>
             </CardHeader>
@@ -265,7 +265,7 @@ export default function PackageDetail() {
             </CardContent>
           </Card>
 
-          <Card className="border-emerald-200 bg-white/80 backdrop-blur-sm hover:shadow-md transition-shadow">
+          <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">完成用時</CardTitle>
             </CardHeader>
@@ -276,7 +276,7 @@ export default function PackageDetail() {
         </div>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-6">
-          <Card className="border-emerald-200 bg-white/80 backdrop-blur-sm hover:shadow-md transition-shadow">
+          <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">首次領取時間</CardTitle>
             </CardHeader>
@@ -290,7 +290,7 @@ export default function PackageDetail() {
             </CardContent>
           </Card>
 
-          <Card className="border-emerald-200 bg-white/80 backdrop-blur-sm hover:shadow-md transition-shadow">
+          <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">最後領取時間</CardTitle>
             </CardHeader>
@@ -304,7 +304,7 @@ export default function PackageDetail() {
             </CardContent>
           </Card>
 
-          <Card className="border-emerald-200 bg-white/80 backdrop-blur-sm hover:shadow-md transition-shadow">
+          <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">平均每日領取</CardTitle>
             </CardHeader>
@@ -313,7 +313,7 @@ export default function PackageDetail() {
             </CardContent>
           </Card>
 
-          <Card className="border-emerald-200 bg-white/80 backdrop-blur-sm hover:shadow-md transition-shadow">
+          <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">峰值領取</CardTitle>
             </CardHeader>
@@ -323,17 +323,17 @@ export default function PackageDetail() {
           </Card>
         </div>
 
-        <Card className="border-emerald-200 bg-white/80 backdrop-blur-sm mb-6">
+        <Card className="mb-6">
           <CardHeader>
             <CardTitle>📊 領取趨勢圖表</CardTitle>
             <CardDescription>領取次數隨時間變化趨勢</CardDescription>
           </CardHeader>
           <CardContent>
-            <ClaimTrendChart dailyStats={analytics?.daily_stats || null} />
+            <ClaimTrendChart claimRecords={claimRecords} />
           </CardContent>
         </Card>
 
-        <Card className="border-emerald-200 bg-white/80 backdrop-blur-sm mb-6">
+        <Card className="mb-6">
           <CardHeader>
             <CardTitle>📋 領取記錄</CardTitle>
             <CardDescription>所有領取此資料包的用戶記錄</CardDescription>
@@ -343,12 +343,12 @@ export default function PackageDetail() {
           </CardContent>
         </Card>
 
-        <Card className="border-emerald-200 bg-white/80 backdrop-blur-sm">
+        <Card>
           <CardHeader>
             <CardTitle>📄 資料包內容</CardTitle>
           </CardHeader>
           <CardContent>
-            <pre className="whitespace-pre-wrap bg-emerald-50/80 p-4 rounded-lg text-sm text-gray-800">
+            <pre className="whitespace-pre-wrap bg-secondary/30 p-4 rounded-lg text-sm">
               {packageData.content}
             </pre>
           </CardContent>
