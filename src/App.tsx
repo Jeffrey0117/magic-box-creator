@@ -12,6 +12,7 @@ import NotFound from "./pages/NotFound";
 import Privacy from "./pages/Privacy";
 import Help from "./pages/Help";
 import Admin from "./pages/Admin";
+import PackageDetail from "./pages/admin/PackageDetail";
 
 const queryClient = new QueryClient();
 
@@ -37,6 +38,7 @@ const App = () => (
           <Route path="/login" element={<Login />} />
           <Route path="/creator" element={<Creator />} />
           <Route path="/admin" element={<Admin />} />
+          <Route path="/admin/packages/:packageId" element={<PackageDetail />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/help" element={<Help />} />
           <Route path="/box/:id" element={<Box />} />

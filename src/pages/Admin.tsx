@@ -399,23 +399,14 @@ export default function Admin() {
                               <Badge variant={status.variant}>{status.label}</Badge>
                             </TableCell>
                             <TableCell className="text-right space-x-2">
-                              <Dialog>
-                                <DialogTrigger asChild>
-                                  <Button variant="ghost" size="sm">
-                                    <Eye className="h-4 w-4" />
-                                  </Button>
-                                </DialogTrigger>
-                                <DialogContent className="max-w-2xl">
-                                  <DialogHeader>
-                                    <DialogTitle>資料包內容</DialogTitle>
-                                  </DialogHeader>
-                                  <div className="mt-4">
-                                    <pre className="whitespace-pre-wrap bg-emerald-50 p-4 rounded-lg text-sm max-h-96 overflow-y-auto text-gray-800">
-                                      {kw.content}
-                                    </pre>
-                                  </div>
-                                </DialogContent>
-                              </Dialog>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => navigate(`/admin/packages/${kw.id}`)}
+                              >
+                                <Eye className="h-4 w-4 mr-2" />
+                                查看詳情
+                              </Button>
                               <Button
                                 variant="ghost"
                                 size="sm"
