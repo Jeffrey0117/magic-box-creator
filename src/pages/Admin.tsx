@@ -410,7 +410,7 @@ export default function Admin() {
                                     <DialogTitle>資料包內容</DialogTitle>
                                   </DialogHeader>
                                   <div className="mt-4">
-                                    <pre className="whitespace-pre-wrap bg-gray-50 p-4 rounded-lg text-sm max-h-96 overflow-y-auto">
+                                    <pre className="whitespace-pre-wrap bg-emerald-50 p-4 rounded-lg text-sm max-h-96 overflow-y-auto text-gray-800">
                                       {kw.content}
                                     </pre>
                                   </div>
