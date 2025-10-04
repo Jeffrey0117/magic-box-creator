@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { LayoutDashboard, Users, Package, History, Search, Eye, Trash2 } from 'lucide-react';
 import { Tables } from '@/integrations/supabase/types';
@@ -23,12 +24,16 @@ interface Stats {
 }
 
 type Keyword = Tables<'keywords'> & {
-  claim_count?: number;
   creator_email?: string;
 };
 
-type EmailLog = Tables<'email_logs'> & {
-  keyword?: string;
+type UserStats = {
+  user_id: string;
+  email: string;
+  display_name: string | null;
+  keyword_count: number;
+  total_claims: number;
+  created_at: string;
 };
 
 export default function Admin() {
@@ -44,9 +49,8 @@ export default function Admin() {
   });
   const [loading, setLoading] = useState(true);
   const [keywords, setKeywords] = useState<Keyword[]>([]);
-  const [emailLogs, setEmailLogs] = useState<EmailLog[]>([]);
+  const [users, setUsers] = useState<UserStats[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedContent, setSelectedContent] = useState<string | null>(null);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -64,7 +68,7 @@ export default function Admin() {
         return;
       }
 
-      await Promise.all([fetchStats(), fetchKeywords(), fetchEmailLogs()]);
+      await Promise.all([fetchStats(), fetchKeywords(), fetchUsers()]);
     };
 
     checkAuth();
@@ -105,39 +109,63 @@ export default function Admin() {
     try {
       const { data, error } = await supabase
         .from('keywords')
-        .select('*')
+        .select(`
+          *,
+          creator:creator_id (email)
+        `)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setKeywords(data || []);
+      
+      const keywordsWithEmail = data?.map(kw => ({
+        ...kw,
+        creator_email: (kw.creator as any)?.email || 'Unknown'
+      })) || [];
+      
+      setKeywords(keywordsWithEmail);
     } catch (error) {
       console.error('Failed to fetch keywords:', error);
       toast.error('載入資料包列表失敗');
     }
   };
 
-  const fetchEmailLogs = async () => {
+  const fetchUsers = async () => {
     try {
-      const { data, error } = await supabase
-        .from('email_logs')
-        .select(`
-          *,
-          keywords (keyword)
-        `)
-        .order('unlocked_at', { ascending: false })
-        .limit(100);
+      const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
+      
+      if (authError) throw authError;
 
-      if (error) throw error;
-      
-      const logsWithKeyword = data?.map(log => ({
-        ...log,
-        keyword: (log.keywords as any)?.keyword || 'Unknown'
-      })) || [];
-      
-      setEmailLogs(logsWithKeyword);
+      const userStatsPromises = authUsers.users.map(async (user) => {
+        const [keywordsData, profileData] = await Promise.all([
+          supabase
+            .from('keywords')
+            .select('id, current_count')
+            .eq('creator_id', user.id),
+          supabase
+            .from('user_profiles')
+            .select('display_name')
+            .eq('id', user.id)
+            .single()
+        ]);
+
+        const keywordCount = keywordsData.data?.length || 0;
+        const totalClaims = keywordsData.data?.reduce((sum, kw) => sum + (kw.current_count || 0), 0) || 0;
+
+        return {
+          user_id: user.id,
+          email: user.email || '',
+          display_name: profileData.data?.display_name || null,
+          keyword_count: keywordCount,
+          total_claims: totalClaims,
+          created_at: user.created_at
+        };
+      });
+
+      const userStats = await Promise.all(userStatsPromises);
+      setUsers(userStats);
     } catch (error) {
-      console.error('Failed to fetch email logs:', error);
-      toast.error('載入領取記錄失敗');
+      console.error('Failed to fetch users:', error);
+      toast.error('載入用戶列表失敗');
     }
   };
 
@@ -157,14 +185,33 @@ export default function Admin() {
     }
   };
 
-  const filteredKeywords = keywords.filter(k =>
-    k.keyword.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    k.short_code?.toLowerCase().includes(searchTerm.toLowerCase())
+  const getUserStatus = (keywordCount: number, totalClaims: number) => {
+    if (keywordCount >= 3 && totalClaims >= 50) {
+      return { label: '🟢 活躍', variant: 'default' as const };
+    }
+    if (keywordCount > 0) {
+      return { label: '🟡 一般', variant: 'secondary' as const };
+    }
+    return { label: '🔵 領取者', variant: 'outline' as const };
+  };
+
+  const getPackageStatus = (currentCount: number, quota: number | null) => {
+    if (quota === null) return { label: '🔄 進行中', variant: 'secondary' as const };
+    if (currentCount >= quota) return { label: '✅ 已完成', variant: 'default' as const };
+    if (currentCount >= quota * 0.8) return { label: '🟡 即將完成', variant: 'default' as const };
+    if (currentCount === 0) return { label: '⏸️ 未啟用', variant: 'outline' as const };
+    return { label: '🔄 進行中', variant: 'secondary' as const };
+  };
+
+  const filteredUsers = users.filter(u =>
+    u.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (u.display_name && u.display_name.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
-  const filteredLogs = emailLogs.filter(log =>
-    log.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    log.keyword?.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredKeywords = keywords.filter(k =>
+    k.keyword.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    k.short_code?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    k.creator_email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -224,8 +271,8 @@ export default function Admin() {
         <Tabs defaultValue="dashboard" className="w-full">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="dashboard">📊 統計總覽</TabsTrigger>
-            <TabsTrigger value="keywords">📦 資料包管理</TabsTrigger>
-            <TabsTrigger value="logs">📋 領取記錄</TabsTrigger>
+            <TabsTrigger value="users">👥 用戶管理</TabsTrigger>
+            <TabsTrigger value="packages">📦 資料包管理</TabsTrigger>
           </TabsList>
 
           <TabsContent value="dashboard" className="space-y-4 mt-6">
@@ -241,14 +288,72 @@ export default function Admin() {
                   <li>✅ 資料包統計數據（總數、本週新增）</li>
                   <li>✅ 領取記錄統計（總數、今日新增）</li>
                   <li>✅ 創作者數量統計</li>
+                  <li>✅ 用戶管理功能</li>
                   <li>✅ 資料包列表管理</li>
-                  <li>✅ 領取記錄查詢</li>
                 </ul>
               </CardContent>
             </Card>
           </TabsContent>
 
-          <TabsContent value="keywords" className="space-y-4 mt-6">
+          <TabsContent value="users" className="space-y-4 mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>👥 用戶管理</CardTitle>
+                <CardDescription>查看和管理所有用戶</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center gap-2 mb-4">
+                  <Search className="h-4 w-4 text-gray-400" />
+                  <Input
+                    placeholder="搜尋 Email 或暱稱..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="max-w-sm"
+                  />
+                </div>
+
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Email</TableHead>
+                      <TableHead>暱稱</TableHead>
+                      <TableHead>資料包數</TableHead>
+                      <TableHead>總領取次數</TableHead>
+                      <TableHead>加入時間</TableHead>
+                      <TableHead>狀態</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredUsers.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-center text-gray-500">
+                          沒有資料
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      filteredUsers.map((user) => {
+                        const status = getUserStatus(user.keyword_count, user.total_claims);
+                        return (
+                          <TableRow key={user.user_id}>
+                            <TableCell className="font-mono text-sm">{user.email}</TableCell>
+                            <TableCell>{user.display_name || '(未設定)'}</TableCell>
+                            <TableCell>{user.keyword_count}</TableCell>
+                            <TableCell>{user.total_claims}</TableCell>
+                            <TableCell>{new Date(user.created_at).toLocaleDateString('zh-TW')}</TableCell>
+                            <TableCell>
+                              <Badge variant={status.variant}>{status.label}</Badge>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })
+                    )}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="packages" className="space-y-4 mt-6">
             <Card>
               <CardHeader>
                 <CardTitle>📦 資料包管理</CardTitle>
@@ -258,7 +363,7 @@ export default function Admin() {
                 <div className="flex items-center gap-2 mb-4">
                   <Search className="h-4 w-4 text-gray-400" />
                   <Input
-                    placeholder="搜尋關鍵字或短網址..."
+                    placeholder="搜尋關鍵字、短碼或創作者..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="max-w-sm"
@@ -269,10 +374,10 @@ export default function Admin() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>關鍵字</TableHead>
-                      <TableHead>短網址</TableHead>
-                      <TableHead>建立時間</TableHead>
-                      <TableHead>領取次數</TableHead>
-                      <TableHead>額度</TableHead>
+                      <TableHead>短碼</TableHead>
+                      <TableHead>創作者</TableHead>
+                      <TableHead>領取進度</TableHead>
+                      <TableHead>狀態</TableHead>
                       <TableHead className="text-right">操作</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -284,96 +389,54 @@ export default function Admin() {
                         </TableCell>
                       </TableRow>
                     ) : (
-                      filteredKeywords.map((kw) => (
-                        <TableRow key={kw.id}>
-                          <TableCell className="font-medium">{kw.keyword}</TableCell>
-                          <TableCell>
-                            <code className="text-xs bg-gray-100 px-2 py-1 rounded">
-                              {kw.short_code}
-                            </code>
-                          </TableCell>
-                          <TableCell>{new Date(kw.created_at).toLocaleDateString('zh-TW')}</TableCell>
-                          <TableCell>{kw.current_count || 0}</TableCell>
-                          <TableCell>
-                            {kw.quota ? `${kw.current_count || 0}/${kw.quota}` : '無限制'}
-                          </TableCell>
-                          <TableCell className="text-right space-x-2">
-                            <Dialog>
-                              <DialogTrigger asChild>
-                                <Button variant="ghost" size="sm">
-                                  <Eye className="h-4 w-4" />
-                                </Button>
-                              </DialogTrigger>
-                              <DialogContent className="max-w-2xl">
-                                <DialogHeader>
-                                  <DialogTitle>資料包內容</DialogTitle>
-                                </DialogHeader>
-                                <div className="mt-4">
-                                  <pre className="whitespace-pre-wrap bg-gray-50 p-4 rounded-lg text-sm max-h-96 overflow-y-auto">
-                                    {kw.content}
-                                  </pre>
-                                </div>
-                              </DialogContent>
-                            </Dialog>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDeleteKeyword(kw.id)}
-                            >
-                              <Trash2 className="h-4 w-4 text-red-500" />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="logs" className="space-y-4 mt-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>📋 領取記錄</CardTitle>
-                <CardDescription>查看所有領取記錄（最近 100 筆）</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center gap-2 mb-4">
-                  <Search className="h-4 w-4 text-gray-400" />
-                  <Input
-                    placeholder="搜尋 Email 或關鍵字..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="max-w-sm"
-                  />
-                </div>
-
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Email</TableHead>
-                      <TableHead>關鍵字</TableHead>
-                      <TableHead>領取時間</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredLogs.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={3} className="text-center text-gray-500">
-                          沒有記錄
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      filteredLogs.map((log) => (
-                        <TableRow key={log.id}>
-                          <TableCell className="font-mono text-sm">{log.email}</TableCell>
-                          <TableCell>{log.keyword}</TableCell>
-                          <TableCell>
-                            {new Date(log.unlocked_at).toLocaleString('zh-TW')}
-                          </TableCell>
-                        </TableRow>
-                      ))
+                      filteredKeywords.map((kw) => {
+                        const status = getPackageStatus(kw.current_count, kw.quota);
+                        const progress = kw.quota 
+                          ? `${kw.current_count}/${kw.quota} (${Math.round((kw.current_count / kw.quota) * 100)}%)`
+                          : `${kw.current_count}/∞`;
+                        
+                        return (
+                          <TableRow key={kw.id}>
+                            <TableCell className="font-medium">{kw.keyword}</TableCell>
+                            <TableCell>
+                              <code className="text-xs bg-gray-100 px-2 py-1 rounded">
+                                {kw.short_code}
+                              </code>
+                            </TableCell>
+                            <TableCell className="text-sm text-gray-600">{kw.creator_email}</TableCell>
+                            <TableCell>{progress}</TableCell>
+                            <TableCell>
+                              <Badge variant={status.variant}>{status.label}</Badge>
+                            </TableCell>
+                            <TableCell className="text-right space-x-2">
+                              <Dialog>
+                                <DialogTrigger asChild>
+                                  <Button variant="ghost" size="sm">
+                                    <Eye className="h-4 w-4" />
+                                  </Button>
+                                </DialogTrigger>
+                                <DialogContent className="max-w-2xl">
+                                  <DialogHeader>
+                                    <DialogTitle>資料包內容</DialogTitle>
+                                  </DialogHeader>
+                                  <div className="mt-4">
+                                    <pre className="whitespace-pre-wrap bg-gray-50 p-4 rounded-lg text-sm max-h-96 overflow-y-auto">
+                                      {kw.content}
+                                    </pre>
+                                  </div>
+                                </DialogContent>
+                              </Dialog>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDeleteKeyword(kw.id)}
+                              >
+                                <Trash2 className="h-4 w-4 text-red-500" />
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })
                     )}
                   </TableBody>
                 </Table>

@@ -4,9 +4,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Trash2, Plus, LogOut, Download, Edit, ClipboardList } from "lucide-react";
+import { Trash2, Plus, LogOut, Download, Edit, ClipboardList, User } from "lucide-react";
 import { generateUniqueShortCode } from "@/lib/shortcode";
+import { ProfileEditDialog } from "@/components/ProfileEditDialog";
+import { Tables } from "@/integrations/supabase/types";
 
 interface Keyword {
   id: string;
@@ -54,12 +57,16 @@ const Creator = () => {
   const [editContent, setEditContent] = useState("");
   const [newQuota, setNewQuota] = useState("");
   const [editQuota, setEditQuota] = useState("");
+  const [userId, setUserId] = useState("");
+  const [showProfileDialog, setShowProfileDialog] = useState(false);
+  const [userProfile, setUserProfile] = useState<Tables<'user_profiles'> | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     checkAuth();
     fetchKeywords();
     fetchMyRecords();
+    fetchUserProfile();
   }, []);
 
   const checkAuth = async () => {
@@ -68,6 +75,22 @@ const Creator = () => {
       navigate("/login");
     } else {
       setUserEmail(session.user.email || "");
+      setUserId(session.user.id);
+    }
+  };
+
+  const fetchUserProfile = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+
+    const { data, error } = await supabase
+      .from('user_profiles')
+      .select('*')
+      .eq('id', session.user.id)
+      .single();
+
+    if (!error && data) {
+      setUserProfile(data);
     }
   };
 
@@ -332,6 +355,52 @@ const Creator = () => {
             <span className="hidden sm:inline">登出</span>
           </Button>
         </div>
+
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <User className="w-5 h-5" />
+              個人資料
+            </CardTitle>
+            <CardDescription>您的公開資料，將顯示在資料包創作者資訊中</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm text-muted-foreground mb-1">Email</p>
+                <p className="font-medium">{userEmail}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground mb-1">暱稱</p>
+                <p className="font-medium">{userProfile?.display_name || '(未設定)'}</p>
+              </div>
+            </div>
+            {userProfile?.bio && (
+              <div>
+                <p className="text-sm text-muted-foreground mb-1">自我介紹</p>
+                <p className="text-sm">{userProfile.bio}</p>
+              </div>
+            )}
+            <Button
+              onClick={() => setShowProfileDialog(true)}
+              variant="outline"
+              className="gap-2"
+            >
+              <Edit className="w-4 h-4" />
+              編輯個人資料
+            </Button>
+          </CardContent>
+        </Card>
+
+        <ProfileEditDialog
+          open={showProfileDialog}
+          onOpenChange={(open) => {
+            setShowProfileDialog(open);
+            if (!open) fetchUserProfile();
+          }}
+          userId={userId}
+          userEmail={userEmail}
+        />
 
         <div className="glass-card rounded-2xl p-6 md:p-8 shadow-card">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6">

@@ -1,109 +1,168 @@
-# 🔧 限量次數顯示問題修正報告
+# 🔧 限量次數顯示問題最終報告
 
-## 問題描述
-前台 (https://magic-box-creator.vercel.app/UywTwg) 一直顯示「剩餘 0 份」，即使後台顯示正常。
+## 📊 問題現象
 
-## 根本原因
-Supabase 查詢時使用了 `head: true` 參數，這個參數會導致：
-- **只返回 headers**，不返回實際資料
-- **count 值會是錯誤的**（通常是 null 或 0）
-- 這是 Supabase PostgREST 的特性，`head: true` 是用來做輕量級的存在性檢查，不應該用在需要精確計數的場景
-
-## 修正位置
-
-### 1. ❌ Box.tsx - fetchBoxData (第 120 行)
-**修正前：**
-```typescript
-const { count } = await supabase
-  .from("email_logs")
-  .select("*", { count: "exact", head: true })  // ❌ 錯誤
-  .eq("keyword_id", data.id);
+```
+📊 總領取：19 人    ← current_count（不會自動更新）
+📈 今日：+20        ← 即時查詢 email_logs（會更新）
+🔥 剩餘：81 份      ← 基於錯誤的 current_count
 ```
 
-**修正後：**
-```typescript
-const { count } = await supabase
-  .from("email_logs")
-  .select("*", { count: "exact" })  // ✅ 正確
-  .eq("keyword_id", data.id);
-```
-
-### 2. ❌ Box.tsx - handleUnlock (第 181 行)
-**修正前：**
-```typescript
-const { count } = await supabase
-  .from("email_logs")
-  .select("*", { count: "exact", head: true })  // ❌ 錯誤
-  .eq("keyword_id", keywordData.id);
-```
-
-**修正後：**
-```typescript
-const { count } = await supabase
-  .from("email_logs")
-  .select("*", { count: "exact" })  // ✅ 正確
-  .eq("keyword_id", keywordData.id);
-```
-
-### 3. ❌ Creator.tsx - fetchKeywords (第 98、105 行)
-**修正前：**
-```typescript
-const { count: totalCount } = await supabase
-  .from("email_logs")
-  .select("*", { count: "exact", head: true })  // ❌ 錯誤
-  .eq("keyword_id", keyword.id);
-
-const { count: todayCount } = await supabase
-  .from("email_logs")
-  .select("*", { count: "exact", head: true })  // ❌ 錯誤
-  .eq("keyword_id", keyword.id)
-  .gte("unlocked_at", today.toISOString());
-```
-
-**修正後：**
-```typescript
-const { count: totalCount } = await supabase
-  .from("email_logs")
-  .select("*", { count: "exact" })  // ✅ 正確
-  .eq("keyword_id", keyword.id);
-
-const { count: todayCount } = await supabase
-  .from("email_logs")
-  .select("*", { count: "exact" })  // ✅ 正確
-  .eq("keyword_id", keyword.id)
-  .gte("unlocked_at", today.toISOString());
-```
-
-## 技術說明
-
-### Supabase count 參數差異
-```typescript
-// ❌ 錯誤：head: true 只返回 headers，不返回資料
-.select("*", { count: "exact", head: true })
-
-// ✅ 正確：返回完整資料 + 準確的 count
-.select("*", { count: "exact" })
-
-// 💡 替代方案：如果只需要 count，可以這樣
-.select("id", { count: "exact" })  // 只選一個欄位減少傳輸量
-```
-
-## 修正結果
-✅ 前台正確顯示剩餘份數  
-✅ 後台正確顯示已領取數量  
-✅ 額滿檢查正常運作  
-✅ 今日領取統計正確
-
-## Commit 記錄
-1. `fa7f8c9` - fix: 移除 handleUnlock 中的 head: true 參數，修正限量次數計算
-2. `546b060` - fix: 移除所有查詢中的 head: true 參數，徹底修正限量次數計算問題
-
-## 部署狀態
-🚀 已推送到 GitHub  
-⏳ Vercel 自動部署中（約 1-2 分鐘）  
-🔗 部署完成後即可在 https://magic-box-creator.vercel.app/UywTwg 看到正確顯示
+**核心問題**：有人領取後，`current_count` 不會更新，但 `today_count` 會更新。
 
 ---
 
-**修正完成時間：** 2025-10-04 01:58 (UTC+8)  
-**狀態：** ✅ 已徹底修正，推上市上櫃有望 🚀
+## 🔍 根本原因
+
+### Migration SQL 已寫好但**沒有執行**
+
+檢查程式碼後發現：
+- ✅ [`Box.tsx:101`](src/pages/Box.tsx:101) - 前台讀取 `current_count`
+- ✅ [`Box.tsx:175`](src/pages/Box.tsx:175) - 額滿檢查使用 `current_count`
+- ✅ [`Creator.tsx:106`](src/pages/Creator.tsx:106) - 後台讀取 `current_count`
+- ✅ Migration SQL 檔案存在 [`supabase/migrations/20251003180800_add_current_count_to_keywords.sql`](supabase/migrations/20251003180800_add_current_count_to_keywords.sql:1)
+
+**但是**：
+- ❌ Migration **沒有在 Supabase 資料庫執行**
+- ❌ `keywords.current_count` 欄位存在但沒初始化（= 0）
+- ❌ Trigger `update_count_on_claim` 不存在或未啟用
+
+---
+
+## 🎯 解決方案（立即執行）
+
+### Step 1：登入 Supabase Dashboard
+
+1. 前往 https://supabase.com/dashboard
+2. 選擇你的專案
+3. 左側選單 → **SQL Editor**
+4. 點擊 **+ New Query**
+
+### Step 2：執行以下 SQL
+
+```sql
+-- 1. 檢查並新增 current_count 欄位
+ALTER TABLE keywords 
+ADD COLUMN IF NOT EXISTS current_count INTEGER DEFAULT 0;
+
+-- 2. 初始化所有現有資料的 current_count（關鍵步驟！）
+UPDATE keywords k
+SET current_count = (
+  SELECT COUNT(*)
+  FROM email_logs e
+  WHERE e.keyword_id = k.id
+);
+
+-- 3. 建立自動更新函數
+CREATE OR REPLACE FUNCTION update_keyword_count()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF TG_OP = 'INSERT' THEN
+    UPDATE keywords 
+    SET current_count = current_count + 1
+    WHERE id = NEW.keyword_id;
+    RETURN NEW;
+  ELSIF TG_OP = 'DELETE' THEN
+    UPDATE keywords 
+    SET current_count = GREATEST(current_count - 1, 0)
+    WHERE id = OLD.keyword_id;
+    RETURN OLD;
+  END IF;
+  RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+-- 4. 移除舊 Trigger（如果存在）
+DROP TRIGGER IF EXISTS update_count_on_claim ON email_logs;
+
+-- 5. 建立新 Trigger
+CREATE TRIGGER update_count_on_claim
+  AFTER INSERT OR DELETE ON email_logs
+  FOR EACH ROW EXECUTE FUNCTION update_keyword_count();
+
+-- 6. 驗證結果
+SELECT 
+  k.id,
+  k.keyword,
+  k.quota,
+  k.current_count,
+  COUNT(e.id) as actual_count,
+  CASE 
+    WHEN k.current_count = COUNT(e.id) THEN '✅ 正確'
+    ELSE '❌ 不一致'
+  END as status
+FROM keywords k
+LEFT JOIN email_logs e ON e.keyword_id = k.id
+WHERE k.quota IS NOT NULL
+GROUP BY k.id, k.keyword, k.quota, k.current_count;
+```
+
+### Step 3：點擊 **Run** 執行
+
+執行後應該看到：
+```
+✅ 正確  ← 所有資料的 current_count = actual_count
+```
+
+---
+
+## ✅ 預期結果
+
+執行完後，重新整理後台：
+```
+📊 總領取：20 人    ← 正確（來自 current_count）
+📈 今日：+20        ← 正確
+🔥 剩餘：80 份      ← 100 - 20 = 80（正確）
+```
+
+**之後有人領取**：
+```
+INSERT email_logs → Trigger 觸發 → current_count + 1
+```
+
+**刪除記錄時**：
+```
+DELETE email_logs → Trigger 觸發 → current_count - 1
+```
+
+完全自動化，不需手動維護！
+
+---
+
+## 🚨 為什麼一直卡住？
+
+因為：
+1. 前端程式碼已部署（讀取 `current_count`）
+2. 但資料庫沒執行 Migration
+3. `current_count` 都是 0 或預設值
+4. Trigger 不存在，新領取不會更新
+
+**必須手動在 Supabase Dashboard 執行 SQL！**
+
+---
+
+## 📝 技術總結
+
+### 原本設計（正確）
+- 前台：讀取 `keywords.current_count`（公開欄位，不需查詢 email_logs）
+- 後台：讀取 `keywords.current_count`（減少查詢）
+- Trigger：自動維護 `current_count`（INSERT +1, DELETE -1）
+
+### 問題所在
+- Migration SQL 只存在本地 Git
+- **沒有在 Supabase 雲端資料庫執行**
+- 前端讀到的 `current_count` 都是 0 或舊值
+
+### 最終解決
+- **在 Supabase Dashboard 手動執行 Migration SQL**
+- 初始化所有既有資料的 count
+- 啟用 Trigger 自動更新
+
+---
+
+**執行完 SQL 後，問題就徹底解決了！** 🚀
+
+---
+
+**修正時間：** 2025-10-04 03:13 (UTC+8)  
+**狀態：** ✅ 已提供完整解決方案，等待執行 SQL

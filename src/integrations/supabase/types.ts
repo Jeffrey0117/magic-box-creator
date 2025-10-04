@@ -7,8 +7,6 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "13.0.5"
   }
@@ -48,27 +46,68 @@ export type Database = {
           content: string
           created_at: string
           creator_id: string
+          current_count: number
           id: string
           keyword: string
+          quota: number | null
+          short_code: string
           updated_at: string
         }
         Insert: {
           content: string
           created_at?: string
           creator_id: string
+          current_count?: number
           id?: string
           keyword: string
+          quota?: number | null
+          short_code?: string
           updated_at?: string
         }
         Update: {
           content?: string
           created_at?: string
           creator_id?: string
+          current_count?: number
           id?: string
           keyword?: string
+          quota?: number | null
+          short_code?: string
           updated_at?: string
         }
         Relationships: []
+      }
+      user_profiles: {
+        Row: {
+          bio: string | null
+          created_at: string
+          display_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          bio?: string | null
+          created_at?: string
+          display_name?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          bio?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_profiles_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
