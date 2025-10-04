@@ -115,23 +115,15 @@ export default function Admin() {
       if (error) throw error;
       
       const keywordsWithEmailPromises = (data || []).map(async (kw) => {
-        const { data: profile } = await supabase
-          .from('user_profiles')
-          .select('id')
-          .eq('id', kw.creator_id)
+        const { data: userStat } = await supabase
+          .from('user_stats')
+          .select('email')
+          .eq('user_id', kw.creator_id)
           .single();
-        
-        let creator_email = 'Creator';
-        if (profile) {
-          const { data: { user } } = await supabase.auth.getUser();
-          if (user && user.id === kw.creator_id) {
-            creator_email = user.email || 'Creator';
-          }
-        }
         
         return {
           ...kw,
-          creator_email
+          creator_email: userStat?.email || 'Unknown'
         };
       });
       
@@ -397,7 +389,7 @@ export default function Admin() {
                           <TableRow key={kw.id}>
                             <TableCell className="font-medium">{kw.keyword}</TableCell>
                             <TableCell>
-                              <code className="text-xs bg-gray-100 px-2 py-1 rounded">
+                              <code className="text-xs bg-emerald-100 text-emerald-800 px-2 py-1 rounded font-mono">
                                 {kw.short_code}
                               </code>
                             </TableCell>
