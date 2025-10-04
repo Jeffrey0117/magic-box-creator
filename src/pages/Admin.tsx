@@ -55,34 +55,25 @@ export default function Admin() {
     try {
       setLoading(true);
 
-      const startOfWeek = new Date();
-      startOfWeek.setDate(startOfWeek.getDate() - 7);
-      const startOfDay = new Date();
-      startOfDay.setHours(0, 0, 0, 0);
+      const { data, error } = await supabase.rpc('get_admin_stats');
 
-      const [
-        { data: allKeywords, count: totalKeywords },
-        { count: weeklyKeywords },
-        { count: totalClaims },
-        { count: todayClaims }
-      ] = await Promise.all([
-        supabase.from('keywords').select('id, user_id', { count: 'exact' }),
-        supabase.from('keywords').select('id', { count: 'exact' }).gte('created_at', startOfWeek.toISOString()),
-        supabase.from('email_logs').select('id', { count: 'exact' }),
-        supabase.from('email_logs').select('id', { count: 'exact' }).gte('claimed_at', startOfDay.toISOString()),
-      ]);
+      if (error) {
+        console.error('Failed to fetch stats:', error);
+        toast.error('載入統計數據失敗');
+        return;
+      }
 
-      const uniqueCreators = new Set(allKeywords?.map(k => k.user_id).filter(Boolean)).size;
-
-      setStats({
-        totalUsers: 0,
-        weeklyUsers: 0,
-        totalKeywords: totalKeywords || 0,
-        weeklyKeywords: weeklyKeywords || 0,
-        totalClaims: totalClaims || 0,
-        todayClaims: todayClaims || 0,
-        totalCreators: uniqueCreators,
-      });
+      if (data) {
+        setStats({
+          totalUsers: data.total_users || 0,
+          weeklyUsers: data.weekly_users || 0,
+          totalKeywords: data.total_keywords || 0,
+          weeklyKeywords: data.weekly_keywords || 0,
+          totalClaims: data.total_claims || 0,
+          todayClaims: data.today_claims || 0,
+          totalCreators: data.total_creators || 0,
+        });
+      }
     } catch (error) {
       console.error('Failed to fetch stats:', error);
       toast.error('載入統計數據失敗');
