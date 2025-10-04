@@ -434,22 +434,64 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 ## 📋 開發優先級
 
-### P0（核心必做）
-- [x] 統計總覽（Phase 1 已完成）
-- [ ] 用戶管理主列表
-- [ ] 資料包管理主列表
-- [ ] **資料包詳情頁（含視覺化圖表）** ⭐⭐⭐
+### ✅ Phase 1 - 已完成（MVP 基礎）
+- [x] 統計總覽（7 項數據卡片）
+- [x] 用戶管理主列表（含 user_stats VIEW）
+- [x] 資料包管理主列表
+- [x] 創作者管理面板（`/creator`）
+- [x] 個人資料編輯 Dialog
+- [x] Database Migration（user_profiles + user_stats VIEW）
+- [x] RLS 政策設定
+- [x] 短碼顯示優化
+- [x] 資料包預覽樣式修正
 
-### P1（重要補充）
-- [ ] 用戶詳情頁
-- [ ] 搜尋/篩選/排序功能
-- [ ] 匯出 CSV 功能
-- [ ] 複製短網址功能
+### 🚧 Phase 2 - TODO（核心數據視覺化）⭐⭐⭐
 
-### P2（優化增強）
-- [ ] Dashboard 圖表視覺化
-- [ ] 活躍度分析圖表
-- [ ] 進階篩選器
+#### Test 1: 安裝 Recharts + 環境設定
+- [ ] `npm install recharts`
+- [ ] 測試 Recharts 基本渲染
+- [ ] 建立圖表測試頁面（假數據）
+
+#### Test 2: Database Function - 資料包分析
+- [ ] 建立 `get_package_analytics(package_id uuid)` SQL Function
+- [ ] 測試 Function 回傳格式
+- [ ] 驗證效能（< 1s）
+
+#### Test 3: 資料包詳情頁 - 基本架構
+- [ ] 建立 `/admin/packages/:packageId` 路由
+- [ ] 建立 `PackageDetail.tsx` 頁面
+- [ ] 實作基本資訊卡片（關鍵字、短碼、創作者、建立時間）
+- [ ] 實作 8 個關鍵數據卡片（總領取、額度、完成度等）
+
+#### Test 4: 領取趨勢圖表組件
+- [ ] 建立 `ClaimTrendChart.tsx` 組件
+- [ ] 實作複合圖（折線 + 柱狀）
+- [ ] 實作區間選擇（1天/7天/30天/全部）
+- [ ] 實作 Tooltip 顯示
+- [ ] 實作響應式設計
+
+#### Test 5: 領取記錄表格
+- [ ] 實作展開/摺疊功能
+- [ ] 實作分頁（每頁 50 筆）
+- [ ] 實作搜尋（Email）
+- [ ] 實作匯出 CSV
+
+#### Test 6: 資料包詳情頁 - 完整功能
+- [ ] 整合圖表組件
+- [ ] 整合領取記錄表格
+- [ ] 實作複製短網址按鈕
+- [ ] 實作刪除資料包按鈕
+- [ ] 測試完整流程
+
+### 📌 Phase 3 - 進階功能（P1）
+- [ ] 用戶詳情頁（`/admin/users/:userId`）
+- [ ] 用戶活躍度圖表
+- [ ] 進階搜尋/篩選/排序
+
+### 🎨 Phase 4 - 優化增強（P2）
+- [ ] Dashboard 圖表視覺化（平台成長曲線）
+- [ ] 熱門資料包 Top 10
+- [ ] 活躍創作者 Top 5
 - [ ] 即時資料更新（WebSocket）
 
 ---
@@ -616,7 +658,8 @@ CREATE POLICY "Users can insert own profile"
 ## 🖥️ UI 設計
 
 ### 管理面板路由
-**路由**：`/creator/dashboard`
+**實際路由**：`/creator`（已實作）
+**PRD 原規劃**：`/creator/dashboard`
 
 ### 頁面結構
 
@@ -703,11 +746,11 @@ CREATE POLICY "Users can insert own profile"
 
 ### MVP Scope（Phase 1）
 
-#### 必做功能 ✅
-- [ ] 建立 `user_profiles` 表 + RLS 政策
-- [ ] 編輯個人資料 Dialog（暱稱、自我介紹）
-- [ ] 創作者管理面板主頁（個人資訊 + 資料包列表）
-- [ ] 預設暱稱生成（Email 前綴）
+#### 必做功能 ✅（已全部完成）
+- [x] 建立 `user_profiles` 表 + RLS 政策
+- [x] 編輯個人資料 Dialog（暱稱、自我介紹）
+- [x] 創作者管理面板主頁（個人資訊 + 資料包列表）
+- [x] 預設暱稱生成（Email 前綴）
 
 #### 選配功能 ⏳（Phase 2）
 - [ ] 頭像上傳功能
