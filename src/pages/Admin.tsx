@@ -109,19 +109,33 @@ export default function Admin() {
     try {
       const { data, error } = await supabase
         .from('keywords')
-        .select(`
-          *,
-          creator:creator_id (email)
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
       
-      const keywordsWithEmail = data?.map(kw => ({
-        ...kw,
-        creator_email: (kw.creator as any)?.email || 'Unknown'
-      })) || [];
+      const keywordsWithEmailPromises = (data || []).map(async (kw) => {
+        const { data: profile } = await supabase
+          .from('user_profiles')
+          .select('id')
+          .eq('id', kw.creator_id)
+          .single();
+        
+        let creator_email = 'Creator';
+        if (profile) {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user && user.id === kw.creator_id) {
+            creator_email = user.email || 'Creator';
+          }
+        }
+        
+        return {
+          ...kw,
+          creator_email
+        };
+      });
       
+      const keywordsWithEmail = await Promise.all(keywordsWithEmailPromises);
       setKeywords(keywordsWithEmail);
     } catch (error) {
       console.error('Failed to fetch keywords:', error);
@@ -131,20 +145,58 @@ export default function Admin() {
 
   const fetchUsers = async () => {
     try {
-      const { data, error } = await supabase
-        .from('user_stats')
-        .select('*');
+      const { data: keywordsData, error: keywordsError } = await supabase
+        .from('keywords')
+        .select('creator_id, current_count, created_at');
 
-      if (error) throw error;
+      if (keywordsError) throw keywordsError;
 
-      const userStats: UserStats[] = (data || []).map((row: any) => ({
-        user_id: row.user_id,
-        email: row.email,
-        display_name: row.display_name,
-        keyword_count: row.keyword_count,
-        total_claims: row.total_claims,
-        created_at: row.created_at
-      }));
+      const creatorMap = new Map<string, { keyword_count: number; total_claims: number; created_at: string }>();
+      
+      keywordsData?.forEach((kw) => {
+        if (!creatorMap.has(kw.creator_id)) {
+          creatorMap.set(kw.creator_id, {
+            keyword_count: 0,
+            total_claims: 0,
+            created_at: kw.created_at
+          });
+        }
+        const stats = creatorMap.get(kw.creator_id)!;
+        stats.keyword_count++;
+        stats.total_claims += kw.current_count || 0;
+        if (new Date(kw.created_at) < new Date(stats.created_at)) {
+          stats.created_at = kw.created_at;
+        }
+      });
+
+      const creatorIds = Array.from(creatorMap.keys());
+
+      const { data: profiles } = await supabase
+        .from('user_profiles')
+        .select('id, display_name')
+        .in('id', creatorIds);
+
+      const profileMap = new Map(profiles?.map(p => [p.id, p.display_name]) || []);
+
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+
+      const userStats: UserStats[] = creatorIds.map((creatorId) => {
+        const stats = creatorMap.get(creatorId)!;
+        
+        let email = 'Creator';
+        if (currentUser && currentUser.id === creatorId) {
+          email = currentUser.email || 'Creator';
+        }
+
+        return {
+          user_id: creatorId,
+          email: email,
+          display_name: profileMap.get(creatorId) || null,
+          keyword_count: stats.keyword_count,
+          total_claims: stats.total_claims,
+          created_at: stats.created_at
+        };
+      });
 
       setUsers(userStats);
     } catch (error) {
