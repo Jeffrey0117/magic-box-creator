@@ -131,37 +131,21 @@ export default function Admin() {
 
   const fetchUsers = async () => {
     try {
-      const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
-      
-      if (authError) throw authError;
+      const { data, error } = await supabase
+        .from('user_stats')
+        .select('*');
 
-      const userStatsPromises = authUsers.users.map(async (user) => {
-        const [keywordsData, profileData] = await Promise.all([
-          supabase
-            .from('keywords')
-            .select('id, current_count')
-            .eq('creator_id', user.id),
-          supabase
-            .from('user_profiles')
-            .select('display_name')
-            .eq('id', user.id)
-            .single()
-        ]);
+      if (error) throw error;
 
-        const keywordCount = keywordsData.data?.length || 0;
-        const totalClaims = keywordsData.data?.reduce((sum, kw) => sum + (kw.current_count || 0), 0) || 0;
+      const userStats: UserStats[] = (data || []).map((row: any) => ({
+        user_id: row.user_id,
+        email: row.email,
+        display_name: row.display_name,
+        keyword_count: row.keyword_count,
+        total_claims: row.total_claims,
+        created_at: row.created_at
+      }));
 
-        return {
-          user_id: user.id,
-          email: user.email || '',
-          display_name: profileData.data?.display_name || null,
-          keyword_count: keywordCount,
-          total_claims: totalClaims,
-          created_at: user.created_at
-        };
-      });
-
-      const userStats = await Promise.all(userStatsPromises);
       setUsers(userStats);
     } catch (error) {
       console.error('Failed to fetch users:', error);

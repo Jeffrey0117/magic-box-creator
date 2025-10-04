@@ -60,3 +60,26 @@ CREATE TRIGGER on_auth_user_created
 COMMENT ON TABLE public.user_profiles IS '用戶公開資料（暱稱、自我介紹）';
 COMMENT ON COLUMN public.user_profiles.display_name IS '暱稱（2-20字元）';
 COMMENT ON COLUMN public.user_profiles.bio IS '自我介紹（最多200字元）';
+
+CREATE OR REPLACE FUNCTION get_user_email(user_id uuid)
+RETURNS text AS $$
+BEGIN
+  RETURN (SELECT email FROM auth.users WHERE id = user_id);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE OR REPLACE VIEW user_stats AS
+SELECT
+  u.id as user_id,
+  u.email,
+  up.display_name,
+  COUNT(DISTINCT k.id) as keyword_count,
+  COALESCE(SUM(k.current_count), 0) as total_claims,
+  u.created_at
+FROM auth.users u
+LEFT JOIN public.user_profiles up ON u.id = up.id
+LEFT JOIN public.keywords k ON u.id = k.creator_id
+GROUP BY u.id, u.email, up.display_name, u.created_at;
+
+ALTER VIEW user_stats OWNER TO postgres;
+GRANT SELECT ON user_stats TO authenticated;
