@@ -5,7 +5,7 @@ DECLARE
   result json;
 BEGIN
   -- 檢查是否為 admin
-  IF auth.email() NOT IN ('jeffbao860623@gmail.com') THEN
+  IF auth.email() NOT IN ('jeffby8@gmail.com') THEN
     RAISE EXCEPTION 'Unauthorized';
   END IF;
 
@@ -42,12 +42,12 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 CREATE POLICY "Admin can view all keywords"
   ON public.keywords FOR SELECT
   USING (
-    auth.email() IN ('jeffbao860623@gmail.com')
+    auth.email() IN ('jeffby8@gmail.com')
   );
 
 -- 允許 admin 查看所有 email_logs
 CREATE POLICY "Admin can view all email_logs"
   ON public.email_logs FOR SELECT
   USING (
-    auth.email() IN ('jeffbao860623@gmail.com')
+    auth.email() IN ('jeffby8@gmail.com')
   );
