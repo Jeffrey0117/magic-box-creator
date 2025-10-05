@@ -57,9 +57,9 @@ const Creator = () => {
   const [editContent, setEditContent] = useState("");
   const [newQuota, setNewQuota] = useState("");
   const [editQuota, setEditQuota] = useState("");
-  const [newExpiryDays, setNewExpiryDays] = useState("");
+  const [newExpiryHours, setNewExpiryHours] = useState("");
   const [newExpiryMinutes, setNewExpiryMinutes] = useState("");
-  const [editExpiryDays, setEditExpiryDays] = useState("");
+  const [editExpiryHours, setEditExpiryHours] = useState("");
   const [editExpiryMinutes, setEditExpiryMinutes] = useState("");
   const [enableExpiry, setEnableExpiry] = useState(false);
   const [editEnableExpiry, setEditEnableExpiry] = useState(false);
@@ -149,8 +149,8 @@ const Creator = () => {
 
     const shortCode = await generateUniqueShortCode(supabase);
 
-    const expiresAt = enableExpiry && (newExpiryDays || newExpiryMinutes)
-      ? new Date(Date.now() + (parseInt(newExpiryDays || "0") * 24 * 60 + parseInt(newExpiryMinutes || "0")) * 60 * 1000).toISOString()
+    const expiresAt = enableExpiry && (newExpiryHours || newExpiryMinutes)
+      ? new Date(Date.now() + (parseInt(newExpiryHours || "0") * 60 + parseInt(newExpiryMinutes || "0")) * 60 * 1000).toISOString()
       : null;
 
     const { error } = await supabase.from("keywords").insert({
@@ -170,7 +170,7 @@ const Creator = () => {
       setNewKeyword("");
       setNewContent("");
       setNewQuota("");
-      setNewExpiryDays("");
+      setNewExpiryHours("");
       setNewExpiryMinutes("");
       setEnableExpiry(false);
       setShowAddForm(false);
@@ -201,14 +201,14 @@ const Creator = () => {
       const now = new Date().getTime();
       const expiry = new Date(item.expires_at).getTime();
       const minutesLeft = Math.ceil((expiry - now) / (1000 * 60));
-      const daysLeft = Math.floor(minutesLeft / (60 * 24));
-      const remainingMinutes = minutesLeft % (60 * 24);
+      const hoursLeft = Math.floor(minutesLeft / 60);
+      const remainingMinutes = minutesLeft % 60;
       
-      setEditExpiryDays(daysLeft.toString());
+      setEditExpiryHours(hoursLeft.toString());
       setEditExpiryMinutes(remainingMinutes.toString());
     } else {
       setEditEnableExpiry(false);
-      setEditExpiryDays("");
+      setEditExpiryHours("");
       setEditExpiryMinutes("");
     }
   };
@@ -219,10 +219,10 @@ const Creator = () => {
 
     let expiresAt: string | null = null;
     
-    if (editEnableExpiry && (editExpiryDays || editExpiryMinutes)) {
-      const days = parseInt(editExpiryDays || "0");
+    if (editEnableExpiry && (editExpiryHours || editExpiryMinutes)) {
+      const hours = parseInt(editExpiryHours || "0");
       const minutes = parseInt(editExpiryMinutes || "0");
-      const totalMs = (days * 24 * 60 + minutes) * 60 * 1000;
+      const totalMs = (hours * 60 + minutes) * 60 * 1000;
       expiresAt = new Date(Date.now() + totalMs).toISOString();
     }
 
@@ -245,7 +245,7 @@ const Creator = () => {
       setEditKeyword("");
       setEditContent("");
       setEditQuota("");
-      setEditExpiryDays("");
+      setEditExpiryHours("");
       setEditExpiryMinutes("");
       setEditEnableExpiry(false);
       fetchKeywords();
@@ -257,7 +257,7 @@ const Creator = () => {
     setEditKeyword("");
     setEditContent("");
     setEditQuota("");
-    setEditExpiryDays("");
+    setEditExpiryHours("");
     setEditExpiryMinutes("");
     setEditEnableExpiry(false);
   };
@@ -552,20 +552,19 @@ const Creator = () => {
                 {enableExpiry && (
                   <div className="flex items-center gap-2">
                     <Input
-                      type="number"
-                      min="0"
-                      value={newExpiryDays}
-                      onChange={(e) => setNewExpiryDays(e.target.value)}
+                      type="text"
+                      inputMode="numeric"
+                      value={newExpiryHours}
+                      onChange={(e) => setNewExpiryHours(e.target.value.replace(/\D/g, ''))}
                       placeholder="0"
                       className="w-20 h-10"
                     />
-                    <span className="text-sm">天</span>
+                    <span className="text-sm">小時</span>
                     <Input
-                      type="number"
-                      min="0"
-                      max="1439"
+                      type="text"
+                      inputMode="numeric"
                       value={newExpiryMinutes}
-                      onChange={(e) => setNewExpiryMinutes(e.target.value)}
+                      onChange={(e) => setNewExpiryMinutes(e.target.value.replace(/\D/g, ''))}
                       placeholder="0"
                       className="w-20 h-10"
                     />
@@ -585,7 +584,7 @@ const Creator = () => {
                     setNewKeyword("");
                     setNewContent("");
                     setNewQuota("");
-                    setNewExpiryDays("");
+                    setNewExpiryHours("");
                     setNewExpiryMinutes("");
                     setEnableExpiry(false);
                   }}
@@ -652,20 +651,19 @@ const Creator = () => {
                         {editEnableExpiry && (
                           <div className="flex items-center gap-2">
                             <Input
-                              type="number"
-                              min="0"
-                              value={editExpiryDays}
-                              onChange={(e) => setEditExpiryDays(e.target.value)}
+                              type="text"
+                              inputMode="numeric"
+                              value={editExpiryHours}
+                              onChange={(e) => setEditExpiryHours(e.target.value.replace(/\D/g, ''))}
                               placeholder="0"
                               className="w-20 h-10"
                             />
-                            <span className="text-sm">天</span>
+                            <span className="text-sm">小時</span>
                             <Input
-                              type="number"
-                              min="0"
-                              max="1439"
+                              type="text"
+                              inputMode="numeric"
                               value={editExpiryMinutes}
-                              onChange={(e) => setEditExpiryMinutes(e.target.value)}
+                              onChange={(e) => setEditExpiryMinutes(e.target.value.replace(/\D/g, ''))}
                               placeholder="0"
                               className="w-20 h-10"
                             />

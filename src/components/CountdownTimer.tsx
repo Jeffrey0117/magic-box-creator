@@ -19,22 +19,26 @@ export function CountdownTimer({ expiresAt }: CountdownTimerProps) {
         return '已過期';
       }
 
-      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const totalSeconds = Math.floor(diff / 1000);
+      const days = Math.floor(totalSeconds / (60 * 60 * 24));
+      const hours = Math.floor((totalSeconds % (60 * 60 * 24)) / (60 * 60));
+      const minutes = Math.floor((totalSeconds % (60 * 60)) / 60);
+      const seconds = totalSeconds % 60;
 
       if (days > 0) {
-        return `剩餘 ${days} 天 ${hours} 小時 ${minutes} 分鐘`;
+        return `剩餘 ${days} 天 ${hours} 小時 ${minutes} 分 ${seconds} 秒`;
       } else if (hours > 0) {
-        return `剩餘 ${hours} 小時 ${minutes} 分鐘`;
+        return `剩餘 ${hours} 小時 ${minutes} 分 ${seconds} 秒`;
+      } else if (minutes > 0) {
+        return `剩餘 ${minutes} 分 ${seconds} 秒`;
       } else {
-        return `剩餘 ${minutes} 分鐘`;
+        return `剩餘 ${seconds} 秒`;
       }
     };
 
     const interval = setInterval(() => {
       setTimeLeft(calculateTimeLeft());
-    }, 60000);
+    }, 1000);
 
     setTimeLeft(calculateTimeLeft());
 
