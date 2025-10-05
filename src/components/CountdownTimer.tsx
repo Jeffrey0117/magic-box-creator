@@ -24,9 +24,12 @@ export function CountdownTimer({ expiresAt }: CountdownTimerProps) {
       const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
 
       if (days > 0) {
-        return `${days} 天 ${hours} 小時`;
+        return `剩餘 ${days} 天 ${hours} 小時 ${minutes} 分鐘`;
+      } else if (hours > 0) {
+        return `剩餘 ${hours} 小時 ${minutes} 分鐘`;
+      } else {
+        return `剩餘 ${minutes} 分鐘`;
       }
-      return `${hours} 小時 ${minutes} 分`;
     };
 
     const interval = setInterval(() => {
@@ -42,7 +45,7 @@ export function CountdownTimer({ expiresAt }: CountdownTimerProps) {
 
   return (
     <div className="text-red-500 font-bold animate-pulse flex items-center gap-2">
-      ⏰ 限時：{timeLeft} 後失效
+      ⏰ 限時：{timeLeft}後失效
     </div>
   );
 }

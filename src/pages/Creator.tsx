@@ -58,7 +58,9 @@ const Creator = () => {
   const [newQuota, setNewQuota] = useState("");
   const [editQuota, setEditQuota] = useState("");
   const [newExpiryDays, setNewExpiryDays] = useState("");
+  const [newExpiryMinutes, setNewExpiryMinutes] = useState("");
   const [editExpiryDays, setEditExpiryDays] = useState("");
+  const [editExpiryMinutes, setEditExpiryMinutes] = useState("");
   const [enableExpiry, setEnableExpiry] = useState(false);
   const [editEnableExpiry, setEditEnableExpiry] = useState(false);
   const [userId, setUserId] = useState("");
@@ -147,8 +149,8 @@ const Creator = () => {
 
     const shortCode = await generateUniqueShortCode(supabase);
 
-    const expiresAt = enableExpiry && newExpiryDays
-      ? new Date(Date.now() + parseInt(newExpiryDays) * 24 * 60 * 60 * 1000).toISOString()
+    const expiresAt = enableExpiry && (newExpiryDays || newExpiryMinutes)
+      ? new Date(Date.now() + (parseInt(newExpiryDays || "0") * 24 * 60 + parseInt(newExpiryMinutes || "0")) * 60 * 1000).toISOString()
       : null;
 
     const { error } = await supabase.from("keywords").insert({
@@ -169,6 +171,7 @@ const Creator = () => {
       setNewContent("");
       setNewQuota("");
       setNewExpiryDays("");
+      setNewExpiryMinutes("");
       setEnableExpiry(false);
       setShowAddForm(false);
       fetchKeywords();
@@ -197,11 +200,16 @@ const Creator = () => {
       setEditEnableExpiry(true);
       const now = new Date().getTime();
       const expiry = new Date(item.expires_at).getTime();
-      const daysLeft = Math.ceil((expiry - now) / (1000 * 60 * 60 * 24));
+      const minutesLeft = Math.ceil((expiry - now) / (1000 * 60));
+      const daysLeft = Math.floor(minutesLeft / (60 * 24));
+      const remainingMinutes = minutesLeft % (60 * 24);
+      
       setEditExpiryDays(daysLeft.toString());
+      setEditExpiryMinutes(remainingMinutes.toString());
     } else {
       setEditEnableExpiry(false);
       setEditExpiryDays("");
+      setEditExpiryMinutes("");
     }
   };
 
@@ -209,9 +217,14 @@ const Creator = () => {
     e.preventDefault();
     if (!editingKeywordId) return;
 
-    const expiresAt = editEnableExpiry && editExpiryDays
-      ? new Date(Date.now() + parseInt(editExpiryDays) * 24 * 60 * 60 * 1000).toISOString()
-      : null;
+    let expiresAt: string | null = null;
+    
+    if (editEnableExpiry && (editExpiryDays || editExpiryMinutes)) {
+      const days = parseInt(editExpiryDays || "0");
+      const minutes = parseInt(editExpiryMinutes || "0");
+      const totalMs = (days * 24 * 60 + minutes) * 60 * 1000;
+      expiresAt = new Date(Date.now() + totalMs).toISOString();
+    }
 
     const { error } = await supabase
       .from("keywords")
@@ -233,6 +246,7 @@ const Creator = () => {
       setEditContent("");
       setEditQuota("");
       setEditExpiryDays("");
+      setEditExpiryMinutes("");
       setEditEnableExpiry(false);
       fetchKeywords();
     }
@@ -244,6 +258,7 @@ const Creator = () => {
     setEditContent("");
     setEditQuota("");
     setEditExpiryDays("");
+    setEditExpiryMinutes("");
     setEditEnableExpiry(false);
   };
 
@@ -538,13 +553,23 @@ const Creator = () => {
                   <div className="flex items-center gap-2">
                     <Input
                       type="number"
-                      min="1"
+                      min="0"
                       value={newExpiryDays}
                       onChange={(e) => setNewExpiryDays(e.target.value)}
-                      placeholder="7"
+                      placeholder="0"
                       className="w-20 h-10"
                     />
-                    <span className="text-sm">天後失效</span>
+                    <span className="text-sm">天</span>
+                    <Input
+                      type="number"
+                      min="0"
+                      max="1439"
+                      value={newExpiryMinutes}
+                      onChange={(e) => setNewExpiryMinutes(e.target.value)}
+                      placeholder="0"
+                      className="w-20 h-10"
+                    />
+                    <span className="text-sm">分鐘後失效</span>
                   </div>
                 )}
               </div>
@@ -560,6 +585,9 @@ const Creator = () => {
                     setNewKeyword("");
                     setNewContent("");
                     setNewQuota("");
+                    setNewExpiryDays("");
+                    setNewExpiryMinutes("");
+                    setEnableExpiry(false);
                   }}
                 >
                   取消
@@ -625,13 +653,23 @@ const Creator = () => {
                           <div className="flex items-center gap-2">
                             <Input
                               type="number"
-                              min="1"
+                              min="0"
                               value={editExpiryDays}
                               onChange={(e) => setEditExpiryDays(e.target.value)}
-                              placeholder="7"
+                              placeholder="0"
                               className="w-20 h-10"
                             />
-                            <span className="text-sm">天後失效</span>
+                            <span className="text-sm">天</span>
+                            <Input
+                              type="number"
+                              min="0"
+                              max="1439"
+                              value={editExpiryMinutes}
+                              onChange={(e) => setEditExpiryMinutes(e.target.value)}
+                              placeholder="0"
+                              className="w-20 h-10"
+                            />
+                            <span className="text-sm">分鐘後失效</span>
                           </div>
                         )}
                       </div>
