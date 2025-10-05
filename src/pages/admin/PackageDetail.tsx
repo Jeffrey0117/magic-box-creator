@@ -175,7 +175,22 @@ export default function PackageDetail() {
 
   const handleDeletePackage = async () => {
     if (!packageData) return;
-    if (!confirm(`確定要刪除資料包「${packageData.keyword}」嗎？\n\n此操作無法復原，將會刪除所有相關的領取記錄。`)) return;
+    
+    const userInput = prompt(
+      `⚠️ 危險操作：刪除資料包\n\n` +
+      `此操作無法復原，將會刪除：\n` +
+      `• 資料包本身\n` +
+      `• 所有領取記錄 (${packageData.current_count} 筆)\n` +
+      `• 所有候補名單\n\n` +
+      `請輸入關鍵字「${packageData.keyword}」以確認刪除：`
+    );
+
+    if (userInput !== packageData.keyword) {
+      if (userInput !== null) {
+        toast.error('關鍵字不符，取消刪除');
+      }
+      return;
+    }
 
     try {
       const { error } = await supabase.from('keywords').delete().eq('id', packageData.id);

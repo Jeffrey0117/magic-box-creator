@@ -517,14 +517,14 @@ const Creator = () => {
               />
               <Input
                 type="number"
-                placeholder="限額數量（選填，留空=無限制）"
+                placeholder="限額數量（留空=無限制）"
                 value={newQuota}
                 onChange={(e) => setNewQuota(e.target.value)}
                 min="1"
                 className="h-12 md:h-10"
               />
               <div className="space-y-2">
-                <label className="text-sm font-medium">⏰ 限時設定（選填）</label>
+                <label className="text-sm font-medium">⏰ 限時設定</label>
                 <div className="flex items-center gap-2">
                   <input
                     type="checkbox"
@@ -610,6 +610,31 @@ const Creator = () => {
                         min="1"
                         className="h-10"
                       />
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">⏰ 限時設定</label>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            checked={editEnableExpiry}
+                            onChange={(e) => setEditEnableExpiry(e.target.checked)}
+                            className="w-4 h-4"
+                          />
+                          <span className="text-sm">啟用限時領取</span>
+                        </div>
+                        {editEnableExpiry && (
+                          <div className="flex items-center gap-2">
+                            <Input
+                              type="number"
+                              min="1"
+                              value={editExpiryDays}
+                              onChange={(e) => setEditExpiryDays(e.target.value)}
+                              placeholder="7"
+                              className="w-20 h-10"
+                            />
+                            <span className="text-sm">天後失效</span>
+                          </div>
+                        )}
+                      </div>
                       <div className="flex gap-2">
                         <Button type="submit" size="sm" className="gradient-magic">
                           儲存
