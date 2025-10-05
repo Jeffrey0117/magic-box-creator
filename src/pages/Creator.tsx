@@ -57,8 +57,10 @@ const Creator = () => {
   const [editContent, setEditContent] = useState("");
   const [newQuota, setNewQuota] = useState("");
   const [editQuota, setEditQuota] = useState("");
+  const [newExpiryDays, setNewExpiryDays] = useState("");
   const [newExpiryHours, setNewExpiryHours] = useState("");
   const [newExpiryMinutes, setNewExpiryMinutes] = useState("");
+  const [editExpiryDays, setEditExpiryDays] = useState("");
   const [editExpiryHours, setEditExpiryHours] = useState("");
   const [editExpiryMinutes, setEditExpiryMinutes] = useState("");
   const [enableExpiry, setEnableExpiry] = useState(false);
@@ -149,8 +151,8 @@ const Creator = () => {
 
     const shortCode = await generateUniqueShortCode(supabase);
 
-    const expiresAt = enableExpiry && (newExpiryHours || newExpiryMinutes)
-      ? new Date(Date.now() + (parseInt(newExpiryHours || "0") * 60 + parseInt(newExpiryMinutes || "0")) * 60 * 1000).toISOString()
+    const expiresAt = enableExpiry && (newExpiryDays || newExpiryHours || newExpiryMinutes)
+      ? new Date(Date.now() + (parseInt(newExpiryDays || "0") * 24 * 60 + parseInt(newExpiryHours || "0") * 60 + parseInt(newExpiryMinutes || "0")) * 60 * 1000).toISOString()
       : null;
 
     const { error } = await supabase.from("keywords").insert({
@@ -170,6 +172,7 @@ const Creator = () => {
       setNewKeyword("");
       setNewContent("");
       setNewQuota("");
+      setNewExpiryDays("");
       setNewExpiryHours("");
       setNewExpiryMinutes("");
       setEnableExpiry(false);
@@ -210,13 +213,16 @@ const Creator = () => {
       const now = new Date().getTime();
       const expiry = new Date(item.expires_at).getTime();
       const minutesLeft = Math.ceil((expiry - now) / (1000 * 60));
-      const hoursLeft = Math.floor(minutesLeft / 60);
+      const daysLeft = Math.floor(minutesLeft / (24 * 60));
+      const hoursLeft = Math.floor((minutesLeft % (24 * 60)) / 60);
       const remainingMinutes = minutesLeft % 60;
       
-      setEditExpiryHours(hoursLeft.toString());
-      setEditExpiryMinutes(remainingMinutes.toString());
+      setEditExpiryDays(daysLeft.toString());
+      setEditExpiryHours(hoursLeft.toString().padStart(2, '0'));
+      setEditExpiryMinutes(remainingMinutes.toString().padStart(2, '0'));
     } else {
       setEditEnableExpiry(false);
+      setEditExpiryDays("");
       setEditExpiryHours("");
       setEditExpiryMinutes("");
     }
@@ -228,10 +234,11 @@ const Creator = () => {
 
     let expiresAt: string | null = null;
     
-    if (editEnableExpiry && (editExpiryHours || editExpiryMinutes)) {
+    if (editEnableExpiry && (editExpiryDays || editExpiryHours || editExpiryMinutes)) {
+      const days = parseInt(editExpiryDays || "0");
       const hours = parseInt(editExpiryHours || "0");
       const minutes = parseInt(editExpiryMinutes || "0");
-      const totalMs = (hours * 60 + minutes) * 60 * 1000;
+      const totalMs = (days * 24 * 60 + hours * 60 + minutes) * 60 * 1000;
       expiresAt = new Date(Date.now() + totalMs).toISOString();
     }
 
@@ -254,6 +261,7 @@ const Creator = () => {
       setEditKeyword("");
       setEditContent("");
       setEditQuota("");
+      setEditExpiryDays("");
       setEditExpiryHours("");
       setEditExpiryMinutes("");
       setEditEnableExpiry(false);
@@ -266,6 +274,7 @@ const Creator = () => {
     setEditKeyword("");
     setEditContent("");
     setEditQuota("");
+    setEditExpiryDays("");
     setEditExpiryHours("");
     setEditExpiryMinutes("");
     setEditEnableExpiry(false);
@@ -559,23 +568,43 @@ const Creator = () => {
                   <span className="text-sm">啟用限時領取</span>
                 </div>
                 {enableExpiry && (
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Input
+                      type="text"
+                      inputMode="numeric"
+                      value={newExpiryDays}
+                      onChange={(e) => setNewExpiryDays(e.target.value.replace(/\D/g, ''))}
+                      placeholder="0"
+                      className="w-16 h-10"
+                    />
+                    <span className="text-sm">天</span>
                     <Input
                       type="text"
                       inputMode="numeric"
                       value={newExpiryHours}
-                      onChange={(e) => setNewExpiryHours(e.target.value.replace(/\D/g, ''))}
-                      placeholder="0"
-                      className="w-20 h-10"
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/\D/g, '');
+                        setNewExpiryHours(val ? val.padStart(2, '0') : '');
+                      }}
+                      placeholder="00"
+                      maxLength={2}
+                      className="w-16 h-10"
                     />
                     <span className="text-sm">小時</span>
                     <Input
                       type="text"
                       inputMode="numeric"
                       value={newExpiryMinutes}
-                      onChange={(e) => setNewExpiryMinutes(e.target.value.replace(/\D/g, ''))}
-                      placeholder="0"
-                      className="w-20 h-10"
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/\D/g, '');
+                        const num = parseInt(val || '0');
+                        if (num <= 59) {
+                          setNewExpiryMinutes(val ? val.padStart(2, '0') : '');
+                        }
+                      }}
+                      placeholder="00"
+                      maxLength={2}
+                      className="w-16 h-10"
                     />
                     <span className="text-sm">分鐘後失效</span>
                   </div>
@@ -593,6 +622,7 @@ const Creator = () => {
                     setNewKeyword("");
                     setNewContent("");
                     setNewQuota("");
+                    setNewExpiryDays("");
                     setNewExpiryHours("");
                     setNewExpiryMinutes("");
                     setEnableExpiry(false);
@@ -658,23 +688,43 @@ const Creator = () => {
                           <span className="text-sm">啟用限時領取</span>
                         </div>
                         {editEnableExpiry && (
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <Input
+                              type="text"
+                              inputMode="numeric"
+                              value={editExpiryDays}
+                              onChange={(e) => setEditExpiryDays(e.target.value.replace(/\D/g, ''))}
+                              placeholder="0"
+                              className="w-16 h-10"
+                            />
+                            <span className="text-sm">天</span>
                             <Input
                               type="text"
                               inputMode="numeric"
                               value={editExpiryHours}
-                              onChange={(e) => setEditExpiryHours(e.target.value.replace(/\D/g, ''))}
-                              placeholder="0"
-                              className="w-20 h-10"
+                              onChange={(e) => {
+                                const val = e.target.value.replace(/\D/g, '');
+                                setEditExpiryHours(val ? val.padStart(2, '0') : '');
+                              }}
+                              placeholder="00"
+                              maxLength={2}
+                              className="w-16 h-10"
                             />
                             <span className="text-sm">小時</span>
                             <Input
                               type="text"
                               inputMode="numeric"
                               value={editExpiryMinutes}
-                              onChange={(e) => setEditExpiryMinutes(e.target.value.replace(/\D/g, ''))}
-                              placeholder="0"
-                              className="w-20 h-10"
+                              onChange={(e) => {
+                                const val = e.target.value.replace(/\D/g, '');
+                                const num = parseInt(val || '0');
+                                if (num <= 59) {
+                                  setEditExpiryMinutes(val ? val.padStart(2, '0') : '');
+                                }
+                              }}
+                              placeholder="00"
+                              maxLength={2}
+                              className="w-16 h-10"
                             />
                             <span className="text-sm">分鐘後失效</span>
                           </div>

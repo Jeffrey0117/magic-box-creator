@@ -48,7 +48,7 @@ export function CountdownTimer({ expiresAt }: CountdownTimerProps) {
   if (isExpired) return null;
 
   return (
-    <div className="text-red-500 font-bold animate-pulse flex items-center gap-2">
+    <div className="text-red-500 font-bold flex items-center gap-2">
       ⏰ 限時：{timeLeft}後失效
     </div>
   );
