@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Lock, Key, Unlock } from "lucide-react";
+import { CountdownTimer } from "@/components/CountdownTimer";
+import { WaitlistCard } from "@/components/WaitlistCard";
 
 const Box = () => {
   const [keyword, setKeyword] = useState("");
@@ -14,6 +16,7 @@ const Box = () => {
   const [boxData, setBoxData] = useState<any>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [currentCount, setCurrentCount] = useState(0);
+  const [waitlistCount, setWaitlistCount] = useState(0);
   const navigate = useNavigate();
   const { id, shortCode } = useParams();
   const location = useLocation();
@@ -98,7 +101,7 @@ const Box = () => {
   };
 
   const fetchBoxData = async () => {
-    let query = supabase.from("keywords").select("id, keyword, created_at, quota, current_count");
+    let query = supabase.from("keywords").select("id, keyword, created_at, quota, current_count, expires_at");
     
     if (shortCode && !location.pathname.startsWith('/box/')) {
       query = query.eq("short_code", shortCode);
@@ -116,6 +119,16 @@ const Box = () => {
       
       if (data.quota) {
         setCurrentCount(data.current_count || 0);
+      }
+
+      if (data.quota && data.current_count >= data.quota) {
+        const { count } = await supabase
+          .from('waitlist')
+          .select('*', { count: 'exact', head: true })
+          .eq('keyword_id', data.id)
+          .eq('status', 'waiting');
+        
+        setWaitlistCount(count || 0);
       }
     }
   };
@@ -216,6 +229,38 @@ const Box = () => {
     setResult(null);
   };
 
+  const isExpired = boxData?.expires_at && new Date(boxData.expires_at) < new Date();
+  const isCompleted = boxData?.quota !== null && boxData?.current_count >= boxData?.quota;
+
+  if (isExpired) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="w-full max-w-lg">
+          <div className="glass-card rounded-2xl p-6 md:p-8 shadow-card text-center">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-muted mb-4">
+              <Lock className="w-8 h-8 text-muted-foreground" />
+            </div>
+            <h2 className="text-2xl font-bold mb-2">此資料包已過期</h2>
+            <p className="text-muted-foreground mb-6">此資料包的領取期限已結束</p>
+            <Button onClick={() => navigate("/")} variant="outline">
+              返回首頁
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (isCompleted && !result) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="w-full max-w-lg">
+          <WaitlistCard keyword={boxData} waitlistCount={waitlistCount} />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
       <div className="w-full max-w-lg">
@@ -231,6 +276,11 @@ const Box = () => {
               <p className="text-muted-foreground text-lg">
                 輸入關鍵字解鎖內容
               </p>
+              {boxData?.expires_at && (
+                <div className="mt-3">
+                  <CountdownTimer expiresAt={boxData.expires_at} />
+                </div>
+              )}
               {boxData?.quota && (
                 <div className="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-accent/10 border border-accent/30 rounded-lg">
                   <p className="text-sm font-medium text-accent">

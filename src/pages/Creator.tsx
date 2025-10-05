@@ -57,6 +57,10 @@ const Creator = () => {
   const [editContent, setEditContent] = useState("");
   const [newQuota, setNewQuota] = useState("");
   const [editQuota, setEditQuota] = useState("");
+  const [newExpiryDays, setNewExpiryDays] = useState("");
+  const [editExpiryDays, setEditExpiryDays] = useState("");
+  const [enableExpiry, setEnableExpiry] = useState(false);
+  const [editEnableExpiry, setEditEnableExpiry] = useState(false);
   const [userId, setUserId] = useState("");
   const [showProfileDialog, setShowProfileDialog] = useState(false);
   const [userProfile, setUserProfile] = useState<Tables<'user_profiles'> | null>(null);
@@ -143,12 +147,17 @@ const Creator = () => {
 
     const shortCode = await generateUniqueShortCode(supabase);
 
+    const expiresAt = enableExpiry && newExpiryDays
+      ? new Date(Date.now() + parseInt(newExpiryDays) * 24 * 60 * 60 * 1000).toISOString()
+      : null;
+
     const { error } = await supabase.from("keywords").insert({
       keyword: newKeyword.toLowerCase().trim(),
       content: newContent,
       creator_id: session.user.id,
       short_code: shortCode,
       quota: newQuota ? parseInt(newQuota) : null,
+      expires_at: expiresAt,
     });
 
     if (error) {
@@ -159,6 +168,8 @@ const Creator = () => {
       setNewKeyword("");
       setNewContent("");
       setNewQuota("");
+      setNewExpiryDays("");
+      setEnableExpiry(false);
       setShowAddForm(false);
       fetchKeywords();
     }
@@ -176,16 +187,31 @@ const Creator = () => {
     }
   };
 
-  const handleEdit = (item: Keyword) => {
+  const handleEdit = (item: any) => {
     setEditingKeywordId(item.id);
     setEditKeyword(item.keyword);
     setEditContent(item.content);
     setEditQuota(item.quota?.toString() || "");
+    
+    if (item.expires_at) {
+      setEditEnableExpiry(true);
+      const now = new Date().getTime();
+      const expiry = new Date(item.expires_at).getTime();
+      const daysLeft = Math.ceil((expiry - now) / (1000 * 60 * 60 * 24));
+      setEditExpiryDays(daysLeft.toString());
+    } else {
+      setEditEnableExpiry(false);
+      setEditExpiryDays("");
+    }
   };
 
   const handleUpdateKeyword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingKeywordId) return;
+
+    const expiresAt = editEnableExpiry && editExpiryDays
+      ? new Date(Date.now() + parseInt(editExpiryDays) * 24 * 60 * 60 * 1000).toISOString()
+      : null;
 
     const { error } = await supabase
       .from("keywords")
@@ -193,6 +219,7 @@ const Creator = () => {
         keyword: editKeyword.toLowerCase().trim(),
         content: editContent,
         quota: editQuota ? parseInt(editQuota) : null,
+        expires_at: expiresAt,
       })
       .eq("id", editingKeywordId);
 
@@ -205,6 +232,8 @@ const Creator = () => {
       setEditKeyword("");
       setEditContent("");
       setEditQuota("");
+      setEditExpiryDays("");
+      setEditEnableExpiry(false);
       fetchKeywords();
     }
   };
@@ -214,6 +243,8 @@ const Creator = () => {
     setEditKeyword("");
     setEditContent("");
     setEditQuota("");
+    setEditExpiryDays("");
+    setEditEnableExpiry(false);
   };
 
   const fetchEmailLogs = async (keywordId: string) => {
@@ -492,6 +523,31 @@ const Creator = () => {
                 min="1"
                 className="h-12 md:h-10"
               />
+              <div className="space-y-2">
+                <label className="text-sm font-medium">⏰ 限時設定（選填）</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={enableExpiry}
+                    onChange={(e) => setEnableExpiry(e.target.checked)}
+                    className="w-4 h-4"
+                  />
+                  <span className="text-sm">啟用限時領取</span>
+                </div>
+                {enableExpiry && (
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="number"
+                      min="1"
+                      value={newExpiryDays}
+                      onChange={(e) => setNewExpiryDays(e.target.value)}
+                      placeholder="7"
+                      className="w-20 h-10"
+                    />
+                    <span className="text-sm">天後失效</span>
+                  </div>
+                )}
+              </div>
               <div className="flex flex-col sm:flex-row gap-2">
                 <Button type="submit" className="gradient-magic">
                   確認新增

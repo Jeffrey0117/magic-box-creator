@@ -1,94 +1,605 @@
-# 🚀 KeyBox 待辦清單
+# Phase 3: 候補系統 + 限時功能實作清單
 
-**最後更新**: 2025-10-02
-**當前版本**: V9.0
-**狀態**: ✅ 已上線
-
----
-
-## 📋 執行中（MVP 為基準）
-
-### 🔥 V9.1 - Email 複製功能優化
-- [ ] 單筆 Email 複製按鈕（10 分鐘）
-- [ ] 一鍵複製所有 Email（逗號分隔）（10 分鐘）
-
-### 🔐 V9.0 - Admin 後台系統完善
-- [x] 基礎框架（權限判定 + 路由保護）
-- [x] 儀表板統計（總資料包、本週新增、總領取、今日領取、創作者數）
-- [ ] 修正統計數據查詢邏輯（移除 head: true）
+> **日期**：2025-10-05  
+> **目標**：實作候補排隊系統 + 通用限時倒數功能
 
 ---
 
-## 📊 版本歷史
+## 🎯 功能總覽
 
-### V9.0（2025-10-02）✅
-- [x] Admin 後台基礎框架（權限判定 + RLS Policy）
-- [x] Admin 儀表板統計數據（總資料包、本週新增、總領取、今日領取）
+### 1. 通用限時功能
+- 創作者可設定資料包「有效期限」
+- 領取頁面顯示紅字倒數計時（製造壓迫感）
+- 過期後自動隱藏資料包
 
-### V8.0（2025-10-02）✅
-- [x] 領取記錄統計數字顯示（總領取、今日新增、剩餘份數）
-- [x] 單筆記錄刪除功能（含 RLS DELETE policy）
-- [x] 按鈕配色優化
-- [x] 刪除驗證強化
-
-### V7.5（2025-10-02）✅
-- [x] 首頁重新設計（品牌介紹 + 雙動線教學）
-- [x] 限額功能（quota）
-- [x] 首頁重定向邏輯修正
-
-### V7.1（2025-10-02）✅
-- [x] 移除管理面板「回到 Box 頁面」按鈕
-- [x] 新增「使用說明」和「隱私權政策」快速入口
-- [x] 優化底部區塊佈局與文案
-
-### V7（2025-10-01）✅
-- [x] 分享文案範本功能
-- [x] 錯誤訊息中文化
-- [x] Loading 狀態優化
-- [x] 隱私權政策頁面
-- [x] 使用說明頁面
-
-### V6（2025-09-30）✅
-- [x] 驗證信中文化
-- [x] Tab 切換式登入/註冊 UI
-- [x] 驗證連結修正
-
-### V5（2025-09-29）✅
-- [x] 短網址系統（NanoID）
-- [x] URL 優化（6 字元短碼）
-
-### V4（2025-09-28）✅
-- [x] CSV 匯出功能
-- [x] OG Meta Tags
-- [x] Google Analytics 4
-
-### V1-V3（2025-09-27）✅
-- [x] 核心功能開發
-- [x] RWD 支援
-- [x] KeyBox 品牌重塑
+### 2. 候補排隊系統
+- 資料包達配額後，顯示候補表單
+- 用戶加入候補（Email + 備註）
+- Admin 可加開配額，自動通知候補者（含 7 天限時）
+- 候補者和一般用戶平等競爭，不保留名額
 
 ---
 
-## 🎯 執行建議
+## 📋 實作清單
 
-### 本週立即執行（V8.1 + V9.0）：
-1. ✅ Email 單筆複製按鈕（10 分鐘）
-2. ✅ 一鍵複製所有 Email（10 分鐘）
-3. 🔐 Admin 後台基礎框架（30 分鐘）
-4. 📊 Admin 儀表板總覽（45 分鐘）
+### Step 1: 資料庫 Migration
 
-### 近期規劃（V9.1）：
-1. 👥 Admin 用戶管理頁面（60 分鐘）
-2. 📦 Admin 資料包管理頁面（60 分鐘）
-3. 批次刪除記錄功能（選做，15 分鐘）
-4. 購買自訂網域（30 分鐘）
-5. 使用說明補充 Email 寄送教學（20 分鐘）
+#### 1.1 新增 `expires_at` 欄位到 `keywords`
+```sql
+ALTER TABLE keywords ADD COLUMN expires_at TIMESTAMP;
+```
 
-### PMF 驗證後（1 個月後）：
-- 根據用戶使用數據評估 PWA 需求
-- 評估雲端整合需求
-- 評估 Logo 設計需求
+#### 1.2 新增 `waitlist` 資料表
+```sql
+CREATE TABLE waitlist (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  keyword_id UUID NOT NULL REFERENCES keywords(id) ON DELETE CASCADE,
+  email VARCHAR(255) NOT NULL,
+  reason TEXT,
+  status VARCHAR(20) DEFAULT 'waiting',
+  notified_at TIMESTAMP,
+  created_at TIMESTAMP DEFAULT NOW(),
+  
+  CONSTRAINT unique_email_per_keyword UNIQUE (keyword_id, email)
+);
+
+CREATE INDEX idx_waitlist_keyword ON waitlist(keyword_id);
+CREATE INDEX idx_waitlist_status ON waitlist(status);
+```
+
+#### 1.3 RLS 政策
+```sql
+-- 允許所有人新增候補記錄
+CREATE POLICY "Anyone can join waitlist"
+ON waitlist FOR INSERT
+WITH CHECK (true);
+
+-- 只允許查看候補人數（不顯示個人資料）
+CREATE POLICY "Anyone can view waitlist count"
+ON waitlist FOR SELECT
+USING (true);
+
+-- Admin 可查看完整候補名單
+CREATE POLICY "Admin can view all waitlist"
+ON waitlist FOR SELECT
+USING (auth.jwt() ->> 'email' = 'jeffby8@gmail.com');
+
+-- 創作者可查看自己資料包的候補名單
+CREATE POLICY "Creator can view own waitlist"
+ON waitlist FOR SELECT
+USING (
+  keyword_id IN (
+    SELECT id FROM keywords WHERE creator_id = auth.uid()
+  )
+);
+```
+
+**檔案**：`supabase/migrations/20251005000000_add_expiry_and_waitlist.sql`
 
 ---
 
-**KeyBox 持續優化中！** 🚀
+### Step 2: 前端 - 倒數計時組件
+
+#### 2.1 新增 `CountdownTimer` 組件
+```tsx
+// src/components/CountdownTimer.tsx
+import { useEffect, useState } from 'react';
+
+interface CountdownTimerProps {
+  expiresAt: string;
+}
+
+export function CountdownTimer({ expiresAt }: CountdownTimerProps) {
+  const [timeLeft, setTimeLeft] = useState('');
+  const [isExpired, setIsExpired] = useState(false);
+
+  useEffect(() => {
+    const calculateTimeLeft = () => {
+      const now = new Date().getTime();
+      const expiry = new Date(expiresAt).getTime();
+      const diff = expiry - now;
+
+      if (diff <= 0) {
+        setIsExpired(true);
+        return '已過期';
+      }
+
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+
+      if (days > 0) {
+        return `${days} 天 ${hours} 小時`;
+      }
+      return `${hours} 小時 ${minutes} 分`;
+    };
+
+    const interval = setInterval(() => {
+      setTimeLeft(calculateTimeLeft());
+    }, 60000); // 每分鐘更新
+
+    setTimeLeft(calculateTimeLeft());
+
+    return () => clearInterval(interval);
+  }, [expiresAt]);
+
+  if (isExpired) return null;
+
+  return (
+    <div className="text-red-500 font-bold animate-pulse flex items-center gap-2">
+      ⏰ 限時：{timeLeft} 後失效
+    </div>
+  );
+}
+```
+
+#### 2.2 修改 `Box.tsx` 整合倒數
+```tsx
+// src/pages/Box.tsx
+import { CountdownTimer } from '@/components/CountdownTimer';
+
+// ...在資料包資訊區塊加入
+{keyword.expires_at && (
+  <CountdownTimer expiresAt={keyword.expires_at} />
+)}
+
+// 判斷是否過期
+const isExpired = keyword.expires_at && new Date(keyword.expires_at) < new Date();
+
+if (isExpired) {
+  return (
+    <Card>
+      <CardContent className="p-6 text-center">
+        <p className="text-muted-foreground">此資料包已過期</p>
+      </CardContent>
+    </Card>
+  );
+}
+```
+
+---
+
+### Step 3: 前端 - 候補卡片組件
+
+#### 3.1 新增 `WaitlistCard` 組件
+```tsx
+// src/components/WaitlistCard.tsx
+import { useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
+
+interface WaitlistCardProps {
+  keyword: any;
+  waitlistCount: number;
+}
+
+export function WaitlistCard({ keyword, waitlistCount }: WaitlistCardProps) {
+  const [email, setEmail] = useState('');
+  const [reason, setReason] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [joined, setJoined] = useState(false);
+
+  const handleJoinWaitlist = async () => {
+    if (!email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+      toast.error('請輸入有效的 Email');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const { error } = await supabase.from('waitlist').insert({
+        keyword_id: keyword.id,
+        email: email.toLowerCase().trim(),
+        reason: reason.trim() || null,
+      });
+
+      if (error) {
+        if (error.code === '23505') {
+          toast.error('您已加入過此資料包的候補名單');
+        } else {
+          throw error;
+        }
+        return;
+      }
+
+      setJoined(true);
+      toast.success('已加入候補名單！');
+    } catch (error) {
+      console.error('Failed to join waitlist:', error);
+      toast.error('加入候補失敗');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (joined) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>✅ 已加入候補名單！</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="bg-secondary/30 p-4 rounded-lg">
+            <p className="text-sm mb-2">📧 通知 Email：{email}</p>
+            <p className="text-sm mb-2">📊 目前排隊人數：{waitlistCount + 1} 人</p>
+          </div>
+          <div className="bg-secondary/30 p-4 rounded-lg">
+            <p className="text-sm font-medium mb-2">💡 接下來：</p>
+            <ul className="text-sm space-y-1 text-muted-foreground">
+              <li>• 創作者會看到候補需求</li>
+              <li>• 若決定加開配額，會優先通知您</li>
+              <li>• 請留意 Email 信箱</li>
+            </ul>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center gap-2 mb-4">
+          <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
+            ⚠️
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold">{keyword.keyword}</h2>
+            <p className="text-muted-foreground">此資料包已領取完畢</p>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="bg-secondary/30 p-4 rounded-lg">
+          <p className="text-sm text-muted-foreground mb-2">
+            ✅ 已發放：{keyword.current_count}/{keyword.quota} 份
+          </p>
+          <p className="text-sm text-muted-foreground">
+            👥 候補名單：{waitlistCount} 人排隊中
+          </p>
+        </div>
+
+        <div className="border-t pt-4">
+          <p className="text-sm text-muted-foreground mb-4">
+            💡 創作者可能會根據需求加開配額<br />
+            加入候補名單即可在開放時收到通知！
+          </p>
+
+          <div className="space-y-3">
+            <div>
+              <label className="text-sm font-medium">Email *</label>
+              <Input
+                type="email"
+                placeholder="your@email.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
+
+            <div>
+              <label className="text-sm font-medium">為什麼想要這個資料包？（選填）</label>
+              <Textarea
+                placeholder="例：想用在公司專案、學習用途"
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                rows={3}
+              />
+            </div>
+
+            <Button
+              onClick={handleJoinWaitlist}
+              disabled={isSubmitting || !email}
+              className="w-full"
+            >
+              {isSubmitting ? '加入中...' : '🔔 加入候補名單'}
+            </Button>
+
+            <p className="text-xs text-muted-foreground text-center">
+              ✨ 加入候補後，創作者加開配額時會優先通知
+            </p>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+```
+
+#### 3.2 修改 `Box.tsx` 整合候補卡片
+```tsx
+// src/pages/Box.tsx
+import { WaitlistCard } from '@/components/WaitlistCard';
+
+// 判斷是否已完結
+const isCompleted = keyword.quota !== null && keyword.current_count >= keyword.quota;
+
+// 取得候補人數
+const [waitlistCount, setWaitlistCount] = useState(0);
+
+useEffect(() => {
+  const fetchWaitlistCount = async () => {
+    const { count } = await supabase
+      .from('waitlist')
+      .select('*', { count: 'exact', head: true })
+      .eq('keyword_id', keyword.id)
+      .eq('status', 'waiting');
+    
+    setWaitlistCount(count || 0);
+  };
+
+  if (isCompleted) {
+    fetchWaitlistCount();
+  }
+}, [keyword.id, isCompleted]);
+
+// 渲染邏輯
+return (
+  <div className="min-h-screen p-6">
+    {isCompleted ? (
+      <WaitlistCard keyword={keyword} waitlistCount={waitlistCount} />
+    ) : (
+      <ClaimForm keyword={keyword} />
+    )}
+  </div>
+);
+```
+
+---
+
+### Step 4: Creator - 建立資料包時設定限時
+
+#### 4.1 修改 `Creator.tsx` 表單
+```tsx
+// src/pages/Creator.tsx
+const [expiryDays, setExpiryDays] = useState<number | null>(null);
+const [enableExpiry, setEnableExpiry] = useState(false);
+
+// 表單中新增限時設定
+<div className="space-y-2">
+  <label className="text-sm font-medium">⏰ 限時設定（選填）</label>
+  <div className="flex items-center gap-2">
+    <input
+      type="checkbox"
+      checked={enableExpiry}
+      onChange={(e) => setEnableExpiry(e.target.checked)}
+    />
+    <span className="text-sm">啟用限時領取</span>
+  </div>
+  
+  {enableExpiry && (
+    <div className="flex items-center gap-2">
+      <Input
+        type="number"
+        min="1"
+        value={expiryDays || ''}
+        onChange={(e) => setExpiryDays(Number(e.target.value))}
+        placeholder="7"
+        className="w-20"
+      />
+      <span className="text-sm">天後失效</span>
+    </div>
+  )}
+</div>
+
+// 建立資料包時計算 expires_at
+const expiresAt = enableExpiry && expiryDays
+  ? new Date(Date.now() + expiryDays * 24 * 60 * 60 * 1000).toISOString()
+  : null;
+
+const { error } = await supabase.from('keywords').insert({
+  keyword: keywordInput.trim(),
+  content: contentInput.trim(),
+  quota: quotaInput || null,
+  expires_at: expiresAt,
+  creator_id: user.id,
+});
+```
+
+---
+
+### Step 5: Admin - 候補名單管理
+
+#### 5.1 修改 `PackageDetail.tsx` 新增候補 Tab
+```tsx
+// src/pages/admin/PackageDetail.tsx
+<Tabs>
+  <TabsList>
+    <TabsTrigger value="overview">📊 總覽</TabsTrigger>
+    <TabsTrigger value="records">📋 領取記錄</TabsTrigger>
+    <TabsTrigger value="waitlist">👥 候補名單</TabsTrigger>
+  </TabsList>
+  
+  <TabsContent value="waitlist">
+    <WaitlistManagement keywordId={keyword.id} />
+  </TabsContent>
+</Tabs>
+```
+
+#### 5.2 新增 `WaitlistManagement` 組件
+```tsx
+// src/components/WaitlistManagement.tsx
+import { useEffect, useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
+
+export function WaitlistManagement({ keywordId }: { keywordId: string }) {
+  const [waitlist, setWaitlist] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchWaitlist();
+  }, [keywordId]);
+
+  const fetchWaitlist = async () => {
+    const { data, error } = await supabase
+      .from('waitlist')
+      .select('*')
+      .eq('keyword_id', keywordId)
+      .eq('status', 'waiting')
+      .order('created_at', { ascending: true });
+
+    if (error) {
+      console.error('Failed to fetch waitlist:', error);
+      toast.error('載入候補名單失敗');
+    } else {
+      setWaitlist(data || []);
+    }
+    setLoading(false);
+  };
+
+  const handleIncreaseQuota = async (additionalQuota: number) => {
+    if (!confirm(`確定要加開 ${additionalQuota} 份配額嗎？`)) return;
+
+    // TODO: 更新配額 + 通知候補者
+    toast.success(`已加開 ${additionalQuota} 份配額！`);
+  };
+
+  if (loading) return <p>載入中...</p>;
+
+  return (
+    <div className="space-y-4">
+      <div className="flex gap-2">
+        <Button onClick={() => handleIncreaseQuota(20)}>加開 20 份</Button>
+        <Button onClick={() => handleIncreaseQuota(50)}>加開 50 份</Button>
+      </div>
+
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>#</TableHead>
+            <TableHead>Email</TableHead>
+            <TableHead>備註</TableHead>
+            <TableHead>加入時間</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {waitlist.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={4} className="text-center text-muted-foreground">
+                暫無候補者
+              </TableCell>
+            </TableRow>
+          ) : (
+            waitlist.map((item, index) => (
+              <TableRow key={item.id}>
+                <TableCell>#{index + 1}</TableCell>
+                <TableCell>{item.email}</TableCell>
+                <TableCell>{item.reason || '（未填寫）'}</TableCell>
+                <TableCell>{new Date(item.created_at).toLocaleString('zh-TW')}</TableCell>
+              </TableRow>
+            ))
+          )}
+        </TableBody>
+      </Table>
+    </div>
+  );
+}
+```
+
+---
+
+### Step 6: Email 通知系統（選配）
+
+#### 6.1 Supabase Edge Function
+```typescript
+// supabase/functions/notify-waitlist/index.ts
+import { createClient } from '@supabase/supabase-js';
+
+Deno.serve(async (req) => {
+  const { keyword_id } = await req.json();
+  
+  const supabase = createClient(
+    Deno.env.get('SUPABASE_URL')!,
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+  );
+
+  // 取得候補名單
+  const { data: waitlist } = await supabase
+    .from('waitlist')
+    .select('email')
+    .eq('keyword_id', keyword_id)
+    .eq('status', 'waiting');
+
+  // 取得資料包資訊
+  const { data: keyword } = await supabase
+    .from('keywords')
+    .select('keyword, short_code')
+    .eq('id', keyword_id)
+    .single();
+
+  // TODO: 使用 Resend 發送 Email
+  console.log(`通知 ${waitlist?.length} 位候補者：${keyword?.keyword}`);
+
+  // 更新候補狀態
+  const expiryDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+  
+  await supabase
+    .from('waitlist')
+    .update({ 
+      status: 'notified', 
+      notified_at: new Date().toISOString() 
+    })
+    .eq('keyword_id', keyword_id)
+    .eq('status', 'waiting');
+
+  return new Response(JSON.stringify({ success: true }), {
+    headers: { 'Content-Type': 'application/json' }
+  });
+});
+```
+
+---
+
+## ✅ 測試檢查清單
+
+### 限時功能測試
+- [ ] 創作者可在建立資料包時設定「X 天後失效」
+- [ ] 領取頁面顯示紅字倒數計時
+- [ ] 過期後資料包自動隱藏
+- [ ] 倒數顯示格式正確（X 天 X 小時 / X 小時 X 分）
+
+### 候補功能測試
+- [ ] 資料包達配額時，顯示候補卡片（隱藏表單）
+- [ ] 可輸入 Email + 備註加入候補
+- [ ] Email 格式驗證正確
+- [ ] 同一 Email 不可重複加入同一資料包
+- [ ] 顯示目前候補人數
+- [ ] 加入成功後顯示確認訊息
+
+### Admin 管理測試
+- [ ] Admin 可查看候補名單
+- [ ] 顯示候補者 Email、備註、加入時間
+- [ ] 「加開配額」按鈕正常運作
+- [ ] 加開後候補人數歸零（已通知）
+
+### Email 通知測試（選配）
+- [ ] 加開配額時發送通知 Email
+- [ ] Email 包含資料包名稱和短網址
+- [ ] Email 提示「7 天內有效」
+
+---
+
+## 🚀 實作順序建議
+
+1. **Step 1**：建立 Migration（資料表）
+2. **Step 2**：倒數計時組件（通用功能）
+3. **Step 4**：Creator 設定限時（測試倒數）
+4. **Step 3**：候補卡片組件
+5. **Step 5**：Admin 候補管理
+6. **Step 6**：Email 通知（選配）
+
+---
+
+## 📝 備註
+
+- MVP 階段可暫時不做 Email 通知，用 toast 提示代替
+- 限時功能和候補功能獨立，可分開測試
+- 候補不保留名額，先到先得
+- 7 天限時從「通知時間」開始計算，非「加入候補時間」

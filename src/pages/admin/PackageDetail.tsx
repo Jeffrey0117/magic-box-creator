@@ -5,10 +5,13 @@ import { isAdmin } from '@/lib/admin';
 import { toast } from 'sonner';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Copy, Trash2 } from 'lucide-react';
+import { ArrowLeft, Copy, Trash2, Plus } from 'lucide-react';
 import { Tables } from '@/integrations/supabase/types';
 import ClaimTrendChart from '@/components/ClaimTrendChart';
 import ClaimRecordsTable from '@/components/ClaimRecordsTable';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 type Keyword = Tables<'keywords'>;
 
@@ -22,6 +25,15 @@ interface PackageAnalytics {
   }> | null;
 }
 
+interface WaitlistEntry {
+  id: string;
+  email: string;
+  reason: string;
+  status: string;
+  created_at: string;
+  notified_at: string | null;
+}
+
 export default function PackageDetail() {
   const { packageId } = useParams<{ packageId: string }>();
   const navigate = useNavigate();
@@ -30,6 +42,9 @@ export default function PackageDetail() {
   const [analytics, setAnalytics] = useState<PackageAnalytics | null>(null);
   const [creatorEmail, setCreatorEmail] = useState<string>('');
   const [claimRecords, setClaimRecords] = useState<Array<{ email: string; unlocked_at: string }>>([]);
+  const [waitlist, setWaitlist] = useState<WaitlistEntry[]>([]);
+  const [customQuota, setCustomQuota] = useState<string>('');
+  const [isAddingQuota, setIsAddingQuota] = useState(false);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -96,6 +111,18 @@ export default function PackageDetail() {
       } else {
         setClaimRecords(records || []);
       }
+
+      const { data: waitlistData, error: waitlistError } = await supabase
+        .from('waitlist')
+        .select('*')
+        .eq('keyword_id', keyword.id)
+        .order('created_at', { ascending: true });
+
+      if (waitlistError) {
+        console.error('Waitlist error:', waitlistError);
+      } else {
+        setWaitlist(waitlistData || []);
+      }
     } catch (error) {
       console.error('Failed to fetch package data:', error);
       toast.error('載入資料失敗');
@@ -160,6 +187,67 @@ export default function PackageDetail() {
       console.error('Failed to delete package:', error);
       toast.error('刪除失敗');
     }
+  };
+
+  const handleAddQuota = async (amount: number) => {
+    if (!packageData) return;
+    setIsAddingQuota(true);
+
+    try {
+      const newQuota = (packageData.quota || 0) + amount;
+      const { error } = await supabase
+        .from('keywords')
+        .update({ quota: newQuota })
+        .eq('id', packageData.id);
+
+      if (error) throw error;
+
+      toast.success(`已加開 ${amount} 份配額`);
+      await fetchPackageData();
+    } catch (error) {
+      console.error('Failed to add quota:', error);
+      toast.error('加開配額失敗');
+    } finally {
+      setIsAddingQuota(false);
+    }
+  };
+
+  const handleCustomQuotaAdd = async () => {
+    const amount = parseInt(customQuota);
+    if (!amount || amount <= 0) {
+      toast.error('請輸入有效的數量');
+      return;
+    }
+    await handleAddQuota(amount);
+    setCustomQuota('');
+  };
+
+  const exportWaitlist = () => {
+    if (waitlist.length === 0) {
+      toast.error('候補名單為空');
+      return;
+    }
+
+    const headers = ['Email', '加入原因', '狀態', '加入時間', '通知時間'];
+    const rows = waitlist.map(entry => [
+      entry.email,
+      entry.reason,
+      entry.status === 'pending' ? '等待中' : '已通知',
+      new Date(entry.created_at).toLocaleString('zh-TW'),
+      entry.notified_at ? new Date(entry.notified_at).toLocaleString('zh-TW') : '-'
+    ]);
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+    ].join('\n');
+
+    const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `候補名單_${packageData?.keyword}_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+    toast.success('候補名單已匯出');
   };
 
   if (loading) {
@@ -323,36 +411,148 @@ export default function PackageDetail() {
           </Card>
         </div>
 
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>📊 領取趨勢圖表</CardTitle>
-            <CardDescription>領取次數隨時間變化趨勢</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ClaimTrendChart claimRecords={claimRecords} />
-          </CardContent>
-        </Card>
+        <Tabs defaultValue="analytics" className="space-y-6">
+          <TabsList>
+            <TabsTrigger value="analytics">數據分析</TabsTrigger>
+            <TabsTrigger value="waitlist">候補名單 ({waitlist.length})</TabsTrigger>
+            <TabsTrigger value="content">資料包內容</TabsTrigger>
+          </TabsList>
 
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>📋 領取記錄</CardTitle>
-            <CardDescription>所有領取此資料包的用戶記錄</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ClaimRecordsTable records={claimRecords} keywordName={packageData.keyword} />
-          </CardContent>
-        </Card>
+          <TabsContent value="analytics" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>📊 領取趨勢圖表</CardTitle>
+                <CardDescription>領取次數隨時間變化趨勢</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ClaimTrendChart claimRecords={claimRecords} />
+              </CardContent>
+            </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>📄 資料包內容</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <pre className="whitespace-pre-wrap bg-secondary/30 p-4 rounded-lg text-sm">
-              {packageData.content}
-            </pre>
-          </CardContent>
-        </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle>📋 領取記錄</CardTitle>
+                <CardDescription>所有領取此資料包的用戶記錄</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ClaimRecordsTable records={claimRecords} keywordName={packageData.keyword} />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="waitlist" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>🎫 候補管理</CardTitle>
+                <CardDescription>
+                  目前有 {waitlist.length} 人在候補名單中
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    onClick={() => handleAddQuota(20)}
+                    disabled={isAddingQuota}
+                    size="sm"
+                  >
+                    <Plus className="w-4 h-4 mr-1" />
+                    加開 20 份
+                  </Button>
+                  <Button
+                    onClick={() => handleAddQuota(50)}
+                    disabled={isAddingQuota}
+                    size="sm"
+                  >
+                    <Plus className="w-4 h-4 mr-1" />
+                    加開 50 份
+                  </Button>
+                  <div className="flex gap-2 items-center">
+                    <Input
+                      type="number"
+                      placeholder="自訂數量"
+                      value={customQuota}
+                      onChange={(e) => setCustomQuota(e.target.value)}
+                      className="w-24"
+                      min="1"
+                    />
+                    <Button
+                      onClick={handleCustomQuotaAdd}
+                      disabled={isAddingQuota || !customQuota}
+                      size="sm"
+                    >
+                      加開
+                    </Button>
+                  </div>
+                  <Button
+                    onClick={exportWaitlist}
+                    variant="outline"
+                    size="sm"
+                    disabled={waitlist.length === 0}
+                  >
+                    匯出 CSV
+                  </Button>
+                </div>
+
+                {waitlist.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    目前沒有候補者
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead className="border-b">
+                        <tr>
+                          <th className="text-left p-2">#</th>
+                          <th className="text-left p-2">Email</th>
+                          <th className="text-left p-2">加入原因</th>
+                          <th className="text-left p-2">狀態</th>
+                          <th className="text-left p-2">加入時間</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {waitlist.map((entry, index) => (
+                          <tr key={entry.id} className="border-b hover:bg-secondary/20">
+                            <td className="p-2">{index + 1}</td>
+                            <td className="p-2 font-mono text-xs">{entry.email}</td>
+                            <td className="p-2 max-w-xs truncate">{entry.reason}</td>
+                            <td className="p-2">
+                              {entry.status === 'pending' ? (
+                                <span className="text-yellow-600">⏳ 等待中</span>
+                              ) : (
+                                <span className="text-green-600">✅ 已通知</span>
+                              )}
+                            </td>
+                            <td className="p-2 text-xs text-muted-foreground">
+                              {new Date(entry.created_at).toLocaleString('zh-TW', {
+                                month: 'numeric',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="content">
+            <Card>
+              <CardHeader>
+                <CardTitle>📄 資料包內容</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <pre className="whitespace-pre-wrap bg-secondary/30 p-4 rounded-lg text-sm">
+                  {packageData.content}
+                </pre>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
