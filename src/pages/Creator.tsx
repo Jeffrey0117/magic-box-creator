@@ -178,7 +178,16 @@ const Creator = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: string, keyword: string) => {
+    const userInput = prompt(`⚠️ 危險操作！刪除後無法復原\n\n請輸入關鍵字「${keyword}」以確認刪除：`);
+    
+    if (userInput !== keyword) {
+      if (userInput !== null) {
+        toast.error("關鍵字不符，取消刪除");
+      }
+      return;
+    }
+
     const { error } = await supabase.from("keywords").delete().eq("id", id);
 
     if (error) {
@@ -767,7 +776,7 @@ const Creator = () => {
                         <Edit className="w-4 h-4" />
                       </Button>
                       <Button
-                        onClick={() => handleDelete(item.id)}
+                        onClick={() => handleDelete(item.id, item.keyword)}
                         variant="ghost"
                         size="icon"
                         className="text-destructive hover:text-destructive/80"
