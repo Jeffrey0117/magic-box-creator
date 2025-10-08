@@ -104,11 +104,13 @@ const Creator = () => {
       .eq('id', session.user.id)
       .maybeSingle();
 
-    if (!error && data) {
-      setUserProfile(data);
-    } else if (error) {
+    console.log('🔍 fetchUserProfile 結果:', { data, error });
+    
+    if (error) {
       console.error('載入個人資料失敗:', error);
     }
+    
+    setUserProfile(data || null);
   };
 
   const fetchKeywords = async () => {
