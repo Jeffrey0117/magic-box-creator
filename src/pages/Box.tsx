@@ -264,26 +264,38 @@ const Box = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-secondary/20 p-4">
-      <div className="max-w-4xl mx-auto space-y-6">
+    <div className="min-h-screen flex items-center justify-center p-4">
+      <div className="w-full max-w-lg">
         {!result ? (
           <>
             {boxData && (
-              <>
+              <div className="glass-card rounded-2xl p-6 md:p-8 shadow-card space-y-6">
+                <div className="text-center">
+                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-accent/20 mb-4">
+                    <Lock className="w-8 h-8 text-accent" />
+                  </div>
+                  <h1 className="text-2xl md:text-3xl font-bold text-gradient mb-2">
+                    KeyBox 🔐
+                  </h1>
+                  <p className="text-sm text-muted-foreground">
+                    輸入關鍵字解鎖專屬內容
+                  </p>
+                </div>
+
                 <CreatorCard creatorId={boxData.creator_id} />
 
-                <div className="flex flex-col md:flex-row items-center gap-3">
+                <div className="flex flex-col items-center gap-3">
                   {boxData.expires_at && (
                     <CountdownTimer expiresAt={boxData.expires_at} />
                   )}
                   {boxData.quota && (
-                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-accent/10 border border-accent/30 rounded-lg w-full md:w-auto">
+                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-accent/10 border border-accent/30 rounded-lg" style="width: 100%;">
                       <p className="text-sm font-medium text-accent">
                         🔥 限量 {boxData.quota} 份 · 剩餘 {Math.max(0, boxData.quota - currentCount)} 份
                       </p>
                     </div>
                   )}
-                  <div className="bg-accent/10 border border-accent/30 rounded-lg p-3 w-full md:flex-1">
+                  <div className="bg-accent/10 border border-accent/30 rounded-lg p-3 mb-3" style="width: 100%;">
                     <p className="text-sm font-medium text-accent mb-1">
                       ✨ 註冊會員免輸入關鍵字
                     </p>
@@ -296,22 +308,31 @@ const Box = () => {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {(boxData.package_title || boxData.package_description) && (
-                    <div className="glass-card rounded-2xl shadow-card p-6">
-                      {boxData.package_title && (
-                        <h3 className="text-lg font-semibold text-foreground mb-2 flex items-center gap-2">
-                          📦 {boxData.package_title}
-                        </h3>
+                  {(boxData.package_title || boxData.package_description || boxData.images?.length > 0) && (
+                    <div className="space-y-4">
+                      {(boxData.package_title || boxData.package_description) && (
+                        <div className="bg-muted/30 rounded-lg p-4">
+                          {boxData.package_title && (
+                            <h3 className="text-base font-semibold text-foreground mb-2 flex items-center gap-2">
+                              📦 {boxData.package_title}
+                            </h3>
+                          )}
+                          {boxData.package_description && (
+                            <p className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">
+                              {boxData.package_description}
+                            </p>
+                          )}
+                        </div>
                       )}
-                      {boxData.package_description && (
-                        <p className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">
-                          {boxData.package_description}
-                        </p>
+                      {boxData.images && boxData.images.length > 0 && (
+                        <div className="bg-white rounded-lg p-4">
+                          <PackageImageCarousel images={boxData.images} />
+                        </div>
                       )}
                     </div>
                   )}
 
-                  <div className="glass-card rounded-2xl shadow-card p-6">
+                  <div className="space-y-4">
                     <form onSubmit={handleUnlock} className="space-y-4">
                       <div>
                         <label className="text-sm font-medium mb-2 block">關鍵字</label>
@@ -361,7 +382,7 @@ const Box = () => {
                       </Button>
                     </form>
 
-                    <div className="mt-4 text-center">
+                    <div className="text-center">
                       <button
                         onClick={() => navigate(`/login?returnTo=${location.pathname}`)}
                         className="text-sm font-medium text-foreground hover:text-accent transition-colors"
@@ -372,16 +393,7 @@ const Box = () => {
                   </div>
                 </div>
 
-                {boxData.images && boxData.images.length > 0 && (
-                  <div className="glass-card rounded-2xl shadow-card p-6">
-                    <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-                      🖼️ 資料包預覽圖片
-                    </h3>
-                    <PackageImageCarousel images={boxData.images} />
-                  </div>
-                )}
-
-                <div className="mt-8 pt-6 border-t border-border/50 text-center">
+                <div className="mt-6 pt-6 border-t border-border/50 text-center">
                   <p className="text-xs text-muted-foreground">
                     © 2025 Powered by UPPER |{" "}
                     <button
@@ -399,7 +411,7 @@ const Box = () => {
                     </button>
                   </p>
                 </div>
-              </>
+              </div>
             )}
           </>
         ) : (
