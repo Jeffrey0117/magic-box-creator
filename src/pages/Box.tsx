@@ -7,6 +7,8 @@ import { toast } from "sonner";
 import { Lock, Key, Unlock } from "lucide-react";
 import { CountdownTimer } from "@/components/CountdownTimer";
 import { WaitlistCard } from "@/components/WaitlistCard";
+import { CreatorCard } from "@/components/CreatorCard";
+import { PackageImageCarousel } from "@/components/PackageImageCarousel";
 
 const Box = () => {
   const [keyword, setKeyword] = useState("");
@@ -101,7 +103,7 @@ const Box = () => {
   };
 
   const fetchBoxData = async () => {
-    let query = supabase.from("keywords").select("id, keyword, created_at, quota, current_count, expires_at");
+    let query = supabase.from("keywords").select("id, keyword, created_at, quota, current_count, expires_at, creator_id, images");
     
     if (shortCode && !location.pathname.startsWith('/box/')) {
       query = query.eq("short_code", shortCode);
@@ -266,6 +268,13 @@ const Box = () => {
       <div className="w-full max-w-lg">
         {!result ? (
           <>
+            {boxData && (
+              <div className="mb-6">
+                <CreatorCard creatorId={boxData.creator_id} />
+                <PackageImageCarousel images={boxData.images || []} />
+              </div>
+            )}
+            
             <div className="text-center mb-8">
               <div className="inline-flex items-center justify-center w-16 h-16 md:w-20 md:h-20 rounded-full gradient-magic mb-4 glow">
                 <Lock className="w-8 h-8 md:w-10 md:h-10 text-white" />

@@ -26,13 +26,13 @@ export function CountdownTimer({ expiresAt }: CountdownTimerProps) {
       const seconds = totalSeconds % 60;
 
       if (days > 0) {
-        return `剩餘 ${days} 天 ${hours} 小時 ${minutes} 分 ${seconds} 秒`;
+        return `剩餘 ${days} 天 ${String(hours).padStart(2, '0')} 小時 ${String(minutes).padStart(2, '0')} 分 ${String(seconds).padStart(2, '0')} 秒`;
       } else if (hours > 0) {
-        return `剩餘 ${hours} 小時 ${minutes} 分 ${seconds} 秒`;
+        return `剩餘 ${String(hours).padStart(2, '0')} 小時 ${String(minutes).padStart(2, '0')} 分 ${String(seconds).padStart(2, '0')} 秒`;
       } else if (minutes > 0) {
-        return `剩餘 ${minutes} 分 ${seconds} 秒`;
+        return `剩餘 ${String(minutes).padStart(2, '0')} 分 ${String(seconds).padStart(2, '0')} 秒`;
       } else {
-        return `剩餘 ${seconds} 秒`;
+        return `剩餘 ${String(seconds).padStart(2, '0')} 秒`;
       }
     };
 
@@ -48,7 +48,7 @@ export function CountdownTimer({ expiresAt }: CountdownTimerProps) {
   if (isExpired) return null;
 
   return (
-    <div className="text-red-500 font-bold flex items-center gap-2">
+    <div className="text-red-500 font-bold flex items-center gap-2 min-w-[280px]">
       ⏰ 限時：{timeLeft}後失效
     </div>
   );

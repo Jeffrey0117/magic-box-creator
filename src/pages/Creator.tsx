@@ -68,6 +68,8 @@ const Creator = () => {
   const [userId, setUserId] = useState("");
   const [showProfileDialog, setShowProfileDialog] = useState(false);
   const [userProfile, setUserProfile] = useState<Tables<'user_profiles'> | null>(null);
+  const [newImageUrls, setNewImageUrls] = useState<string[]>([]);
+  const [editImageUrls, setEditImageUrls] = useState<string[]>([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -162,6 +164,7 @@ const Creator = () => {
       short_code: shortCode,
       quota: newQuota ? parseInt(newQuota) : null,
       expires_at: expiresAt,
+      images: newImageUrls.length > 0 ? newImageUrls : null,
     });
 
     if (error) {
@@ -176,6 +179,7 @@ const Creator = () => {
       setNewExpiryHours("");
       setNewExpiryMinutes("");
       setEnableExpiry(false);
+      setNewImageUrls([]);
       setShowAddForm(false);
       fetchKeywords();
     }
@@ -207,6 +211,7 @@ const Creator = () => {
     setEditKeyword(item.keyword);
     setEditContent(item.content);
     setEditQuota(item.quota?.toString() || "");
+    setEditImageUrls(item.images || []);
     
     if (item.expires_at) {
       setEditEnableExpiry(true);
@@ -249,6 +254,7 @@ const Creator = () => {
         content: editContent,
         quota: editQuota ? parseInt(editQuota) : null,
         expires_at: expiresAt,
+        images: editImageUrls.length > 0 ? editImageUrls : null,
       })
       .eq("id", editingKeywordId);
 
@@ -265,6 +271,7 @@ const Creator = () => {
       setEditExpiryHours("");
       setEditExpiryMinutes("");
       setEditEnableExpiry(false);
+      setEditImageUrls([]);
       fetchKeywords();
     }
   };
@@ -278,6 +285,7 @@ const Creator = () => {
     setEditExpiryHours("");
     setEditExpiryMinutes("");
     setEditEnableExpiry(false);
+    setEditImageUrls([]);
   };
 
   const fetchEmailLogs = async (keywordId: string) => {
@@ -610,6 +618,44 @@ const Creator = () => {
                   </div>
                 )}
               </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">📷 資料包圖片（最多 5 張）</label>
+                {newImageUrls.map((url, index) => (
+                  <div key={index} className="flex gap-2">
+                    <Input
+                      type="url"
+                      value={url}
+                      onChange={(e) => {
+                        const updated = [...newImageUrls];
+                        updated[index] = e.target.value;
+                        setNewImageUrls(updated);
+                      }}
+                      placeholder={`圖片 ${index + 1} URL`}
+                      className="h-10"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setNewImageUrls(newImageUrls.filter((_, i) => i !== index))}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                ))}
+                {newImageUrls.length < 5 && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setNewImageUrls([...newImageUrls, ''])}
+                    className="gap-2"
+                  >
+                    <Plus className="w-4 h-4" />
+                    新增圖片
+                  </Button>
+                )}
+              </div>
               <div className="flex flex-col sm:flex-row gap-2">
                 <Button type="submit" className="gradient-magic">
                   確認新增
@@ -626,6 +672,7 @@ const Creator = () => {
                     setNewExpiryHours("");
                     setNewExpiryMinutes("");
                     setEnableExpiry(false);
+                    setNewImageUrls([]);
                   }}
                 >
                   取消
@@ -728,6 +775,44 @@ const Creator = () => {
                             />
                             <span className="text-sm">分鐘後失效</span>
                           </div>
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">📷 資料包圖片（最多 5 張）</label>
+                        {editImageUrls.map((url, index) => (
+                          <div key={index} className="flex gap-2">
+                            <Input
+                              type="url"
+                              value={url}
+                              onChange={(e) => {
+                                const updated = [...editImageUrls];
+                                updated[index] = e.target.value;
+                                setEditImageUrls(updated);
+                              }}
+                              placeholder={`圖片 ${index + 1} URL`}
+                              className="h-10"
+                            />
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => setEditImageUrls(editImageUrls.filter((_, i) => i !== index))}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        ))}
+                        {editImageUrls.length < 5 && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setEditImageUrls([...editImageUrls, ''])}
+                            className="gap-2"
+                          >
+                            <Plus className="w-4 h-4" />
+                            新增圖片
+                          </Button>
                         )}
                       </div>
                       <div className="flex gap-2">
