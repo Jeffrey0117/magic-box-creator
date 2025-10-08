@@ -307,33 +307,29 @@ const Box = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {(boxData.package_title || boxData.package_description || boxData.images?.length > 0) && (
-                    <div className="space-y-4">
-                      {(boxData.package_title || boxData.package_description) && (
-                        <div className="bg-muted/30 rounded-lg p-4">
-                          {boxData.package_title && (
-                            <h3 className="text-base font-semibold text-foreground mb-2 flex items-center gap-2">
-                              📦 {boxData.package_title}
-                            </h3>
-                          )}
-                          {boxData.package_description && (
-                            <p className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">
-                              {boxData.package_description}
-                            </p>
-                          )}
-                        </div>
-                      )}
-                      {boxData.images && boxData.images.length > 0 && (
-                        <div className="bg-white rounded-lg p-4">
-                          <PackageImageCarousel images={boxData.images} />
-                        </div>
-                      )}
-                    </div>
-                  )}
+                {(boxData.package_title || boxData.package_description) && (
+                  <div className="bg-muted/30 rounded-lg p-4 mb-4">
+                    {boxData.package_title && (
+                      <h3 className="text-base font-semibold text-foreground mb-2 flex items-center gap-2">
+                        📦 {boxData.package_title}
+                      </h3>
+                    )}
+                    {boxData.package_description && (
+                      <p className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">
+                        {boxData.package_description}
+                      </p>
+                    )}
+                  </div>
+                )}
 
-                  <div className="space-y-4">
-                    <form onSubmit={handleUnlock} className="space-y-4">
+                {boxData.images && boxData.images.length > 0 && (
+                  <div className="bg-white rounded-lg p-4 mb-4">
+                    <PackageImageCarousel images={boxData.images} />
+                  </div>
+                )}
+
+                <div className="space-y-4">
+                  <form onSubmit={handleUnlock} className="space-y-4">
                       <div>
                         <label className="text-sm font-medium mb-2 block">關鍵字</label>
                         <Input
@@ -390,7 +386,6 @@ const Box = () => {
                         免費註冊／登入 →
                       </button>
                     </div>
-                  </div>
                 </div>
 
                 <div className="mt-6 pt-6 border-t border-border/50 text-center">
