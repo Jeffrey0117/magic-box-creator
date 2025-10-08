@@ -17,11 +17,17 @@ export function CreatorCard({ creatorId }: CreatorCardProps) {
 
   useEffect(() => {
     const fetchCreator = async () => {
-      const { data: profile } = await supabase
+      const { data: profile, error } = await supabase
         .from("user_profiles")
         .select("avatar_url, display_name, bio, social_link")
         .eq("id", creatorId)
         .maybeSingle();
+
+      console.log('🔍 CreatorCard fetchCreator:', { creatorId, profile, error });
+
+      if (error) {
+        console.error('CreatorCard 讀取失敗:', error);
+      }
 
       setCreator({
         avatar_url: profile?.avatar_url || null,
