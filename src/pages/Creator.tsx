@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Trash2, Plus, LogOut, Download, Edit, ClipboardList, User } from "lucide-react";
 import { generateUniqueShortCode } from "@/lib/shortcode";
@@ -70,6 +72,9 @@ const Creator = () => {
   const [userProfile, setUserProfile] = useState<Tables<'user_profiles'> | null>(null);
   const [newImageUrls, setNewImageUrls] = useState<string[]>([]);
   const [editImageUrls, setEditImageUrls] = useState<string[]>([]);
+  const [showBatchImageDialog, setShowBatchImageDialog] = useState(false);
+  const [batchImageInput, setBatchImageInput] = useState('');
+  const [isEditMode, setIsEditMode] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -274,6 +279,24 @@ const Creator = () => {
       setEditImageUrls([]);
       fetchKeywords();
     }
+  };
+
+  const handleBatchImagePaste = () => {
+    const urls = batchImageInput
+      .split('\n')
+      .map(url => url.trim())
+      .filter(url => url !== '')
+      .slice(0, 5);
+    
+    if (isEditMode) {
+      setEditImageUrls(urls);
+    } else {
+      setNewImageUrls(urls);
+    }
+    
+    setShowBatchImageDialog(false);
+    setBatchImageInput('');
+    toast.success(`已匯入 ${urls.length} 張圖片`);
   };
 
   const cancelEdit = () => {
@@ -618,7 +641,56 @@ const Creator = () => {
                 )}
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">📷 資料包圖片（最多 5 張）</label>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-sm font-medium">📷 資料包圖片（最多 5 張）</label>
+                  <Dialog open={showBatchImageDialog && !isEditMode} onOpenChange={(open) => {
+                    if (!isEditMode) setShowBatchImageDialog(open);
+                  }}>
+                    <DialogTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setIsEditMode(false);
+                          setShowBatchImageDialog(true);
+                        }}
+                        className="gap-2"
+                      >
+                        📋 批量貼入
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>批量貼入圖片 URL</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <Label htmlFor="batch-images">每行一個 URL（最多 5 個）</Label>
+                        <Textarea
+                          id="batch-images"
+                          placeholder="https://example.com/image1.jpg&#10;https://example.com/image2.jpg&#10;https://example.com/image3.jpg"
+                          value={batchImageInput}
+                          onChange={(e) => setBatchImageInput(e.target.value)}
+                          rows={8}
+                        />
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            variant="outline"
+                            onClick={() => {
+                              setShowBatchImageDialog(false);
+                              setBatchImageInput('');
+                            }}
+                          >
+                            取消
+                          </Button>
+                          <Button onClick={handleBatchImagePaste}>
+                            確定匯入
+                          </Button>
+                        </div>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </div>
                 {newImageUrls.map((url, index) => (
                   <div key={index} className="flex gap-2">
                     <Input
@@ -776,7 +848,56 @@ const Creator = () => {
                         )}
                       </div>
                       <div className="space-y-2">
-                        <label className="text-sm font-medium">📷 資料包圖片（最多 5 張）</label>
+                        <div className="flex items-center justify-between mb-2">
+                          <label className="text-sm font-medium">📷 資料包圖片（最多 5 張）</label>
+                          <Dialog open={showBatchImageDialog && isEditMode} onOpenChange={(open) => {
+                            if (isEditMode) setShowBatchImageDialog(open);
+                          }}>
+                            <DialogTrigger asChild>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  setIsEditMode(true);
+                                  setShowBatchImageDialog(true);
+                                }}
+                                className="gap-2"
+                              >
+                                📋 批量貼入
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent>
+                              <DialogHeader>
+                                <DialogTitle>批量貼入圖片 URL</DialogTitle>
+                              </DialogHeader>
+                              <div className="space-y-4">
+                                <Label htmlFor="batch-images-edit">每行一個 URL（最多 5 個）</Label>
+                                <Textarea
+                                  id="batch-images-edit"
+                                  placeholder="https://example.com/image1.jpg&#10;https://example.com/image2.jpg&#10;https://example.com/image3.jpg"
+                                  value={batchImageInput}
+                                  onChange={(e) => setBatchImageInput(e.target.value)}
+                                  rows={8}
+                                />
+                                <div className="flex justify-end gap-2">
+                                  <Button
+                                    variant="outline"
+                                    onClick={() => {
+                                      setShowBatchImageDialog(false);
+                                      setBatchImageInput('');
+                                    }}
+                                  >
+                                    取消
+                                  </Button>
+                                  <Button onClick={handleBatchImagePaste}>
+                                    確定匯入
+                                  </Button>
+                                </div>
+                              </div>
+                            </DialogContent>
+                          </Dialog>
+                        </div>
                         {editImageUrls.map((url, index) => (
                           <div key={index} className="flex gap-2">
                             <Input
