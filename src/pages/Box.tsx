@@ -270,15 +270,15 @@ const Box = () => {
           <>
             {boxData && (
               <div className="glass-card rounded-2xl p-6 md:p-8 shadow-card space-y-6">
-                <div className="text-center">
-                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-accent/20 mb-4">
-                    <Lock className="w-8 h-8 text-accent" />
+                <div className="text-center mb-8">
+                  <div className="inline-flex items-center justify-center w-16 h-16 md:w-20 md:h-20 rounded-full gradient-magic mb-4 glow">
+                    <Lock className="w-8 h-8 md:w-10 md:h-10 text-white" />
                   </div>
-                  <h1 className="text-2xl md:text-3xl font-bold text-gradient mb-2">
-                    KeyBox 🔐
+                  <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gradient mb-3">
+                    KeyBox 🔑
                   </h1>
-                  <p className="text-sm text-muted-foreground">
-                    輸入關鍵字解鎖專屬內容
+                  <p className="text-muted-foreground text-lg">
+                    輸入關鍵字解鎖內容
                   </p>
                 </div>
 
