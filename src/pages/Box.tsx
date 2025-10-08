@@ -283,7 +283,6 @@ const Box = () => {
             {boxData && (
               <div className="mb-6 space-y-4">
                 <CreatorCard creatorId={boxData.creator_id} />
-                <PackageImageCarousel images={boxData.images || []} />
                 
                 <div className="flex flex-col items-center gap-3">
                   {boxData.expires_at && (
@@ -296,6 +295,13 @@ const Box = () => {
                       </p>
                     </div>
                   )}
+                </div>
+
+                <div className="bg-white border border-[#dbdbdb] rounded-lg p-6">
+                  <h3 className="text-center text-lg font-semibold text-[#262626] mb-4">
+                    📦 資料包介紹
+                  </h3>
+                  <PackageImageCarousel images={boxData.images || []} />
                 </div>
               </div>
             )}

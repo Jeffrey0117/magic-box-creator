@@ -21,6 +21,7 @@ export function ProfileEditDialog({ open, onOpenChange, userId, userEmail }: Pro
   const [displayName, setDisplayName] = useState('');
   const [bio, setBio] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
+  const [socialLink, setSocialLink] = useState('');
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
 
@@ -51,6 +52,7 @@ export function ProfileEditDialog({ open, onOpenChange, userId, userEmail }: Pro
         setDisplayName(data.display_name || '');
         setBio(data.bio || '');
         setAvatarUrl(data.avatar_url || '');
+        setSocialLink(data.social_link || '');
       }
     } catch (error) {
       console.error('Failed to fetch profile:', error);
@@ -73,6 +75,11 @@ export function ProfileEditDialog({ open, onOpenChange, userId, userEmail }: Pro
       return;
     }
 
+    if (socialLink && socialLink.length > 200) {
+      toast.error('社群連結最多 200 字元');
+      return;
+    }
+
     setLoading(true);
     try {
       const { error } = await supabase
@@ -82,6 +89,7 @@ export function ProfileEditDialog({ open, onOpenChange, userId, userEmail }: Pro
           display_name: displayName,
           bio: bio || null,
           avatar_url: avatarUrl || null,
+          social_link: socialLink || null,
         });
 
       if (error) throw error;
@@ -157,6 +165,21 @@ export function ProfileEditDialog({ open, onOpenChange, userId, userEmail }: Pro
               />
               <p className="text-xs text-muted-foreground mt-1">
                 最多 200 字元 {bio.length > 0 && `（已使用 ${bio.length} 字元）`}
+              </p>
+            </div>
+
+            <div>
+              <Label htmlFor="socialLink">社群平台連結（選填）</Label>
+              <Input
+                id="socialLink"
+                type="url"
+                placeholder="https://example.com/yourprofile"
+                value={socialLink}
+                onChange={(e) => setSocialLink(e.target.value)}
+                maxLength={200}
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                填寫後，資料包作者卡片將可點擊連至此連結
               </p>
             </div>
 

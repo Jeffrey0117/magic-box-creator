@@ -11,6 +11,7 @@ export function CreatorCard({ creatorId }: CreatorCardProps) {
     display_name: string | null;
     email: string | null;
     bio: string | null;
+    social_link: string | null;
   } | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -18,7 +19,7 @@ export function CreatorCard({ creatorId }: CreatorCardProps) {
     const fetchCreator = async () => {
       const { data: profile } = await supabase
         .from("user_profiles")
-        .select("avatar_url, display_name, bio")
+        .select("avatar_url, display_name, bio, social_link")
         .eq("id", creatorId)
         .single();
 
@@ -29,6 +30,7 @@ export function CreatorCard({ creatorId }: CreatorCardProps) {
         display_name: profile?.display_name || null,
         email: user?.user?.email || null,
         bio: profile?.bio || null,
+        social_link: profile?.social_link || null,
       });
       setLoading(false);
     };
@@ -53,7 +55,14 @@ export function CreatorCard({ creatorId }: CreatorCardProps) {
   if (!creator) return null;
 
   return (
-    <div className="bg-white border border-[#dbdbdb] rounded-lg p-4 mb-4">
+    <a
+      href={creator.social_link || undefined}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={`block bg-white border border-[#dbdbdb] rounded-lg p-4 mb-4 ${
+        creator.social_link ? "hover:bg-gray-50 transition-colors cursor-pointer" : ""
+      }`}
+    >
       <div className="flex items-center gap-3">
         <img
           src={creator.avatar_url || "/avantar.png"}
@@ -68,10 +77,10 @@ export function CreatorCard({ creatorId }: CreatorCardProps) {
             <p className="text-xs text-[#8e8e8e] mt-0.5">{creator.email}</p>
           )}
           {creator.bio && (
-            <p className="text-sm text-[#8e8e8e] mt-1 line-clamp-2">{creator.bio}</p>
+            <p className="text-sm text-[#8e8e8e] mt-1 line-clamp-4">{creator.bio}</p>
           )}
         </div>
       </div>
-    </div>
+    </a>
   );
 }
