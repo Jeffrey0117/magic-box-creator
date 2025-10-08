@@ -102,10 +102,12 @@ const Creator = () => {
       .from('user_profiles')
       .select('*')
       .eq('id', session.user.id)
-      .single();
+      .maybeSingle();
 
     if (!error && data) {
       setUserProfile(data);
+    } else if (error) {
+      console.error('載入個人資料失敗:', error);
     }
   };
 
