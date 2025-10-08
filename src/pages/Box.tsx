@@ -289,13 +289,13 @@ const Box = () => {
                     <CountdownTimer expiresAt={boxData.expires_at} />
                   )}
                   {boxData.quota && (
-                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-accent/10 border border-accent/30 rounded-lg" style="width: 100%;">
+                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-accent/10 border border-accent/30 rounded-lg w-full">
                       <p className="text-sm font-medium text-accent">
                         🔥 限量 {boxData.quota} 份 · 剩餘 {Math.max(0, boxData.quota - currentCount)} 份
                       </p>
                     </div>
                   )}
-                  <div className="bg-accent/10 border border-accent/30 rounded-lg p-3 mb-3" style="width: 100%;">
+                  <div className="bg-accent/10 border border-accent/30 rounded-lg p-3 mb-3 w-full">
                     <p className="text-sm font-medium text-accent mb-1">
                       ✨ 註冊會員免輸入關鍵字
                     </p>
