@@ -44,12 +44,12 @@ export function CreatorCard({ creatorId }: CreatorCardProps) {
 
   if (loading) {
     return (
-      <div className="bg-white border border-[#dbdbdb] rounded-lg p-4 mb-4 animate-pulse">
+      <div className="glass-card rounded-2xl shadow-card p-4 mb-4 animate-pulse">
         <div className="flex items-center gap-3">
-          <div className="w-16 h-16 rounded-full bg-gray-200" />
+          <div className="w-16 h-16 rounded-full bg-muted" />
           <div className="flex-1 space-y-2">
-            <div className="h-4 bg-gray-200 rounded w-32" />
-            <div className="h-3 bg-gray-200 rounded w-48" />
+            <div className="h-4 bg-muted rounded w-32" />
+            <div className="h-3 bg-muted rounded w-48" />
           </div>
         </div>
       </div>
@@ -63,22 +63,22 @@ export function CreatorCard({ creatorId }: CreatorCardProps) {
       href={creator.social_link || undefined}
       target="_blank"
       rel="noopener noreferrer"
-      className={`block bg-white border border-[#dbdbdb] rounded-lg p-4 mb-4 ${
-        creator.social_link ? "hover:bg-gray-50 transition-colors cursor-pointer" : ""
+      className={`block glass-card rounded-2xl shadow-card p-4 mb-4 ${
+        creator.social_link ? "hover:bg-card/60 transition-colors cursor-pointer" : ""
       }`}
     >
       <div className="flex items-center gap-3">
         <img
           src={creator.avatar_url || "/avantar.png"}
           alt="Creator Avatar"
-          className="w-16 h-16 rounded-full border-2 border-[#dbdbdb] object-cover"
+          className="w-16 h-16 rounded-full border-2 border-border object-cover"
         />
         <div className="flex-1">
-          <h3 className="font-semibold text-[#262626] text-base">
+          <h3 className="font-semibold text-foreground text-base">
             {creator.display_name || "創作者"}
           </h3>
           {creator.bio && (
-            <p className="text-sm text-[#8e8e8e] mt-1 line-clamp-4">{creator.bio}</p>
+            <p className="text-sm text-muted-foreground mt-1 line-clamp-4">{creator.bio}</p>
           )}
         </div>
       </div>

@@ -103,7 +103,7 @@ const Box = () => {
   };
 
   const fetchBoxData = async () => {
-    let query = supabase.from("keywords").select("id, keyword, created_at, quota, current_count, expires_at, creator_id, images");
+    let query = supabase.from("keywords").select("id, keyword, created_at, quota, current_count, expires_at, creator_id, images, package_title, package_description");
     
     if (shortCode && !location.pathname.startsWith('/box/')) {
       query = query.eq("short_code", shortCode);
@@ -284,6 +284,21 @@ const Box = () => {
               <div className="mb-6 space-y-4">
                 <CreatorCard creatorId={boxData.creator_id} />
                 
+                {(boxData.package_title || boxData.package_description) && (
+                  <div className="glass-card rounded-2xl shadow-card p-6">
+                    {boxData.package_title && (
+                      <h2 className="text-xl font-bold text-foreground mb-3">
+                        📦 {boxData.package_title}
+                      </h2>
+                    )}
+                    {boxData.package_description && (
+                      <p className="text-sm text-muted-foreground whitespace-pre-line leading-relaxed">
+                        {boxData.package_description}
+                      </p>
+                    )}
+                  </div>
+                )}
+                
                 <div className="flex flex-col items-center gap-3">
                   {boxData.expires_at && (
                     <CountdownTimer expiresAt={boxData.expires_at} />
@@ -387,9 +402,9 @@ const Box = () => {
             </div>
 
             {boxData && boxData.images && boxData.images.length > 0 && (
-              <div className="bg-white border border-[#dbdbdb] rounded-lg p-6 mt-6">
-                <h3 className="text-center text-lg font-semibold text-[#262626] mb-4">
-                  📦 資料包介紹
+              <div className="glass-card rounded-2xl shadow-card p-6 mt-6">
+                <h3 className="text-center text-lg font-semibold text-foreground mb-4">
+                  🖼️ 資料包預覽圖片
                 </h3>
                 <PackageImageCarousel images={boxData.images} />
               </div>
