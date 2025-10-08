@@ -565,7 +565,6 @@ const Creator = () => {
                 className="h-12 md:h-10"
               />
               <div className="space-y-2">
-                <label className="text-sm font-medium">⏰ 限時設定</label>
                 <div className="flex items-center gap-2">
                   <input
                     type="checkbox"
@@ -724,7 +723,6 @@ const Creator = () => {
                         className="h-10"
                       />
                       <div className="space-y-2">
-                        <label className="text-sm font-medium">⏰ 限時設定</label>
                         <div className="flex items-center gap-2">
                           <input
                             type="checkbox"
