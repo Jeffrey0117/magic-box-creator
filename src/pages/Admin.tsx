@@ -10,8 +10,11 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { LayoutDashboard, Users, Package, History, Search, Eye, Trash2 } from 'lucide-react';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { LayoutDashboard, Users, Package, History, Search, Eye, Trash2, Edit, UserCog } from 'lucide-react';
 import { Tables } from '@/integrations/supabase/types';
+import { ProfileEditDialog } from '@/components/ProfileEditDialog';
 
 interface Stats {
   totalUsers: number;
@@ -51,6 +54,16 @@ export default function Admin() {
   const [keywords, setKeywords] = useState<Keyword[]>([]);
   const [users, setUsers] = useState<UserStats[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [editingKeyword, setEditingKeyword] = useState<Keyword | null>(null);
+  const [editForm, setEditForm] = useState({
+    keyword: '',
+    content: '',
+    quota: '',
+    expires_at: '',
+    images: ['', '', '', '', ''],
+  });
+  const [editingUserId, setEditingUserId] = useState<string | null>(null);
+  const [editingUserEmail, setEditingUserEmail] = useState<string>('');
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -156,6 +169,48 @@ export default function Admin() {
     } catch (error) {
       console.error('Failed to fetch users:', error);
       toast.error('載入用戶列表失敗');
+    }
+  };
+
+  const handleEditKeyword = (kw: Keyword) => {
+    setEditingKeyword(kw);
+    setEditForm({
+      keyword: kw.keyword,
+      content: kw.content,
+      quota: kw.quota?.toString() || '',
+      expires_at: kw.expires_at ? new Date(kw.expires_at).toISOString().slice(0, 16) : '',
+      images: [
+        ...(kw.images || []),
+        ...Array(5 - (kw.images?.length || 0)).fill(''),
+      ].slice(0, 5),
+    });
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingKeyword) return;
+
+    try {
+      const filteredImages = editForm.images.filter(url => url.trim() !== '');
+      
+      const { error } = await supabase
+        .from('keywords')
+        .update({
+          keyword: editForm.keyword,
+          content: editForm.content,
+          quota: editForm.quota ? parseInt(editForm.quota) : null,
+          expires_at: editForm.expires_at || null,
+          images: filteredImages.length > 0 ? filteredImages : null,
+        })
+        .eq('id', editingKeyword.id);
+
+      if (error) throw error;
+
+      toast.success('資料包已更新');
+      setEditingKeyword(null);
+      fetchKeywords();
+    } catch (error) {
+      console.error('Failed to update keyword:', error);
+      toast.error('更新失敗');
     }
   };
 
@@ -311,12 +366,13 @@ export default function Admin() {
                       <TableHead>總領取次數</TableHead>
                       <TableHead>加入時間</TableHead>
                       <TableHead>狀態</TableHead>
+                      <TableHead className="text-right">操作</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {filteredUsers.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={6} className="text-center text-gray-500">
+                        <TableCell colSpan={7} className="text-center text-gray-500">
                           沒有資料
                         </TableCell>
                       </TableRow>
@@ -332,6 +388,18 @@ export default function Admin() {
                             <TableCell>{new Date(user.created_at).toLocaleDateString('zh-TW')}</TableCell>
                             <TableCell>
                               <Badge variant={status.variant}>{status.label}</Badge>
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                  setEditingUserId(user.user_id);
+                                  setEditingUserEmail(user.email);
+                                }}
+                              >
+                                <UserCog className="h-4 w-4" />
+                              </Button>
                             </TableCell>
                           </TableRow>
                         );
@@ -413,11 +481,97 @@ export default function Admin() {
                                     <div className="bg-secondary/30 p-4 rounded-lg">
                                       <p className="text-sm text-muted-foreground mb-2">短碼：{kw.short_code}</p>
                                       <p className="text-sm text-muted-foreground mb-2">創作者：{kw.creator_email}</p>
-                                      <p className="text-sm text-muted-foreground">領取進度：{progress}</p>
+                                      <p className="text-sm text-muted-foreground mb-2">領取進度：{progress}</p>
+                                      {kw.expires_at && (
+                                        <p className="text-sm text-muted-foreground mb-2">
+                                          過期時間：{new Date(kw.expires_at).toLocaleString('zh-TW')}
+                                        </p>
+                                      )}
+                                      {kw.images && kw.images.length > 0 && (
+                                        <div>
+                                          <p className="text-sm text-muted-foreground mb-2">圖片數量：{kw.images.length}</p>
+                                        </div>
+                                      )}
                                     </div>
                                     <div className="bg-secondary/30 p-4 rounded-lg">
                                       <p className="text-sm font-medium mb-2">資料包內容：</p>
                                       <pre className="whitespace-pre-wrap text-sm">{kw.content}</pre>
+                                    </div>
+                                  </div>
+                                </DialogContent>
+                              </Dialog>
+                              <Dialog open={editingKeyword?.id === kw.id} onOpenChange={(open) => !open && setEditingKeyword(null)}>
+                                <DialogTrigger asChild>
+                                  <Button variant="ghost" size="sm" onClick={() => handleEditKeyword(kw)}>
+                                    <Edit className="h-4 w-4" />
+                                  </Button>
+                                </DialogTrigger>
+                                <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+                                  <DialogHeader>
+                                    <DialogTitle>✏️ 編輯資料包</DialogTitle>
+                                  </DialogHeader>
+                                  <div className="space-y-4">
+                                    <div>
+                                      <Label htmlFor="edit-keyword">關鍵字</Label>
+                                      <Input
+                                        id="edit-keyword"
+                                        value={editForm.keyword}
+                                        onChange={(e) => setEditForm({ ...editForm, keyword: e.target.value })}
+                                      />
+                                    </div>
+                                    <div>
+                                      <Label htmlFor="edit-content">資料包內容</Label>
+                                      <Textarea
+                                        id="edit-content"
+                                        value={editForm.content}
+                                        onChange={(e) => setEditForm({ ...editForm, content: e.target.value })}
+                                        rows={5}
+                                      />
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                      <div>
+                                        <Label htmlFor="edit-quota">配額限制（選填）</Label>
+                                        <Input
+                                          id="edit-quota"
+                                          type="number"
+                                          placeholder="不限制"
+                                          value={editForm.quota}
+                                          onChange={(e) => setEditForm({ ...editForm, quota: e.target.value })}
+                                        />
+                                      </div>
+                                      <div>
+                                        <Label htmlFor="edit-expires">過期時間（選填）</Label>
+                                        <Input
+                                          id="edit-expires"
+                                          type="datetime-local"
+                                          value={editForm.expires_at}
+                                          onChange={(e) => setEditForm({ ...editForm, expires_at: e.target.value })}
+                                        />
+                                      </div>
+                                    </div>
+                                    <div>
+                                      <Label>圖片 URL（最多 5 張，選填）</Label>
+                                      {editForm.images.map((url, idx) => (
+                                        <Input
+                                          key={idx}
+                                          placeholder={`圖片 ${idx + 1} URL`}
+                                          value={url}
+                                          onChange={(e) => {
+                                            const newImages = [...editForm.images];
+                                            newImages[idx] = e.target.value;
+                                            setEditForm({ ...editForm, images: newImages });
+                                          }}
+                                          className="mt-2"
+                                        />
+                                      ))}
+                                    </div>
+                                    <div className="flex justify-end gap-2">
+                                      <Button variant="outline" onClick={() => setEditingKeyword(null)}>
+                                        取消
+                                      </Button>
+                                      <Button onClick={handleSaveEdit}>
+                                        儲存
+                                      </Button>
                                     </div>
                                   </div>
                                 </DialogContent>
@@ -447,6 +601,21 @@ export default function Admin() {
             </Card>
           </TabsContent>
         </Tabs>
+
+        {editingUserId && (
+          <ProfileEditDialog
+            open={!!editingUserId}
+            onOpenChange={(open) => {
+              if (!open) {
+                setEditingUserId(null);
+                setEditingUserEmail('');
+                fetchUsers();
+              }
+            }}
+            userId={editingUserId}
+            userEmail={editingUserEmail}
+          />
+        )}
       </div>
     </div>
   );

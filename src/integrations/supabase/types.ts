@@ -47,7 +47,9 @@ export type Database = {
           created_at: string
           creator_id: string
           current_count: number
+          expires_at: string | null
           id: string
+          images: string[] | null
           keyword: string
           quota: number | null
           short_code: string
@@ -58,7 +60,9 @@ export type Database = {
           created_at?: string
           creator_id: string
           current_count?: number
+          expires_at?: string | null
           id?: string
+          images?: string[] | null
           keyword: string
           quota?: number | null
           short_code?: string
@@ -69,7 +73,9 @@ export type Database = {
           created_at?: string
           creator_id?: string
           current_count?: number
+          expires_at?: string | null
           id?: string
+          images?: string[] | null
           keyword?: string
           quota?: number | null
           short_code?: string
@@ -79,6 +85,7 @@ export type Database = {
       }
       user_profiles: {
         Row: {
+          avatar_url: string | null
           bio: string | null
           created_at: string
           display_name: string | null
@@ -86,6 +93,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          avatar_url?: string | null
           bio?: string | null
           created_at?: string
           display_name?: string | null
@@ -93,6 +101,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          avatar_url?: string | null
           bio?: string | null
           created_at?: string
           display_name?: string | null

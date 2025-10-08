@@ -268,13 +268,6 @@ const Box = () => {
       <div className="w-full max-w-lg">
         {!result ? (
           <>
-            {boxData && (
-              <div className="mb-6">
-                <CreatorCard creatorId={boxData.creator_id} />
-                <PackageImageCarousel images={boxData.images || []} />
-              </div>
-            )}
-            
             <div className="text-center mb-8">
               <div className="inline-flex items-center justify-center w-16 h-16 md:w-20 md:h-20 rounded-full gradient-magic mb-4 glow">
                 <Lock className="w-8 h-8 md:w-10 md:h-10 text-white" />
@@ -285,19 +278,27 @@ const Box = () => {
               <p className="text-muted-foreground text-lg">
                 輸入關鍵字解鎖內容
               </p>
-              {boxData?.expires_at && (
-                <div className="mt-3">
-                  <CountdownTimer expiresAt={boxData.expires_at} />
-                </div>
-              )}
-              {boxData?.quota && (
-                <div className="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-accent/10 border border-accent/30 rounded-lg">
-                  <p className="text-sm font-medium text-accent">
-                    🔥 限量 {boxData.quota} 份 · 剩餘 {Math.max(0, boxData.quota - currentCount)} 份
-                  </p>
-                </div>
-              )}
             </div>
+
+            {boxData && (
+              <div className="mb-6 space-y-4">
+                <CreatorCard creatorId={boxData.creator_id} />
+                <PackageImageCarousel images={boxData.images || []} />
+                
+                <div className="flex flex-col items-center gap-3">
+                  {boxData.expires_at && (
+                    <CountdownTimer expiresAt={boxData.expires_at} />
+                  )}
+                  {boxData.quota && (
+                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-accent/10 border border-accent/30 rounded-lg">
+                      <p className="text-sm font-medium text-accent">
+                        🔥 限量 {boxData.quota} 份 · 剩餘 {Math.max(0, boxData.quota - currentCount)} 份
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
             <div className="glass-card rounded-2xl p-6 md:p-8 shadow-card glow">
               <form onSubmit={handleUnlock} className="space-y-4">

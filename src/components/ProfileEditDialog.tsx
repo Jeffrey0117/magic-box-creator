@@ -20,6 +20,7 @@ interface ProfileEditDialogProps {
 export function ProfileEditDialog({ open, onOpenChange, userId, userEmail }: ProfileEditDialogProps) {
   const [displayName, setDisplayName] = useState('');
   const [bio, setBio] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
 
@@ -49,6 +50,7 @@ export function ProfileEditDialog({ open, onOpenChange, userId, userEmail }: Pro
       } else {
         setDisplayName(data.display_name || '');
         setBio(data.bio || '');
+        setAvatarUrl(data.avatar_url || '');
       }
     } catch (error) {
       console.error('Failed to fetch profile:', error);
@@ -79,6 +81,7 @@ export function ProfileEditDialog({ open, onOpenChange, userId, userEmail }: Pro
           id: userId,
           display_name: displayName,
           bio: bio || null,
+          avatar_url: avatarUrl || null,
         });
 
       if (error) throw error;
@@ -112,6 +115,20 @@ export function ProfileEditDialog({ open, onOpenChange, userId, userEmail }: Pro
                 disabled
                 className="bg-muted"
               />
+            </div>
+
+            <div>
+              <Label htmlFor="avatarUrl">大頭貼圖片 URL（選填）</Label>
+              <Input
+                id="avatarUrl"
+                type="url"
+                placeholder="https://example.com/avatar.jpg"
+                value={avatarUrl}
+                onChange={(e) => setAvatarUrl(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                請提供圖片網址（建議尺寸：200x200 以上）
+              </p>
             </div>
 
             <div>
