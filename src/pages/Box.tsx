@@ -264,150 +264,142 @@ const Box = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <div className="w-full max-w-lg">
+    <div className="min-h-screen bg-gradient-to-b from-background to-secondary/20 p-4">
+      <div className="max-w-4xl mx-auto space-y-6">
         {!result ? (
           <>
-            <div className="text-center mb-8">
-              <div className="inline-flex items-center justify-center w-16 h-16 md:w-20 md:h-20 rounded-full gradient-magic mb-4 glow">
-                <Lock className="w-8 h-8 md:w-10 md:h-10 text-white" />
-              </div>
-              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gradient mb-3">
-                KeyBox 🔑
-              </h1>
-              <p className="text-muted-foreground text-lg">
-                輸入關鍵字解鎖內容
-              </p>
-            </div>
-
             {boxData && (
-              <div className="mb-6 space-y-4">
+              <>
                 <CreatorCard creatorId={boxData.creator_id} />
-                
-                {(boxData.package_title || boxData.package_description) && (
-                  <div className="glass-card rounded-2xl shadow-card p-6">
-                    {boxData.package_title && (
-                      <h2 className="text-xl font-bold text-foreground mb-3">
-                        📦 {boxData.package_title}
-                      </h2>
-                    )}
-                    {boxData.package_description && (
-                      <p className="text-sm text-muted-foreground whitespace-pre-line leading-relaxed">
-                        {boxData.package_description}
-                      </p>
-                    )}
-                  </div>
-                )}
-                
-                <div className="flex flex-col items-center gap-3">
+
+                <div className="flex flex-col md:flex-row items-center gap-3">
                   {boxData.expires_at && (
                     <CountdownTimer expiresAt={boxData.expires_at} />
                   )}
                   {boxData.quota && (
-                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-accent/10 border border-accent/30 rounded-lg">
+                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-accent/10 border border-accent/30 rounded-lg w-full md:w-auto">
                       <p className="text-sm font-medium text-accent">
                         🔥 限量 {boxData.quota} 份 · 剩餘 {Math.max(0, boxData.quota - currentCount)} 份
                       </p>
                     </div>
                   )}
+                  <div className="bg-accent/10 border border-accent/30 rounded-lg p-3 w-full md:flex-1">
+                    <p className="text-sm font-medium text-accent mb-1">
+                      ✨ 註冊會員免輸入關鍵字
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      • 登入後自動解鎖，無需輸入關鍵字<br/>
+                      • 查看我的領取記錄<br/>
+                      • 創建資料包，分享給你的受眾
+                    </p>
+                  </div>
                 </div>
-              </div>
-            )}
 
-            <div className="glass-card rounded-2xl p-6 md:p-8 shadow-card glow">
-              <form onSubmit={handleUnlock} className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium mb-2 block">
-                    關鍵字
-                  </label>
-                  <Input
-                    placeholder="輸入關鍵字..."
-                    value={keyword}
-                    onChange={(e) => setKeyword(e.target.value)}
-                    required
-                    className="w-full h-12 text-base md:h-10 md:text-sm"
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    💡 請向創作者索取關鍵字（不分大小寫）
-                  </p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium mb-2 block">
-                    Email
-                  </label>
-                  <Input
-                    type="email"
-                    placeholder="your@email.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    className="w-full h-12 text-base md:h-10 md:text-sm"
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    🔒 僅創作者可見
-                  </p>
-                </div>
-                <Button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full gradient-magic hover:opacity-90 transition-opacity font-medium text-lg md:text-base h-14 md:h-12 gap-2"
-                >
-                  {loading ? (
-                    <div className="flex items-center gap-2">
-                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      解鎖中...
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {(boxData.package_title || boxData.package_description) && (
+                    <div className="glass-card rounded-2xl shadow-card p-6">
+                      {boxData.package_title && (
+                        <h3 className="text-lg font-semibold text-foreground mb-2 flex items-center gap-2">
+                          📦 {boxData.package_title}
+                        </h3>
+                      )}
+                      {boxData.package_description && (
+                        <p className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">
+                          {boxData.package_description}
+                        </p>
+                      )}
                     </div>
-                  ) : (
-                    <>
-                      <Key className="w-5 h-5" />
-                      立即解鎖 🔓
-                    </>
                   )}
-                </Button>
-              </form>
 
-              <div className="mt-6 text-center space-y-2">
-                <div className="bg-accent/10 border border-accent/30 rounded-lg p-3 mb-3">
-                  <p className="text-sm font-medium text-accent mb-1">
-                    ✨ 註冊會員免輸入關鍵字
-                  </p>
+                  <div className="glass-card rounded-2xl shadow-card p-6">
+                    <form onSubmit={handleUnlock} className="space-y-4">
+                      <div>
+                        <label className="text-sm font-medium mb-2 block">關鍵字</label>
+                        <Input
+                          placeholder="輸入關鍵字..."
+                          value={keyword}
+                          onChange={(e) => setKeyword(e.target.value)}
+                          required
+                          className="w-full"
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">
+                          💡 請向創作者索取關鍵字（不分大小寫）
+                        </p>
+                      </div>
+
+                      <div>
+                        <label className="text-sm font-medium mb-2 block">Email</label>
+                        <Input
+                          type="email"
+                          placeholder="your@email.com"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          required
+                          className="w-full"
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">
+                          🔒 僅創作者可見
+                        </p>
+                      </div>
+
+                      <Button
+                        type="submit"
+                        disabled={loading}
+                        className="w-full gradient-magic hover:opacity-90 transition-opacity font-medium gap-2"
+                      >
+                        {loading ? (
+                          <div className="flex items-center gap-2">
+                            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                            解鎖中...
+                          </div>
+                        ) : (
+                          <>
+                            <Key className="w-5 h-5" />
+                            立即解鎖 🔓
+                          </>
+                        )}
+                      </Button>
+                    </form>
+
+                    <div className="mt-4 text-center">
+                      <button
+                        onClick={() => navigate(`/login?returnTo=${location.pathname}`)}
+                        className="text-sm font-medium text-foreground hover:text-accent transition-colors"
+                      >
+                        免費註冊／登入 →
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {boxData.images && boxData.images.length > 0 && (
+                  <div className="glass-card rounded-2xl shadow-card p-6">
+                    <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+                      🖼️ 資料包預覽圖片
+                    </h3>
+                    <PackageImageCarousel images={boxData.images} />
+                  </div>
+                )}
+
+                <div className="mt-8 pt-6 border-t border-border/50 text-center">
                   <p className="text-xs text-muted-foreground">
-                    • 登入後自動解鎖，無需輸入關鍵字<br/>
-                    • 查看我的領取記錄<br/>
-                    • 創建資料包，分享給你的受眾
+                    © 2025 Powered by UPPER |{" "}
+                    <button
+                      onClick={() => navigate("/help")}
+                      className="hover:text-accent transition-colors"
+                    >
+                      使用說明
+                    </button>
+                    {" "}
+                    <button
+                      onClick={() => navigate("/privacy")}
+                      className="hover:text-accent transition-colors"
+                    >
+                      隱私權政策
+                    </button>
                   </p>
                 </div>
-                <button
-                  onClick={() => navigate(`/login?returnTo=${location.pathname}`)}
-                  className="text-sm font-medium text-foreground hover:text-accent transition-colors"
-                >
-                  免費註冊／登入 →
-                </button>
-                <div className="flex gap-3 justify-center text-xs mt-3">
-                  <button
-                    onClick={() => navigate("/help")}
-                    className="text-muted-foreground hover:text-accent transition-colors"
-                  >
-                    使用說明
-                  </button>
-                  <span className="text-muted-foreground">•</span>
-                  <button
-                    onClick={() => navigate("/privacy")}
-                    className="text-muted-foreground hover:text-accent transition-colors"
-                  >
-                    隱私權政策
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {boxData && boxData.images && boxData.images.length > 0 && (
-              <div className="glass-card rounded-2xl shadow-card p-6 mt-6">
-                <h3 className="text-center text-lg font-semibold text-foreground mb-4">
-                  🖼️ 資料包預覽圖片
-                </h3>
-                <PackageImageCarousel images={boxData.images} />
-              </div>
+              </>
             )}
           </>
         ) : (

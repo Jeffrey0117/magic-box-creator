@@ -1,3 +1,531 @@
+# Box 頁面 V10.0 UI/UX 重構計畫
+
+## 📋 需求概述
+
+根據使用者提供的範例 HTML，需要重新調整 Box 頁面的版面配置：
+
+### 1. 版面順序調整
+
+**新的版面順序**（從上到下）：
+1. **CreatorCard**（創作者資訊卡）
+2. **限量提示 + 註冊會員免輸入關鍵字提示**（兩個區塊並排）
+3. **資料包標題/簡介 + 關鍵字輸入表單**（桌面版左右並排）
+4. **預覽圖片輪播**
+
+---
+
+### 2. 資料包新增欄位
+
+✅ **已完成**：資料庫欄位已在 `supabase/migrations/20251008120000_add_package_intro_fields.sql` 中新增：
+- `package_title` (TEXT) - 資料包標題
+- `package_description` (TEXT) - 資料包簡介
+
+✅ **TypeScript 類型定義已更新**：`src/integrations/supabase/types.ts` 已包含這兩個欄位。
+
+---
+
+### 3. 桌面版 Grid 並排佈局
+
+**目標**：在桌面版（≥768px），讓以下兩個區塊**左右並排顯示**：
+- **左側**：資料包標題 + 簡介卡片（展示內容）
+- **右側**：關鍵字輸入表單（互動區）
+
+**實作方式**：使用 Tailwind 的 `md:grid md:grid-cols-2 md:gap-4`
+
+---
+
+## 📝 詳細修改清單
+
+### 檔案 1: `src/pages/Box.tsx`
+
+#### 修改 A：調整版面結構（Line 266-411）
+
+**現況**：
+```tsx
+<div className="min-h-screen flex items-center justify-center p-4">
+  <div className="w-full max-w-lg">
+    {/* 標題區 */}
+    {/* CreatorCard */}
+    {/* 資料包標題/簡介（單獨區塊） */}
+    {/* 倒數/限量提示 */}
+    {/* 關鍵字輸入表單 */}
+    {/* 預覽圖片 */}
+  </div>
+</div>
+```
+
+**改為**：
+```tsx
+<div className="min-h-screen bg-gradient-to-b from-background to-secondary/20 p-4">
+  <div className="max-w-4xl mx-auto space-y-6">
+    
+    {/* 1. CreatorCard */}
+    <CreatorCard creatorId={boxData.creator_id} />
+
+    {/* 2. 限量提示 + 註冊會員提示（並排） */}
+    <div className="flex flex-col md:flex-row items-center gap-3">
+      {/* 限量提示 */}
+      {boxData.quota && (
+        <div className="inline-flex items-center gap-2 px-4 py-2 bg-accent/10 border border-accent/30 rounded-lg w-full md:w-auto">
+          <p className="text-sm font-medium text-accent">
+            �� 限量 {boxData.quota} 份 · 剩餘 {Math.max(0, boxData.quota - currentCount)} 份
+          </p>
+        </div>
+      )}
+
+      {/* 註冊會員免輸入關鍵字提示 */}
+      <div className="bg-accent/10 border border-accent/30 rounded-lg p-3 w-full md:flex-1">
+        <p className="text-sm font-medium text-accent mb-1">
+          ✨ 註冊會員免輸入關鍵字
+        </p>
+        <p className="text-xs text-muted-foreground">
+          • 登入後自動解鎖，無需輸入關鍵字<br/>
+          • 查看我的領取記錄<br/>
+          • 創建資料包，分享給你的受眾
+        </p>
+      </div>
+    </div>
+
+    {/* 3. 資料包標題/簡介 + 關鍵字輸入表單（桌面版並排） */}
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* 左側：資料包標題 + 簡介 */}
+      {(boxData.package_title || boxData.package_description) && (
+        <div className="glass-card rounded-2xl shadow-card p-6">
+          {boxData.package_title && (
+            <h3 className="text-lg font-semibold text-foreground mb-2 flex items-center gap-2">
+              📦 {boxData.package_title}
+            </h3>
+          )}
+          {boxData.package_description && (
+            <p className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">
+              {boxData.package_description}
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* 右側：關鍵字輸入表單 */}
+      <div className="glass-card rounded-2xl shadow-card p-6">
+        <form onSubmit={handleUnlock} className="space-y-4">
+          {/* 關鍵字輸入 */}
+          <div>
+            <label className="text-sm font-medium mb-2 block">關鍵字</label>
+            <Input
+              placeholder="輸入關鍵字..."
+              value={keyword}
+              onChange={(e) => setKeyword(e.target.value)}
+              required
+              className="w-full"
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              💡 請向創作者索取關鍵字（不分大小寫）
+            </p>
+          </div>
+
+          {/* Email 輸入 */}
+          <div>
+            <label className="text-sm font-medium mb-2 block">Email</label>
+            <Input
+              type="email"
+              placeholder="your@email.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="w-full"
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              🔒 僅創作者可見
+            </p>
+          </div>
+
+          {/* 送出按鈕 */}
+          <Button
+            type="submit"
+            disabled={loading}
+            className="w-full gradient-magic hover:opacity-90 transition-opacity font-medium gap-2"
+          >
+            {loading ? (
+              <div className="flex items-center gap-2">
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                解鎖中...
+              </div>
+            ) : (
+              <>
+                <Key className="w-5 h-5" />
+                立即解鎖 🔓
+              </>
+            )}
+          </Button>
+        </form>
+
+        {/* 註冊/登入連結 */}
+        <div className="mt-4 text-center">
+          <button
+            onClick={() => navigate(`/login?returnTo=${location.pathname}`)}
+            className="text-sm font-medium text-foreground hover:text-accent transition-colors"
+          >
+            免費註冊／登入 →
+          </button>
+        </div>
+      </div>
+    </div>
+
+    {/* 4. 預覽圖片輪播 */}
+    {boxData && boxData.images && boxData.images.length > 0 && (
+      <div className="glass-card rounded-2xl shadow-card p-6">
+        <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+          🖼️ 資料包預覽圖片
+        </h3>
+        <PackageImageCarousel images={boxData.images} />
+      </div>
+    )}
+
+    {/* 5. 頁尾（使用說明 + 隱私權政策） */}
+    <div className="mt-8 pt-6 border-t border-border/50 text-center">
+      <p className="text-xs text-muted-foreground">
+        © 2025 Powered by UPPER |{" "}
+        <button
+          onClick={() => navigate("/help")}
+          className="hover:text-accent transition-colors"
+        >
+          使用說明
+        </button>
+        {" "}
+        <button
+          onClick={() => navigate("/privacy")}
+          className="hover:text-accent transition-colors"
+        >
+          隱私權政策
+        </button>
+      </p>
+    </div>
+
+  </div>
+</div>
+```
+
+---
+
+#### 修改 B：移除舊的版面結構
+
+**需要移除的區塊**：
+- Line 271-280：舊的標題區（Lock icon + KeyBox 標題）
+- Line 284-314：舊的分散式版面（CreatorCard、資料包介紹、倒數/限量分開顯示）
+- Line 317-401：舊的關鍵字輸入表單（含註冊提示）
+
+這些區塊將被上方的新版面結構取代。
+
+---
+
+#### 修改 C：調整容器寬度
+
+**現況**：
+```tsx
+<div className="w-full max-w-lg">
+```
+
+**改為**：
+```tsx
+<div className="max-w-4xl mx-auto space-y-6">
+```
+
+理由：桌面版需要更寬的容器才能容納並排佈局。
+
+---
+
+#### 修改 D：保留倒數計時器位置
+
+**現況**：倒數計時器在 Line 303-305
+
+**改為**：移到「限量提示」區塊的上方或整合進去（根據需求決定）
+
+如果需要保留倒數計時器，建議放在 Step 2（限量提示區）之前：
+
+```tsx
+{/* 倒數計時器（如果有設定） */}
+{boxData.expires_at && (
+  <CountdownTimer expiresAt={boxData.expires_at} />
+)}
+```
+
+---
+
+### 檔案 2: `src/pages/Creator.tsx`
+
+#### 修改 A：新增資料包標題/簡介欄位到表單
+
+**位置**：在「圖片上傳」欄位**之前**新增
+
+```tsx
+{/* 資料包標題 */}
+<div>
+  <Label htmlFor="package-title">資料包標題（選填）</Label>
+  <Input
+    id="package-title"
+    value={newKeyword.package_title || ""}
+    onChange={(e) => setNewKeyword({ ...newKeyword, package_title: e.target.value })}
+    placeholder="例：2025 行銷素材包"
+  />
+  <p className="text-xs text-muted-foreground mt-1">
+    顯示在 Box 頁面的資料包標題
+  </p>
+</div>
+
+{/* 資料包簡介 */}
+<div>
+  <Label htmlFor="package-description">資料包簡介（選填）</Label>
+  <Textarea
+    id="package-description"
+    value={newKeyword.package_description || ""}
+    onChange={(e) => setNewKeyword({ ...newKeyword, package_description: e.target.value })}
+    placeholder="描述這個資料包的內容與特色..."
+    rows={4}
+  />
+  <p className="text-xs text-muted-foreground mt-1">
+    最多 500 字，支援換行
+  </p>
+</div>
+```
+
+---
+
+#### 修改 B：更新 `newKeyword` State 的 TypeScript 型別
+
+**現況**：
+```tsx
+const [newKeyword, setNewKeyword] = useState({
+  keyword: "",
+  content: "",
+  quota: null as number | null,
+  expiry_date: "",
+  image_urls: ["", "", "", "", ""],
+});
+```
+
+**改為**：
+```tsx
+const [newKeyword, setNewKeyword] = useState({
+  keyword: "",
+  content: "",
+  quota: null as number | null,
+  expiry_date: "",
+  package_title: "",
+  package_description: "",
+  image_urls: ["", "", "", "", ""],
+});
+```
+
+---
+
+#### 修改 C：更新 `handleSubmit()` - INSERT 邏輯
+
+**現況**：
+```tsx
+const { error } = await supabase.from("keywords").insert({
+  keyword: newKeyword.keyword.toLowerCase().trim(),
+  content: newKeyword.content,
+  quota: newKeyword.quota,
+  expires_at: newKeyword.expiry_date || null,
+  creator_id: session?.user.id,
+  images: filteredImages,
+});
+```
+
+**改為**：
+```tsx
+const { error } = await supabase.from("keywords").insert({
+  keyword: newKeyword.keyword.toLowerCase().trim(),
+  content: newKeyword.content,
+  quota: newKeyword.quota,
+  expires_at: newKeyword.expiry_date || null,
+  package_title: newKeyword.package_title || null,
+  package_description: newKeyword.package_description || null,
+  creator_id: session?.user.id,
+  images: filteredImages,
+});
+```
+
+---
+
+#### 修改 D：更新編輯資料包表單
+
+在編輯資料包的 Dialog 中，同樣新增 `package_title` 和 `package_description` 欄位。
+
+**位置**：在圖片欄位之前
+
+```tsx
+{/* 資料包標題 */}
+<div>
+  <Label htmlFor="edit-package-title">資料包標題（選填）</Label>
+  <Input
+    id="edit-package-title"
+    value={editingKeyword.package_title || ""}
+    onChange={(e) => setEditingKeyword({ ...editingKeyword, package_title: e.target.value })}
+    placeholder="例：2025 行銷素材包"
+  />
+</div>
+
+{/* 資料包簡介 */}
+<div>
+  <Label htmlFor="edit-package-description">資料包簡介（選填）</Label>
+  <Textarea
+    id="edit-package-description"
+    value={editingKeyword.package_description || ""}
+    onChange={(e) => setEditingKeyword({ ...editingKeyword, package_description: e.target.value })}
+    placeholder="描述這個資料包的內容與特色..."
+    rows={4}
+  />
+</div>
+```
+
+---
+
+#### 修改 E：更新 `handleEdit()` - UPDATE 邏輯
+
+確保 UPDATE 時包含新欄位：
+
+```tsx
+const { error } = await supabase
+  .from("keywords")
+  .update({
+    keyword: editingKeyword.keyword.toLowerCase().trim(),
+    content: editingKeyword.content,
+    quota: editingKeyword.quota,
+    expires_at: editingKeyword.expiry_date || null,
+    package_title: editingKeyword.package_title || null,
+    package_description: editingKeyword.package_description || null,
+    images: filteredImages,
+  })
+  .eq("id", editingKeyword.id);
+```
+
+---
+
+### 檔案 3: `src/pages/Admin.tsx`
+
+#### 修改：同步更新 Admin 後台編輯表單
+
+在 Admin 後台的編輯資料包功能中，同樣新增 `package_title` 和 `package_description` 欄位。
+
+---
+
+## 📊 UI/UX 設計細節
+
+### 手機版（< 768px）
+
+**佈局**：單欄垂直排列
+```
+┌────────────────────────┐
+│ CreatorCard            │
+├────────────────────────┤
+│ 限量提示               │
+├────────────────────────┤
+│ 註冊會員提示           │
+├────────────────────────┤
+│ 資料包標題/簡介        │
+├────────────────────────┤
+│ 關鍵字輸入表單         │
+├────────────────────────┤
+│ 預覽圖片               │
+└────────────────────────┘
+```
+
+---
+
+### 桌面版（≥ 768px）
+
+**佈局**：關鍵區塊左右並排
+```
+┌─────────────────────────────────────────────────┐
+│ CreatorCard                                     │
+├─────────────────────────────────────────────────┤
+│ 限量提示         │ 註冊會員提示                 │
+├─────────────────────────────────────────────────┤
+│ 資料包標題/簡介  │ 關鍵字輸入表單               │
+│                  │                              │
+│                  │                              │
+├─────────────────────────────────────────────────┤
+│ 預覽圖片                                        │
+└─────────────────────────────────────────────────┘
+```
+
+---
+
+### 配色與樣式
+
+- 延續 `glass-card` 風格（半透明毛玻璃效果）
+- 標題使用 `text-foreground`
+- 簡介使用 `text-muted-foreground`
+- 支援 `whitespace-pre-wrap` 保留換行
+
+---
+
+## ✅ 測試檢查清單
+
+- [ ] **Box 頁面**：版面順序正確（CreatorCard → 提示並排 → 標題/表單並排 → 圖片）
+- [ ] **桌面版**：資料包標題/簡介 與 關鍵字輸入表單左右並排
+- [ ] **手機版**：所有區塊上下堆疊，無橫向溢出
+- [ ] **資料顯示**：package_title 和 package_description 正確顯示
+- [ ] **Creator 頁面**：新增資料包表單包含標題/簡介欄位
+- [ ] **Creator 頁面**：編輯資料包表單包含標題/簡介欄位
+- [ ] **Admin 頁面**：編輯資料包表單包含標題/簡介欄位
+- [ ] **資料庫**：INSERT 和 UPDATE 正確寫入新欄位
+- [ ] **空值處理**：未填寫標題/簡介時不顯示該區塊
+- [ ] **換行支援**：簡介文字支援換行顯示
+
+---
+
+## 🚀 實作順序建議
+
+### Step 1：Box 頁面版面重構
+1. 調整 `src/pages/Box.tsx` 的 JSX 結構
+2. 移除舊的版面區塊
+3. 實作新的 Grid 並排佈局
+4. 測試手機版/桌面版響應式
+
+### Step 2：Creator 頁面表單更新
+1. 更新 `newKeyword` State 型別
+2. 新增標題/簡介欄位到新增表單
+3. 新增標題/簡介欄位到編輯表單
+4. 更新 `handleSubmit()` 和 `handleEdit()`
+
+### Step 3：Admin 頁面同步
+1. 在 Admin 後台編輯表單新增欄位
+
+### Step 4：整合測試
+1. 建立測試資料包（有/無標題簡介）
+2. 測試各種螢幕尺寸
+3. 測試編輯功能
+4. 測試資料持久化
+
+---
+
+## 💡 注意事項
+
+1. **空值處理**：如果 `package_title` 和 `package_description` 都為空，則不顯示左側卡片，關鍵字輸入表單改為單欄顯示。
+
+2. **Grid 響應式**：使用 `grid-cols-1 md:grid-cols-2`，確保手機版單欄，桌面版雙欄。
+
+3. **容器寬度**：從 `max-w-lg` 改為 `max-w-4xl`，才能容納並排佈局。
+
+4. **向後相容**：舊的資料包（沒有標題/簡介）仍能正常顯示。
+
+5. **文字換行**：使用 `whitespace-pre-wrap` 支援使用者輸入的換行。
+
+---
+
+## 📝 資料庫狀態確認
+
+✅ **Migration 已完成**：`supabase/migrations/20251008120000_add_package_intro_fields.sql`
+✅ **TypeScript 類型已更新**：`src/integrations/supabase/types.ts`
+✅ **欄位定義**：
+- `package_title` TEXT (nullable)
+- `package_description` TEXT (nullable)
+
+確保執行 `supabase db push` 同步到遠端資料庫。
+
+---
+
 # KeyBox Admin 後台 - 數據分析導向設計
 
 ## 🎯 核心理念
