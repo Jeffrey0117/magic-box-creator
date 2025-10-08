@@ -296,13 +296,6 @@ const Box = () => {
                     </div>
                   )}
                 </div>
-
-                <div className="bg-white border border-[#dbdbdb] rounded-lg p-6">
-                  <h3 className="text-center text-lg font-semibold text-[#262626] mb-4">
-                    📦 資料包介紹
-                  </h3>
-                  <PackageImageCarousel images={boxData.images || []} />
-                </div>
               </div>
             )}
 
@@ -392,6 +385,15 @@ const Box = () => {
                 </div>
               </div>
             </div>
+
+            {boxData && boxData.images && boxData.images.length > 0 && (
+              <div className="bg-white border border-[#dbdbdb] rounded-lg p-6 mt-6">
+                <h3 className="text-center text-lg font-semibold text-[#262626] mb-4">
+                  📦 資料包介紹
+                </h3>
+                <PackageImageCarousel images={boxData.images} />
+              </div>
+            )}
           </>
         ) : (
           <div className="glass-card rounded-2xl p-6 md:p-8 shadow-card glow">

@@ -21,14 +21,12 @@ export function CreatorCard({ creatorId }: CreatorCardProps) {
         .from("user_profiles")
         .select("avatar_url, display_name, bio, social_link")
         .eq("id", creatorId)
-        .single();
-
-      const { data: user } = await supabase.auth.admin.getUserById(creatorId);
+        .maybeSingle();
 
       setCreator({
         avatar_url: profile?.avatar_url || null,
         display_name: profile?.display_name || null,
-        email: user?.user?.email || null,
+        email: null,
         bio: profile?.bio || null,
         social_link: profile?.social_link || null,
       });
@@ -73,9 +71,6 @@ export function CreatorCard({ creatorId }: CreatorCardProps) {
           <h3 className="font-semibold text-[#262626] text-base">
             {creator.display_name || "創作者"}
           </h3>
-          {creator.email && (
-            <p className="text-xs text-[#8e8e8e] mt-0.5">{creator.email}</p>
-          )}
           {creator.bio && (
             <p className="text-sm text-[#8e8e8e] mt-1 line-clamp-4">{creator.bio}</p>
           )}
