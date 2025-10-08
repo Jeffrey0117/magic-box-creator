@@ -56,7 +56,7 @@ export function CreatorCard({ creatorId }: CreatorCardProps) {
     <div className="bg-white border border-[#dbdbdb] rounded-lg p-4 mb-4">
       <div className="flex items-center gap-3">
         <img
-          src={creator.avatar_url || "https://api.dicebear.com/7.x/avataaars/svg?seed=Default"}
+          src={creator.avatar_url || "/avantar.png"}
           alt="Creator Avatar"
           className="w-16 h-16 rounded-full border-2 border-[#dbdbdb] object-cover"
         />

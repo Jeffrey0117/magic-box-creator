@@ -62,6 +62,8 @@ export default function Admin() {
     expires_at: '',
     images: ['', '', '', '', ''],
   });
+  const [showBatchImageDialog, setShowBatchImageDialog] = useState(false);
+  const [batchImageInput, setBatchImageInput] = useState('');
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
   const [editingUserEmail, setEditingUserEmail] = useState<string>('');
 
@@ -184,6 +186,20 @@ export default function Admin() {
         ...Array(5 - (kw.images?.length || 0)).fill(''),
       ].slice(0, 5),
     });
+  };
+
+  const handleBatchImagePaste = () => {
+    const urls = batchImageInput
+      .split('\n')
+      .map(url => url.trim())
+      .filter(url => url !== '')
+      .slice(0, 5);
+    
+    const newImages = [...urls, ...Array(5 - urls.length).fill('')].slice(0, 5);
+    setEditForm({ ...editForm, images: newImages });
+    setShowBatchImageDialog(false);
+    setBatchImageInput('');
+    toast.success(`已匯入 ${urls.length} 張圖片`);
   };
 
   const handleSaveEdit = async () => {
@@ -550,7 +566,42 @@ export default function Admin() {
                                       </div>
                                     </div>
                                     <div>
-                                      <Label>圖片 URL（最多 5 張，選填）</Label>
+                                      <div className="flex items-center justify-between mb-2">
+                                        <Label>圖片 URL（最多 5 張，選填）</Label>
+                                        <Dialog open={showBatchImageDialog} onOpenChange={setShowBatchImageDialog}>
+                                          <DialogTrigger asChild>
+                                            <Button variant="outline" size="sm" type="button">
+                                              📋 批量貼入
+                                            </Button>
+                                          </DialogTrigger>
+                                          <DialogContent>
+                                            <DialogHeader>
+                                              <DialogTitle>批量貼入圖片 URL</DialogTitle>
+                                            </DialogHeader>
+                                            <div className="space-y-4">
+                                              <Label htmlFor="batch-images">每行一個 URL（最多 5 個）</Label>
+                                              <Textarea
+                                                id="batch-images"
+                                                placeholder="https://example.com/image1.jpg&#10;https://example.com/image2.jpg&#10;https://example.com/image3.jpg"
+                                                value={batchImageInput}
+                                                onChange={(e) => setBatchImageInput(e.target.value)}
+                                                rows={8}
+                                              />
+                                              <div className="flex justify-end gap-2">
+                                                <Button variant="outline" onClick={() => {
+                                                  setShowBatchImageDialog(false);
+                                                  setBatchImageInput('');
+                                                }}>
+                                                  取消
+                                                </Button>
+                                                <Button onClick={handleBatchImagePaste}>
+                                                  確定匯入
+                                                </Button>
+                                              </div>
+                                            </div>
+                                          </DialogContent>
+                                        </Dialog>
+                                      </div>
                                       {editForm.images.map((url, idx) => (
                                         <Input
                                           key={idx}
