@@ -351,6 +351,19 @@ const Box = () => {
                       </p>
                     </div>
 
+                    {boxData?.required_fields && (boxData.required_fields as any).nickname && (
+                      <div>
+                        <label className="text-sm font-medium mb-2 block">稱呼 / 暱稱</label>
+                        <Input
+                          placeholder="請輸入您的稱呼"
+                          value={extraData.nickname}
+                          onChange={(e) => setExtraData({ nickname: e.target.value })}
+                          required
+                          className="w-full"
+                        />
+                      </div>
+                    )}
+
                     <div>
                       <label className="text-sm font-medium mb-2 block">Email</label>
                       <Input
@@ -365,19 +378,6 @@ const Box = () => {
                         🔒 僅創作者可見
                       </p>
                     </div>
-
-                    {boxData?.required_fields && (boxData.required_fields as any).nickname && (
-                      <div>
-                        <label className="text-sm font-medium mb-2 block">稱呼 / 暱稱</label>
-                        <Input
-                          placeholder="請輸入您的稱呼"
-                          value={extraData.nickname}
-                          onChange={(e) => setExtraData({ nickname: e.target.value })}
-                          required
-                          className="w-full"
-                        />
-                      </div>
-                    )}
 
                     <Button
                       type="submit"
