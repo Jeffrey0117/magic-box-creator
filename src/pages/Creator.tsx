@@ -79,6 +79,8 @@ const Creator = () => {
   const [newPackageDescription, setNewPackageDescription] = useState('');
   const [editPackageTitle, setEditPackageTitle] = useState('');
   const [editPackageDescription, setEditPackageDescription] = useState('');
+  const [newRequiredFields, setNewRequiredFields] = useState({ nickname: false });
+  const [editRequiredFields, setEditRequiredFields] = useState({ nickname: false });
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -180,6 +182,7 @@ const Creator = () => {
       images: newImageUrls.length > 0 ? newImageUrls : null,
       package_title: newPackageTitle.trim() || null,
       package_description: newPackageDescription.trim() || null,
+      required_fields: newRequiredFields,
     });
 
     if (error) {
@@ -197,6 +200,7 @@ const Creator = () => {
       setNewImageUrls([]);
       setNewPackageTitle('');
       setNewPackageDescription('');
+      setNewRequiredFields({ nickname: false });
       setShowAddForm(false);
       fetchKeywords();
     }
@@ -231,6 +235,11 @@ const Creator = () => {
     setEditImageUrls(item.images || []);
     setEditPackageTitle(item.package_title || '');
     setEditPackageDescription(item.package_description || '');
+    setEditRequiredFields(
+      item.required_fields
+        ? (typeof item.required_fields === 'object' ? item.required_fields as any : { nickname: false })
+        : { nickname: false }
+    );
     
     if (item.expires_at) {
       setEditEnableExpiry(true);
@@ -276,6 +285,7 @@ const Creator = () => {
         images: editImageUrls.length > 0 ? editImageUrls : null,
         package_title: editPackageTitle.trim() || null,
         package_description: editPackageDescription.trim() || null,
+        required_fields: editRequiredFields,
       })
       .eq("id", editingKeywordId);
 
@@ -295,6 +305,7 @@ const Creator = () => {
       setEditImageUrls([]);
       setEditPackageTitle('');
       setEditPackageDescription('');
+      setEditRequiredFields({ nickname: false });
       fetchKeywords();
     }
   };
@@ -329,6 +340,7 @@ const Creator = () => {
     setEditImageUrls([]);
     setEditPackageTitle('');
     setEditPackageDescription('');
+    setEditRequiredFields({ nickname: false });
   };
 
   const fetchEmailLogs = async (keywordId: string) => {
@@ -685,10 +697,25 @@ const Creator = () => {
                   />
                   <p className="text-xs text-muted-foreground mt-1">
                     顯示在資料包圖片上方，最多 300 字
-                  </p>
-                </div>
-              </div>
-              </div>
+                   </p>
+                 </div>
+               </div>
+               <div className="space-y-2">
+                 <Label>📝 要求領取者填寫（選填）</Label>
+                 <label className="flex items-center gap-2">
+                   <input
+                     type="checkbox"
+                     checked={newRequiredFields.nickname}
+                     onChange={(e) => setNewRequiredFields({ nickname: e.target.checked })}
+                     className="w-4 h-4"
+                   />
+                   <span className="text-sm">稱呼 / 暱稱</span>
+                 </label>
+                 <p className="text-xs text-muted-foreground">
+                   勾選後，領取者需填寫稱呼才能解鎖
+                 </p>
+               </div>
+               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between mb-2">
                   <label className="text-sm font-medium">📷 資料包圖片（最多 5 張）</label>
@@ -795,6 +822,7 @@ const Creator = () => {
                     setNewImageUrls([]);
                     setNewPackageTitle('');
                     setNewPackageDescription('');
+                    setNewRequiredFields({ nickname: false });
                   }}
                 >
                   取消
@@ -925,6 +953,21 @@ const Creator = () => {
                             顯示在資料包圖片上方，最多 300 字
                           </p>
                         </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>📝 要求領取者填寫（選填）</Label>
+                        <label className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            checked={editRequiredFields.nickname}
+                            onChange={(e) => setEditRequiredFields({ nickname: e.target.checked })}
+                            className="w-4 h-4"
+                          />
+                          <span className="text-sm">稱呼 / 暱稱</span>
+                        </label>
+                        <p className="text-xs text-muted-foreground">
+                          勾選後，領取者需填寫稱呼才能解鎖
+                        </p>
                       </div>
                       </div>
                       <div className="space-y-2">

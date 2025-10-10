@@ -15,18 +15,21 @@ export type Database = {
       email_logs: {
         Row: {
           email: string
+          extra_data: Json | null
           id: string
           keyword_id: string
           unlocked_at: string
         }
         Insert: {
           email: string
+          extra_data?: Json | null
           id?: string
           keyword_id: string
           unlocked_at?: string
         }
         Update: {
           email?: string
+          extra_data?: Json | null
           id?: string
           keyword_id?: string
           unlocked_at?: string
@@ -54,6 +57,7 @@ export type Database = {
           package_description: string | null
           package_title: string | null
           quota: number | null
+          required_fields: Json | null
           short_code: string
           updated_at: string
         }
@@ -69,6 +73,7 @@ export type Database = {
           package_description?: string | null
           package_title?: string | null
           quota?: number | null
+          required_fields?: Json | null
           short_code?: string
           updated_at?: string
         }
@@ -84,6 +89,7 @@ export type Database = {
           package_description?: string | null
           package_title?: string | null
           quota?: number | null
+          required_fields?: Json | null
           short_code?: string
           updated_at?: string
         }

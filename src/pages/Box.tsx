@@ -19,6 +19,7 @@ const Box = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [currentCount, setCurrentCount] = useState(0);
   const [waitlistCount, setWaitlistCount] = useState(0);
+  const [extraData, setExtraData] = useState({ nickname: '' });
   const navigate = useNavigate();
   const { id, shortCode } = useParams();
   const location = useLocation();
@@ -103,7 +104,7 @@ const Box = () => {
   };
 
   const fetchBoxData = async () => {
-    let query = supabase.from("keywords").select("id, keyword, created_at, quota, current_count, expires_at, creator_id, images, package_title, package_description");
+    let query = supabase.from("keywords").select("id, keyword, created_at, quota, current_count, expires_at, creator_id, images, package_title, package_description, required_fields");
     
     if (shortCode && !location.pathname.startsWith('/box/')) {
       query = query.eq("short_code", shortCode);
@@ -207,9 +208,14 @@ const Box = () => {
         setResult(keywordData.content);
         toast.success("🔓 歡迎回來！您已領取過此資料包");
       } else {
+        const extraDataToSave: any = {};
+        const requiredFields = keywordData.required_fields as any || {};
+        if (requiredFields.nickname) extraDataToSave.nickname = extraData.nickname;
+
         const { error: logError } = await supabase.from("email_logs").insert({
           keyword_id: keywordData.id,
           email: email.trim(),
+          extra_data: Object.keys(extraDataToSave).length > 0 ? extraDataToSave : null,
         });
 
         if (logError) throw logError;
@@ -229,6 +235,7 @@ const Box = () => {
     setKeyword("");
     setEmail("");
     setResult(null);
+    setExtraData({ nickname: '' });
   };
 
   const isExpired = boxData?.expires_at && new Date(boxData.expires_at) < new Date();
@@ -358,6 +365,19 @@ const Box = () => {
                         🔒 僅創作者可見
                       </p>
                     </div>
+
+                    {boxData?.required_fields && (boxData.required_fields as any).nickname && (
+                      <div>
+                        <label className="text-sm font-medium mb-2 block">稱呼 / 暱稱</label>
+                        <Input
+                          placeholder="請輸入您的稱呼"
+                          value={extraData.nickname}
+                          onChange={(e) => setExtraData({ nickname: e.target.value })}
+                          required
+                          className="w-full"
+                        />
+                      </div>
+                    )}
 
                     <Button
                       type="submit"
