@@ -51,6 +51,8 @@ export type Database = {
           id: string
           images: string[] | null
           keyword: string
+          package_description: string | null
+          package_title: string | null
           quota: number | null
           short_code: string
           updated_at: string
@@ -64,6 +66,8 @@ export type Database = {
           id?: string
           images?: string[] | null
           keyword: string
+          package_description?: string | null
+          package_title?: string | null
           quota?: number | null
           short_code?: string
           updated_at?: string
@@ -77,6 +81,8 @@ export type Database = {
           id?: string
           images?: string[] | null
           keyword?: string
+          package_description?: string | null
+          package_title?: string | null
           quota?: number | null
           short_code?: string
           updated_at?: string

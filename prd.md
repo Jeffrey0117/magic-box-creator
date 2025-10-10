@@ -647,4 +647,317 @@ CREATE POLICY "allow_count_for_quota_display" ON email_logs
 **專案狀態**：✅ 已上線，持續優化中  
 **產品定位**：Email 收集工具（不含寄信功能）
 
+
+---
+
+## 🎨 V9.0：Box 頁面 UI/UX 重新設計規劃
+
+### 📋 使用者需求
+> "現在作者資料跟資料包卡片的顏色白色好像太亮，是否改整個 UI 設計符合配色？我覺得資料包介紹的位置還是要在上面，也就是先作者資訊然後資料包介紹。另外我覺得資料包介紹可能要多加一個資料包標題，創作者可以輸入，這會是大字粗體，然後底下是有文字介紹區。桌面版是否考慮資料包在左、領取區在右邊。"
+
+---
+
+### 🎯 設計目標
+1. **配色統一**：CreatorCard 和資料包介紹卡片改用系統配色（glass-card 風格）
+2. **版面重排**：作者資訊 → 資料包介紹 → 領取表單
+3. **資料包標題功能**：新增可編輯的大標題 + 文字介紹區
+4. **響應式版面**：桌面版左右分欄（資料包左 / 領取區右）
+
+---
+
+### 📱 手機版（Mobile）版面結構
+
+```
+┌─────────────────────────┐
+│   KeyBox Logo + Icon    │
+├─────────────────────────┤
+│   CreatorCard           │  ← glass-card 風格
+│   (半透明深色背景)       │
+├─────────────────────────┤
+│ 📦 資料包標題 (大字粗體) │  ← 新增欄位
+│   資料包文字介紹         │  ← 新增欄位
+│   圖片輪播              │  ← glass-card 風格
+├─────────────────────────┤
+│   ⏰ 倒數計時器          │
+│   🔥 限量顯示           │
+├─────────────────────────┤
+│   領取表單              │  ← glass-card 風格
+│   (關鍵字 + Email)      │
+└─────────────────────────┘
+```
+
+---
+
+### 💻 桌面版（Desktop）版面結構
+
+```
+┌───────────────────────────────────────────────┐
+│            KeyBox Logo + Icon                 │
+├───────────────────────────────────────────────┤
+│                CreatorCard                    │  ← 全寬 glass-card
+├──────────────────────┬────────────────────────┤
+│  📦 資料包區塊 (左)   │   🔑 領取區塊 (右)      │
+│ ┌──────────────────┐ │ ┌──────────────────┐  │
+│ │ 資料包標題 (粗體) │ │ │  ⏰ 倒數計時器    │  │
+│ │ 資料包文字介紹    │ │ │  🔥 限量顯示      │  │
+│ │ 圖片輪播         │ │ │                  │  │
+│ └──────────────────┘ │ │  領取表單         │  │
+│  glass-card 風格     │ │  (關鍵字 + Email) │  │
+│                      │ │  glass-card 風格  │  │
+│                      │ └──────────────────┘  │
+└──────────────────────┴────────────────────────┘
+```
+
+**特性**：
+- 768px 以上（md:）使用左右分欄
+- 左側佔 55%，右側佔 45%（可調整）
+- 兩側都使用 glass-card 配色
+
+---
+
+### 🎨 配色調整
+
+#### 目前問題
+- CreatorCard：`bg-white border-[#dbdbdb]`（純白色，太刺眼）
+- 資料包介紹：`bg-white border-[#dbdbdb]`（純白色，太刺眼）
+
+#### 改善方案
+```tsx
+// 統一使用 glass-card 配色
+<div className="glass-card rounded-2xl p-6 shadow-card">
+  {/* 內容 */}
+</div>
+```
+
+**glass-card 定義**（來自 [`src/index.css`](src/index.css:119)）：
+```css
+.glass-card {
+  @apply backdrop-blur-xl bg-card/40 border border-border/50;
+}
+```
+
+**效果**：
+- 半透明深色背景（`bg-card/40`）
+- 毛玻璃效果（`backdrop-blur-xl`）
+- 柔和邊框（`border-border/50`）
+- 與整體深色主題一致
+
+---
+
+### 🗃️ 資料庫 Schema 變更
+
+#### 新增欄位：`keywords.package_title` 和 `keywords.package_description`
+
+```sql
+-- Migration: 20251008120000_add_package_intro_fields.sql
+ALTER TABLE keywords
+ADD COLUMN package_title TEXT,
+ADD COLUMN package_description TEXT;
+
+COMMENT ON COLUMN keywords.package_title IS '資料包標題（顯示在前台）';
+COMMENT ON COLUMN keywords.package_description IS '資料包文字介紹（顯示在前台）';
+```
+
+**欄位說明**：
+- `package_title`：資料包標題（例如：「🎨 設計師專屬資源包」）
+- `package_description`：資料包介紹文字（例如：「包含 100+ 高品質 UI Kit...」）
+
+---
+
+### 📝 TypeScript 類型定義更新
+
+```typescript
+// src/integrations/supabase/types.ts
+export interface Keyword {
+  id: string;
+  keyword: string;
+  content: string;
+  creator_id: string;
+  created_at: string;
+  short_code: string;
+  quota: number | null;
+  current_count: number;
+  expires_at: string | null;
+  images: string[] | null;
+  package_title: string | null;        // 新增
+  package_description: string | null;  // 新增
+}
+```
+
+---
+
+### 🛠️ 前端實作
+
+#### 1. Creator 頁面：新增編輯欄位
+
+在創建/編輯資料包表單中新增：
+```tsx
+<div>
+  <label>資料包標題（選填）</label>
+  <Input
+    placeholder="例如：🎨 設計師專屬資源包"
+    value={packageTitle}
+    onChange={(e) => setPackageTitle(e.target.value)}
+    maxLength={50}
+  />
+  <p className="text-xs text-muted-foreground">
+    顯示在資料包頁面頂部，最多 50 字
+  </p>
+</div>
+
+<div>
+  <label>資料包介紹（選填）</label>
+  <Textarea
+    placeholder="介紹這個資料包的內容、適合誰使用..."
+    value={packageDescription}
+    onChange={(e) => setPackageDescription(e.target.value)}
+    rows={4}
+    maxLength={300}
+  />
+  <p className="text-xs text-muted-foreground">
+    顯示在資料包圖片上方，最多 300 字
+  </p>
+</div>
+```
+
+#### 2. Box 頁面：版面重構
+
+**手機版**（原本的堆疊版面）：
+```tsx
+<div className="w-full max-w-lg">
+  {/* 1. 作者資訊 */}
+  <CreatorCard creatorId={boxData.creator_id} />
+  
+  {/* 2. 資料包介紹區 */}
+  {boxData.package_title && (
+    <div className="glass-card rounded-2xl p-6 shadow-card mb-6">
+      <h2 className="text-2xl font-bold mb-3">{boxData.package_title}</h2>
+      {boxData.package_description && (
+        <p className="text-muted-foreground mb-4 whitespace-pre-line">
+          {boxData.package_description}
+        </p>
+      )}
+      {boxData.images && <PackageImageCarousel images={boxData.images} />}
+    </div>
+  )}
+  
+  {/* 3. 倒數計時 + 限量顯示 */}
+  <div className="flex flex-col items-center gap-3 mb-6">
+    {boxData.expires_at && <CountdownTimer expiresAt={boxData.expires_at} />}
+    {boxData.quota && <QuotaDisplay />}
+  </div>
+  
+  {/* 4. 領取表單 */}
+  <div className="glass-card rounded-2xl p-6 shadow-card">
+    {/* 表單內容 */}
+  </div>
+</div>
+```
+
+**桌面版**（左右分欄）：
+```tsx
+<div className="w-full max-w-6xl">
+  {/* 作者資訊（全寬） */}
+  <CreatorCard creatorId={boxData.creator_id} />
+  
+  {/* 左右分欄 */}
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    {/* 左側：資料包介紹 */}
+    <div className="glass-card rounded-2xl p-6 shadow-card">
+      <h2 className="text-2xl font-bold mb-3">{boxData.package_title}</h2>
+      <p className="text-muted-foreground mb-4">{boxData.package_description}</p>
+      <PackageImageCarousel images={boxData.images} />
+    </div>
+    
+    {/* 右側：領取區 */}
+    <div className="space-y-4">
+      {/* 倒數計時 + 限量顯示 */}
+      <div className="flex flex-col gap-3">
+        {boxData.expires_at && <CountdownTimer expiresAt={boxData.expires_at} />}
+        {boxData.quota && <QuotaDisplay />}
+      </div>
+      
+      {/* 領取表單 */}
+      <div className="glass-card rounded-2xl p-6 shadow-card">
+        {/* 表單內容 */}
+      </div>
+    </div>
+  </div>
+</div>
+```
+
+#### 3. CreatorCard 配色更新
+
+```tsx
+// 從
+<div className="bg-white border border-[#dbdbdb] rounded-lg p-4">
+
+// 改為
+<div className="glass-card rounded-2xl p-4 shadow-card">
+```
+
+---
+
+### ✅ 實作檢查清單
+
+#### Phase 1：資料庫與類型（5 分鐘）
+- [ ] 建立 migration：`20251008120000_add_package_intro_fields.sql`
+- [ ] 更新 TypeScript 類型定義
+- [ ] 執行 `supabase db push`
+
+#### Phase 2：Creator 後台編輯（15 分鐘）
+- [ ] 新增 `packageTitle` 和 `packageDescription` state
+- [ ] 新增表單欄位（Input + Textarea）
+- [ ] 修改 `handleCreateKeyword()` 儲存邏輯
+- [ ] 修改 `handleUpdateKeyword()` 更新邏輯
+
+#### Phase 3：Box 前台顯示（20 分鐘）
+- [ ] 修改 `fetchBoxData()` 讀取新欄位
+- [ ] CreatorCard 改用 glass-card 配色
+- [ ] 資料包介紹卡片改用 glass-card 配色
+- [ ] 調整版面順序（作者 → 介紹 → 表單）
+- [ ] 實作桌面版左右分欄（`md:grid-cols-2`）
+
+#### Phase 4：測試與優化（10 分鐘）
+- [ ] 測試手機版排版
+- [ ] 測試桌面版排版
+- [ ] 測試配色在深色背景的可讀性
+- [ ] 測試長文字換行
+
+---
+
+### 🎨 視覺效果預期
+
+**改善前**（純白色卡片）：
+- ❌ 太亮，與深色主題衝突
+- ❌ 缺乏層次感
+- ❌ 視覺重量不平衡
+
+**改善後**（glass-card）：
+- ✅ 半透明深色，與背景和諧
+- ✅ 毛玻璃效果增加層次
+- ✅ 柔和發光效果（glow）
+- ✅ 桌面版左右分欄，視覺平衡
+
+---
+
+### ⏱️ 預估時間
+- **資料庫 Migration**：5 分鐘
+- **後台編輯功能**：15 分鐘
+- **前台版面重構**：20 分鐘
+- **測試與調整**：10 分鐘
+- **總計**：50 分鐘
+
+---
+
+### 📌 注意事項
+1. **向下相容**：`package_title` 和 `package_description` 為選填，舊資料包不受影響
+2. **文字長度限制**：避免過長標題破版
+3. **圖片 fallback**：沒有圖片時只顯示文字介紹
+4. **RWD 測試**：確保 768px 以下正常堆疊
+
+---
+
+**文件最後更新**：2025-10-08  
+**下一版本規劃**：V9.0（Box 頁面 UI/UX 重新設計）
 ---

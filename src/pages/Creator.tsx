@@ -75,6 +75,10 @@ const Creator = () => {
   const [showBatchImageDialog, setShowBatchImageDialog] = useState(false);
   const [batchImageInput, setBatchImageInput] = useState('');
   const [isEditMode, setIsEditMode] = useState(false);
+  const [newPackageTitle, setNewPackageTitle] = useState('');
+  const [newPackageDescription, setNewPackageDescription] = useState('');
+  const [editPackageTitle, setEditPackageTitle] = useState('');
+  const [editPackageDescription, setEditPackageDescription] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -174,6 +178,8 @@ const Creator = () => {
       quota: newQuota ? parseInt(newQuota) : null,
       expires_at: expiresAt,
       images: newImageUrls.length > 0 ? newImageUrls : null,
+      package_title: newPackageTitle.trim() || null,
+      package_description: newPackageDescription.trim() || null,
     });
 
     if (error) {
@@ -189,6 +195,8 @@ const Creator = () => {
       setNewExpiryMinutes("");
       setEnableExpiry(false);
       setNewImageUrls([]);
+      setNewPackageTitle('');
+      setNewPackageDescription('');
       setShowAddForm(false);
       fetchKeywords();
     }
@@ -221,6 +229,8 @@ const Creator = () => {
     setEditContent(item.content);
     setEditQuota(item.quota?.toString() || "");
     setEditImageUrls(item.images || []);
+    setEditPackageTitle(item.package_title || '');
+    setEditPackageDescription(item.package_description || '');
     
     if (item.expires_at) {
       setEditEnableExpiry(true);
@@ -264,6 +274,8 @@ const Creator = () => {
         quota: editQuota ? parseInt(editQuota) : null,
         expires_at: expiresAt,
         images: editImageUrls.length > 0 ? editImageUrls : null,
+        package_title: editPackageTitle.trim() || null,
+        package_description: editPackageDescription.trim() || null,
       })
       .eq("id", editingKeywordId);
 
@@ -281,6 +293,8 @@ const Creator = () => {
       setEditExpiryMinutes("");
       setEditEnableExpiry(false);
       setEditImageUrls([]);
+      setEditPackageTitle('');
+      setEditPackageDescription('');
       fetchKeywords();
     }
   };
@@ -313,6 +327,8 @@ const Creator = () => {
     setEditExpiryMinutes("");
     setEditEnableExpiry(false);
     setEditImageUrls([]);
+    setEditPackageTitle('');
+    setEditPackageDescription('');
   };
 
   const fetchEmailLogs = async (keywordId: string) => {
@@ -643,6 +659,35 @@ const Creator = () => {
                     <span className="text-sm">分鐘後失效</span>
                   </div>
                 )}
+              <div className="space-y-3">
+                <div>
+                  <Label>📦 資料包標題（選填）</Label>
+                  <Input
+                    value={newPackageTitle}
+                    onChange={(e) => setNewPackageTitle(e.target.value)}
+                    placeholder="例如：🎨 設計師專屬資源包"
+                    maxLength={50}
+                    className="h-10 mt-1"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    顯示在資料包頁面頂部，最多 50 字
+                  </p>
+                </div>
+                <div>
+                  <Label>📝 資料包介紹（選填）</Label>
+                  <Textarea
+                    value={newPackageDescription}
+                    onChange={(e) => setNewPackageDescription(e.target.value)}
+                    placeholder="介紹這個資料包的內容、適合誰使用..."
+                    rows={3}
+                    maxLength={300}
+                    className="mt-1"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    顯示在資料包圖片上方，最多 300 字
+                  </p>
+                </div>
+              </div>
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between mb-2">
@@ -748,6 +793,8 @@ const Creator = () => {
                     setNewExpiryMinutes("");
                     setEnableExpiry(false);
                     setNewImageUrls([]);
+                    setNewPackageTitle('');
+                    setNewPackageDescription('');
                   }}
                 >
                   取消
@@ -850,6 +897,35 @@ const Creator = () => {
                             <span className="text-sm">分鐘後失效</span>
                           </div>
                         )}
+                      <div className="space-y-3">
+                        <div>
+                          <Label>📦 資料包標題（選填）</Label>
+                          <Input
+                            value={editPackageTitle}
+                            onChange={(e) => setEditPackageTitle(e.target.value)}
+                            placeholder="例如：🎨 設計師專屬資源包"
+                            maxLength={50}
+                            className="h-10 mt-1"
+                          />
+                          <p className="text-xs text-muted-foreground mt-1">
+                            顯示在資料包頁面頂部，最多 50 字
+                          </p>
+                        </div>
+                        <div>
+                          <Label>📝 資料包介紹（選填）</Label>
+                          <Textarea
+                            value={editPackageDescription}
+                            onChange={(e) => setEditPackageDescription(e.target.value)}
+                            placeholder="介紹這個資料包的內容、適合誰使用..."
+                            rows={3}
+                            maxLength={300}
+                            className="mt-1"
+                          />
+                          <p className="text-xs text-muted-foreground mt-1">
+                            顯示在資料包圖片上方，最多 300 字
+                          </p>
+                        </div>
+                      </div>
                       </div>
                       <div className="space-y-2">
                         <div className="flex items-center justify-between mb-2">

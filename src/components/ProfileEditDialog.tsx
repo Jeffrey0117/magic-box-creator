@@ -7,6 +7,17 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Tables } from '@/integrations/supabase/types';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger
+} from '@/components/ui/alert-dialog';
 
 type UserProfile = Tables<'user_profiles'>;
 
@@ -127,16 +138,50 @@ export function ProfileEditDialog({ open, onOpenChange, userId, userEmail }: Pro
 
             <div>
               <Label htmlFor="avatarUrl">大頭貼圖片 URL（選填）</Label>
-              <Input
-                id="avatarUrl"
-                type="url"
-                placeholder="https://example.com/avatar.jpg"
-                value={avatarUrl}
-                onChange={(e) => setAvatarUrl(e.target.value)}
-              />
+              <div className="flex items-center gap-2">
+                <Input
+                  id="avatarUrl"
+                  type="url"
+                  placeholder="https://example.com/avatar.jpg"
+                  value={avatarUrl}
+                  onChange={(e) => setAvatarUrl(e.target.value)}
+                  className="flex-1"
+                />
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button type="button" variant="secondary">
+                      上傳圖片
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>是否前往圖鴨上傳？</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        我們會在新分頁開啟 duk.tw。請完成上傳後，複製圖片連結並貼回「大頭貼圖片 URL」欄位以預覽與儲存。
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>取消</AlertDialogCancel>
+                      <AlertDialogAction onClick={() => window.open('https://duk.tw/u', '_blank')}>
+                        前往圖鴨
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
               <p className="text-xs text-muted-foreground mt-1">
-                請提供圖片網址（建議尺寸：200x200 以上）
+                建議尺寸 200×200 以上。若使用圖鴨，請貼上公開圖片連結（例如 https://i.duk.tw/...）。
               </p>
+              {avatarUrl && (
+                <div className="mt-2 flex items-center gap-2">
+                  <img
+                    src={avatarUrl}
+                    alt="Avatar preview"
+                    className="w-16 h-16 rounded-full border object-cover"
+                  />
+                  <span className="text-xs text-muted-foreground">預覽</span>
+                </div>
+              )}
             </div>
 
             <div>
