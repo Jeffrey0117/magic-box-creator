@@ -74,6 +74,16 @@ const Box = () => {
     console.log("📦 Keyword data:", keywordData);
     if (!keywordData) return;
 
+    // 🎯 檢查是否為創作者本人
+    if (session.user.id === keywordData.creator_id) {
+      console.log("👤 創作者本人訪問，導向管理面板");
+      toast.info("這是您的資料包，已為您導向管理面板", {
+        duration: 3000,
+      });
+      navigate("/creator");
+      return;
+    }
+
     const { data: existingLog } = await supabase
       .from("email_logs")
       .select("id")
