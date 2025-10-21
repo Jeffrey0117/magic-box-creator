@@ -209,23 +209,19 @@ return (
 - [x] Phase 8: 創作者預覽模式
 - [x] Phase 9A: 圖片過濾功能
 - [x] Phase 9B: 刪除舊模板 + 移植 Layout2/Layout4
-- [x] Phase 9C: 更新 registry.ts (目前 4 個免費模板)
-- [x] Phase 10A: 建立 TemplateLayout5.tsx (特色網格)
-- [x] Phase 10B: 建立 TemplateLayout6.tsx (對比分欄)
-- [x] Phase 10C: 建立 TemplateLayout7.tsx (多段落長頁)
-- [x] Phase 10D: 建立 TemplateLayout8.tsx (視訊風格)
-- [x] Phase 10E: 更新 registry.ts (8 模板 + tier 欄位)
-- [x] Phase 10F: 資料庫 Migration (membership_tier)
-- [x] Phase 10G: 更新 TypeScript types (membership_tier)
-- [x] Phase 10H: TemplateSelector 鎖定 UI
 
 ---
 
 ## 🔮 待辦事項
 
-- [ ] Phase 11: 執行資料庫 Migration (需手動執行 `supabase db push`)
-- [ ] Phase 12: 測試所有 8 個模板
-- [ ] Phase 13: 付費系統整合 (Stripe/綠界)
+- [ ] Phase 10A: 建立 TemplateLayout5.tsx (特色網格)
+- [ ] Phase 10B: 建立 TemplateLayout6.tsx (對比分欄)
+- [ ] Phase 10C: 建立 TemplateLayout7.tsx (多段落長頁)
+- [ ] Phase 10D: 建立 TemplateLayout8.tsx (視訊風格)
+- [ ] Phase 10E: 更新 registry.ts (8 模板 + tier 欄位)
+- [ ] Phase 10F: 資料庫 Migration (membership_tier)
+- [ ] Phase 10G: TemplateSelector 鎖定 UI
+- [ ] Phase 11: 付費系統整合 (Stripe/綠界)
 
 ---
 
@@ -271,38 +267,5 @@ const filterEmptyImages = (urls: string[]): string[] | null => {
 
 ---
 
----
-
-## 🚀 下一步行動 (Phase 11-13)
-
-### Phase 11: 執行資料庫 Migration
-```bash
-# 在 Supabase 專案中執行
-supabase db push
-
-# 或直接在 Supabase Dashboard 的 SQL Editor 執行
-# supabase/migrations/20251021000000_add_membership_tier.sql
-```
-
-### Phase 12: 測試所有 8 個模板
-1. 新增測試資料包,選擇不同模板
-2. 測試免費模板 (default, layout1, layout2, layout4)
-3. 測試進階模板 (layout5, layout6, layout7, layout8)
-4. 驗證鎖定 UI 是否正確顯示
-5. 測試創作者預覽模式
-
-### Phase 13: 付費系統整合
-**選項 A: Stripe**
-- 建立 Stripe 訂閱產品
-- 整合 Stripe Checkout
-- Webhook 處理訂閱狀態
-
-**選項 B: 綠界科技 (ECPay)**
-- 整合台灣本地金流
-- 定期定額扣款
-- 訂閱狀態管理
-
----
-
-**最後更新**: 2025-10-21 11:30 (UTC+8)
-**目前狀態**: ✅ Phase 10 完成 - 8 個模板已建立,等待執行資料庫 Migration
+**最後更新**: 2025-10-21  
+**目前狀態**: 完成 4 免費模板,準備擴充 4 進階模板

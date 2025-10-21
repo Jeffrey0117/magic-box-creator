@@ -603,3 +603,112 @@ Deno.serve(async (req) => {
 - 限時功能和候補功能獨立，可分開測試
 - 候補不保留名額，先到先得
 - 7 天限時從「通知時間」開始計算，非「加入候補時間」
+
+---
+
+# Phase 11: 最終細節調整
+
+> **日期**：2025-10-21
+> **目標**：優化 Creator 後台卡片 UI 的最終細節
+
+---
+
+## 🎯 調整項目
+
+### 1. 統計顏色橘色化
+- **位置**：[`src/pages/Creator.tsx:1289`](src/pages/Creator.tsx:1289)
+- **調整內容**：
+  ```tsx
+  // 原本：text-muted-foreground
+  <div className="text-xs text-muted-foreground flex items-center gap-3">
+  
+  // 調整為：text-orange-500 dark:text-orange-400
+  <div className="text-xs text-orange-500 dark:text-orange-400 flex items-center gap-3">
+  ```
+- **原因**：與頂部統計卡片的紫/藍/綠色區隔，避免視覺混淆
+- **效果**：卡片內統計資訊更醒目，與背景形成對比
+
+### 2. 按鈕位置交換
+- **位置**：[`src/pages/Creator.tsx:1301-1322`](src/pages/Creator.tsx:1301-1322)
+- **調整內容**：
+  ```tsx
+  // 原順序：進階分析 → 複製文案
+  <Button><BarChart3 /> 進階分析</Button>
+  <Button>📝 複製文案</Button>
+  
+  // 新順序：複製文案 → 進階分析
+  <Button>📝 複製文案</Button>  {/* 主要操作 */}
+  <Button><BarChart3 /></Button>  {/* 次要操作 */}
+  ```
+- **原因**：「複製文案」為最常用操作，應置於首位
+- **優先級設計**：
+  - 主要操作：`variant="ghost"` + 文字
+  - 次要操作：`variant="outline"` + 圖示
+
+### 3. 空白問題解決
+- **位置**：[`src/pages/Creator.tsx:1321`](src/pages/Creator.tsx:1321)
+- **調整內容**：
+  ```tsx
+  // 原本：文字 + 圖示
+  <Button>
+    <BarChart3 className="w-5 h-5" />
+    進階分析
+  </Button>
+  
+  // 調整為：只保留圖示
+  <Button className="w-full border-purple-500/30">
+    <BarChart3 className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+  </Button>
+  ```
+- **原因**：「進階分析」文字造成操作區過寬，壓縮資訊區空間
+- **效果**：
+  - 操作區寬度從 `lg:w-48` 縮減為 `lg:min-w-[160px]`
+  - 資訊區比例提升，可展示更多內容
+
+---
+
+## ✅ 完成檢查
+
+- [x] 統計文字改為橘色 (`text-orange-500 dark:text-orange-400`)
+- [x] 「複製文案」按鈕移至第一位
+- [x] 「進階分析」按鈕移除文字，只保留 [`BarChart3`](src/pages/Creator.tsx:1321) 圖示
+- [x] 操作區寬度縮小，資訊區空間增加
+- [x] 兩欄式布局比例優化 (資訊區 `flex-[2]`，操作區 `min-w-[160px]`)
+- [x] 響應式設計維持正常 (行動裝置垂直堆疊)
+
+---
+
+## 📊 視覺效果對比
+
+### 調整前
+```
+[左：資訊區 flex-1] [右：操作區 w-48]
+├─ 關鍵字 + 狀態點
+├─ 回覆內容 (截斷)
+└─ 統計 (灰色)      ├─ [進階分析] 按鈕寬
+                    ├─ [📝 複製文案]
+                    └─ ...
+```
+
+### 調整後
+```
+[左：資訊區 flex-[2]] [右：操作區 min-w-[160px]]
+├─ 關鍵字 + 狀態點
+├─ 回覆內容 (截斷)
+└─ 統計 (橘色)      ├─ [📝 複製文案] 主要操作
+                    ├─ [📊] 圖示按鈕縮小
+                    └─ ...
+```
+
+---
+
+## 📝 相關文檔
+
+- UI 設計文檔：[`ui.md`](ui.md) - 已同步更新 Phase 11 調整
+- 主實作檔案：[`src/pages/Creator.tsx`](src/pages/Creator.tsx:1-1492)
+- 設計原則：兩欄式布局、色彩編碼、操作優先級
+
+---
+
+**完成時間**：2025-10-21
+**狀態**：✅ 已完成並測試

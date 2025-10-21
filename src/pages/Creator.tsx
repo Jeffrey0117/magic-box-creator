@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Trash2, Plus, LogOut, Download, Edit, ClipboardList, User, Eye } from "lucide-react";
+import { Trash2, Plus, LogOut, Download, Edit, ClipboardList, User, Eye, Package, Users, TrendingUp, BarChart3, FileText, History, LayoutGrid, List } from "lucide-react";
 import { generateUniqueShortCode } from "@/lib/shortcode";
 import { ProfileEditDialog } from "@/components/ProfileEditDialog";
 import { TemplateSelector } from "@/components/TemplateSelector";
@@ -90,6 +90,9 @@ const Creator = () => {
   const [editRequiredFields, setEditRequiredFields] = useState({ nickname: false });
   const [newTemplateType, setNewTemplateType] = useState('default');
   const [editTemplateType, setEditTemplateType] = useState('default');
+  const [searchKeyword, setSearchKeyword] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'warning' | 'exhausted'>('all');
+  const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -476,6 +479,41 @@ const Creator = () => {
     toast.success('已匯出 CSV 檔案！');
   };
 
+  // 計算儀表板統計數據
+  const dashboardStats = useMemo(() => {
+    const totalPackages = keywords.length;
+    const totalClaims = keywords.reduce((sum, item) => sum + (item.email_count || 0), 0);
+    const todayGrowth = keywords.reduce((sum, item) => sum + (item.today_count || 0), 0);
+    
+    return { totalPackages, totalClaims, todayGrowth };
+  }, [keywords]);
+
+  // 取得關鍵字狀態
+  const getKeywordStatus = (item: Keyword): 'active' | 'warning' | 'exhausted' => {
+    if (!item.quota) return 'active';
+    const remaining = item.quota - (item.email_count || 0);
+    const percentage = remaining / item.quota;
+    
+    if (remaining <= 0) return 'exhausted';
+    if (percentage <= 0.2) return 'warning';
+    return 'active';
+  };
+
+  // 篩選關鍵字
+  const filteredKeywords = useMemo(() => {
+    return keywords.filter(item => {
+      // 搜尋過濾
+      const matchesSearch = searchKeyword.trim() === '' ||
+        item.keyword.toLowerCase().includes(searchKeyword.toLowerCase()) ||
+        item.content.toLowerCase().includes(searchKeyword.toLowerCase());
+      
+      // 狀態過濾
+      const matchesStatus = statusFilter === 'all' || getKeywordStatus(item) === statusFilter;
+      
+      return matchesSearch && matchesStatus;
+    });
+  }, [keywords, searchKeyword, statusFilter]);
+
   return (
     <div className="min-h-screen p-4 md:p-8">
       <div className="max-w-6xl mx-auto">
@@ -496,6 +534,57 @@ const Creator = () => {
             <LogOut className="w-4 h-4" />
             <span className="hidden sm:inline">登出</span>
           </Button>
+        </div>
+
+        {/* 頂部儀表板 - 三個關鍵指標 */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          {/* 總資料包數 - 紫色 */}
+          <Card className="bg-gradient-to-br from-purple-500/10 to-purple-600/5 border-purple-500/20 hover:shadow-lg transition-shadow">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                <Package className="w-4 h-4" />
+                總資料包
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-purple-600 dark:text-purple-400">
+                {dashboardStats.totalPackages}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">個資料包</p>
+            </CardContent>
+          </Card>
+
+          {/* 總領取數 - 藍色 */}
+          <Card className="bg-gradient-to-br from-blue-500/10 to-blue-600/5 border-blue-500/20 hover:shadow-lg transition-shadow">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                <Users className="w-4 h-4" />
+                總領取數
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">
+                {dashboardStats.totalClaims}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">累計領取人次</p>
+            </CardContent>
+          </Card>
+
+          {/* 今日新增 - 綠色 */}
+          <Card className="bg-gradient-to-br from-green-500/10 to-green-600/5 border-green-500/20 hover:shadow-lg transition-shadow">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                <TrendingUp className="w-4 h-4" />
+                今日新增
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-green-600 dark:text-green-400">
+                +{dashboardStats.todayGrowth}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">今日領取人次</p>
+            </CardContent>
+          </Card>
         </div>
 
         <Card className="mb-6">
@@ -554,6 +643,92 @@ const Creator = () => {
               <Plus className="w-4 h-4" />
               新增關鍵字
             </Button>
+          </div>
+
+          {/* 搜尋與篩選區 */}
+          <div className="mb-6 space-y-3">
+            <div className="flex flex-col lg:flex-row gap-3">
+              {/* 搜尋框 */}
+              <div className="flex-1">
+                <Input
+                  placeholder="🔍 搜尋關鍵字或內容..."
+                  value={searchKeyword}
+                  onChange={(e) => setSearchKeyword(e.target.value)}
+                  className="h-10"
+                />
+              </div>
+              
+              {/* 狀態篩選 */}
+              <div className="flex gap-2 flex-wrap sm:flex-nowrap">
+                <Button
+                  variant={statusFilter === 'all' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setStatusFilter('all')}
+                  className="flex-1 sm:flex-none"
+                >
+                  全部
+                </Button>
+                <Button
+                  variant={statusFilter === 'active' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setStatusFilter('active')}
+                  className="flex-1 sm:flex-none gap-1"
+                >
+                  <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                  使用中
+                </Button>
+                <Button
+                  variant={statusFilter === 'warning' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setStatusFilter('warning')}
+                  className="flex-1 sm:flex-none gap-1"
+                >
+                  <span className="w-2 h-2 rounded-full bg-yellow-500"></span>
+                  即將用完
+                </Button>
+                <Button
+                  variant={statusFilter === 'exhausted' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setStatusFilter('exhausted')}
+                  className="flex-1 sm:flex-none gap-1"
+                >
+                  <span className="w-2 h-2 rounded-full bg-red-500"></span>
+                  已用完
+                </Button>
+              </div>
+
+              {/* 視圖模式切換 */}
+              <div className="flex gap-2 border-l pl-3">
+                <Button
+                  variant={viewMode === 'card' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setViewMode('card')}
+                  className="gap-2"
+                  title="卡片模式"
+                >
+                  <LayoutGrid className="w-4 h-4" />
+                  <span className="hidden sm:inline">卡片</span>
+                </Button>
+                <Button
+                  variant={viewMode === 'list' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setViewMode('list')}
+                  className="gap-2"
+                  title="列表模式"
+                >
+                  <List className="w-4 h-4" />
+                  <span className="hidden sm:inline">列表</span>
+                </Button>
+              </div>
+            </div>
+            
+            {/* 顯示篩選結果統計 */}
+            {(searchKeyword || statusFilter !== 'all') && (
+              <div className="text-sm text-muted-foreground">
+                找到 {filteredKeywords.length} 個關鍵字
+                {searchKeyword && ` (搜尋: "${searchKeyword}")`}
+              </div>
+            )}
           </div>
 
           <Button
@@ -865,9 +1040,13 @@ const Creator = () => {
             <div className="text-center py-12 text-muted-foreground">
               還沒有任何關鍵字，點擊上方按鈕新增第一個！
             </div>
+          ) : filteredKeywords.length === 0 ? (
+            <div className="text-center py-12 text-muted-foreground">
+              沒有符合條件的關鍵字
+            </div>
           ) : (
             <div className="space-y-2">
-              {keywords.map((item) => (
+              {filteredKeywords.map((item) => (
                 <div
                   key={item.id}
                   className="flex flex-col md:flex-row gap-4 p-4 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors"
@@ -1097,115 +1276,277 @@ const Creator = () => {
                         </Button>
                       </div>
                     </form>
-                  ) : (
+                  ) : viewMode === 'card' ? (
                     <>
-                      <div className="flex-1 space-y-3 min-w-0">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <p className="text-xs md:text-sm text-muted-foreground mb-1">關鍵字</p>
-                            <p className="font-medium text-accent text-sm md:text-base">{item.keyword}</p>
+                      {/* 卡片模式：三欄式布局 */}
+                      <div className="flex flex-col lg:flex-row lg:items-center gap-6 flex-1">
+                        {/* 左：主要資訊區 */}
+                        <div className="flex-1 min-w-0 space-y-2">
+                          {/* 關鍵字 + 狀態點 */}
+                          <div className="flex items-center gap-2">
+                            {(() => {
+                              const status = getKeywordStatus(item);
+                              const statusColors = {
+                                active: 'bg-green-500',
+                                warning: 'bg-yellow-500',
+                                exhausted: 'bg-red-500'
+                              };
+                              return (
+                                <span className={`w-2 h-2 rounded-full ${statusColors[status]} shrink-0`} />
+                              );
+                            })()}
+                            <p className="text-2xl font-bold text-accent truncate">{item.keyword}</p>
                           </div>
-                          <div className="min-w-0">
-                            <p className="text-xs md:text-sm text-muted-foreground mb-1">回覆內容</p>
-                            <p className="font-medium text-sm md:text-base whitespace-pre-line line-clamp-2">{item.content}</p>
+                          
+                          {/* 回覆內容（截斷） */}
+                          <div className="relative group">
+                            <p className="text-sm text-muted-foreground line-clamp-2 whitespace-pre-line">
+                              {item.content}
+                            </p>
+                            {item.content.length > 100 && (
+                              <div className="absolute hidden group-hover:block z-10 top-0 left-0 right-0 p-2 bg-popover border rounded-md shadow-lg max-h-48 overflow-y-auto">
+                                <p className="text-sm whitespace-pre-line">{item.content}</p>
+                              </div>
+                            )}
                           </div>
-                        </div>
-                        <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-                          <span>📊 總領取：{item.email_count || 0} 人</span>
-                          <span>📈 今日：+{item.today_count || 0}</span>
-                          {item.quota && (
-                            <span className="text-accent font-medium">
-                              🔥 剩餘：{Math.max(0, item.quota - (item.email_count || 0))} 份
+
+                          {/* 專屬連結資訊 */}
+                          <div className="text-xs text-muted-foreground">
+                            <span className="font-mono">
+                              {item.short_code
+                                ? `${window.location.origin}/${item.short_code}`
+                                : `${window.location.origin}/box/${item.id}`}
                             </span>
-                          )}
+                          </div>
                         </div>
-                      </div>
-                      <div>
-                        <p className="text-xs md:text-sm text-muted-foreground mb-1">專屬連結</p>
-                        <div className="flex flex-col sm:flex-row gap-2">
-                          <code className="text-xs bg-muted px-2 py-1 rounded truncate max-w-full sm:flex-1 break-all">
-                            {item.short_code
-                              ? `${window.location.origin}/${item.short_code}`
-                              : `${window.location.origin}/box/${item.id}`
-                            }
-                          </code>
+
+                        {/* 中：統計資訊區 */}
+                        <div className="flex-shrink-0 lg:w-80">
+                          <div className="grid grid-cols-3 gap-3">
+                            {/* 總領取 - 藍色 */}
+                            <div className="text-center p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
+                              <div className="text-lg font-bold text-blue-600 dark:text-blue-400">
+                                {item.email_count || 0}
+                              </div>
+                              <div className="text-xs text-muted-foreground mt-1">總領取</div>
+                            </div>
+
+                            {/* 今日新增 - 綠色 */}
+                            <div className="text-center p-3 rounded-lg bg-green-500/10 border border-green-500/20">
+                              <div className="text-lg font-bold text-green-600 dark:text-green-400">
+                                +{item.today_count || 0}
+                              </div>
+                              <div className="text-xs text-muted-foreground mt-1">今日</div>
+                            </div>
+
+                            {/* 剩餘配額 - 黃色 */}
+                            <div className="text-center p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
+                              <div className="text-lg font-bold text-yellow-600 dark:text-yellow-400">
+                                {item.quota ? item.quota - (item.email_count || 0) : '∞'}
+                              </div>
+                              <div className="text-xs text-muted-foreground mt-1">剩餘</div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* 右：操作區 */}
+                        <div className="flex-shrink-0 flex flex-col gap-2 lg:w-auto">
+                          {/* 綠色「複製連結」按鈕 */}
+                          <Button
+                            size="default"
+                            className="bg-green-500 hover:bg-green-600 text-white gap-2"
+                            onClick={() => {
+                              const url = item.short_code
+                                ? `${window.location.origin}/${item.short_code}`
+                                : `${window.location.origin}/box/${item.id}`;
+                              navigator.clipboard.writeText(url);
+                              toast.success("連結已複製！");
+                            }}
+                          >
+                            📋 複製連結
+                          </Button>
+
+                          {/* 藍色「複製文案」按鈕 */}
+                          <Button
+                            size="default"
+                            className="bg-blue-500 hover:bg-blue-600 text-white gap-2"
+                            onClick={() => {
+                              navigator.clipboard.writeText(item.content);
+                              toast.success("文案已複製！");
+                            }}
+                          >
+                            <FileText className="w-4 h-4" />
+                            複製文案
+                          </Button>
+
+                          {/* 橙色「查看記錄」按鈕 */}
+                          <Button
+                            size="default"
+                            className="bg-orange-500 hover:bg-orange-600 text-white gap-2"
+                            onClick={() => fetchEmailLogs(item.id)}
+                          >
+                            <History className="w-4 h-4" />
+                            查看記錄
+                          </Button>
+
+                          {/* 灰色「預覽」按鈕 */}
+                          <Button
+                            size="default"
+                            className="bg-slate-700 hover:bg-slate-600 text-white gap-2"
+                            onClick={() => {
+                              const url = item.short_code
+                                ? `${window.location.origin}/${item.short_code}`
+                                : `${window.location.origin}/box/${item.id}`;
+                              window.open(url, '_blank');
+                            }}
+                          >
+                            <Eye className="w-4 h-4" />
+                            預覽
+                          </Button>
+
+                          {/* 垂直三點選單 */}
                           <div className="flex gap-2">
                             <Button
                               size="sm"
                               variant="ghost"
-                              onClick={() => {
-                                const url = item.short_code
-                                  ? `${window.location.origin}/${item.short_code}`
-                                  : `${window.location.origin}/box/${item.id}`;
-                                navigator.clipboard.writeText(url);
-                                toast.success("連結已複製！");
-                              }}
-                              className="flex-1 sm:flex-none"
+                              className="flex-1 text-accent hover:text-accent/80"
+                              onClick={() => handleEdit(item)}
+                              title="編輯"
                             >
-                              複製連結
+                              <Edit className="w-4 h-4" />
                             </Button>
                             <Button
                               size="sm"
-                              variant="outline"
-                              onClick={() => {
-                                const url = item.short_code
-                                  ? `${window.location.origin}/${item.short_code}`
-                                  : `${window.location.origin}/box/${item.id}`;
-                                const shareText = `🎁 我為你準備了一份專屬資料包！\n\n輸入關鍵字「${item.keyword}」即可免費領取：\n${url}\n\n👉 立即解鎖專屬內容！`;
-                                navigator.clipboard.writeText(shareText);
-                                toast.success("分享文案已複製！");
-                              }}
-                              className="flex-1 sm:flex-none"
+                              variant="ghost"
+                              className="flex-1 text-destructive hover:text-destructive/80"
+                              onClick={() => handleDelete(item.id, item.keyword)}
+                              title="刪除"
                             >
-                              複製文案
+                              <Trash2 className="w-4 h-4" />
                             </Button>
                             <Button
                               size="sm"
-                              variant="outline"
-                              onClick={() => {
-                                const url = item.short_code
-                                  ? `${window.location.origin}/${item.short_code}`
-                                  : `${window.location.origin}/box/${item.id}`;
-                                window.open(url, '_blank');
-                              }}
-                              className="flex-1 sm:flex-none gap-2"
+                              variant="ghost"
+                              className="flex-1"
+                              onClick={() => navigate(`/admin/packages/${item.short_code || item.id}`)}
+                              title="進階分析"
                             >
-                              <Eye className="w-4 h-4" />
-                              預覽
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => fetchEmailLogs(item.id)}
-                              className="flex-1 sm:flex-none border-accent text-accent hover:bg-accent/10 gap-2"
-                            >
-                              <ClipboardList className="w-4 h-4" />
-                              查看領取記錄
+                              <BarChart3 className="w-4 h-4" />
                             </Button>
                           </div>
                         </div>
                       </div>
                     </>
-                )}
-                {editingKeywordId !== item.id && (
-                    <div className="flex md:flex-col gap-2 self-start md:self-center shrink-0">
-                      <Button
-                        onClick={() => handleEdit(item)}
-                        variant="ghost"
-                        size="icon"
-                        className="text-accent hover:text-accent/80"
-                      >
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        onClick={() => handleDelete(item.id, item.keyword)}
-                        variant="ghost"
-                        size="icon"
-                        className="text-destructive hover:text-destructive/80"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
+                  ) : (
+                    <>
+                      {/* 列表模式：緊湊布局 */}
+                      <div className="flex-1 space-y-3 min-w-0">
+                        {/* 上半部分：2x2 網格 */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {/* 關鍵字 */}
+                          <div>
+                            <p className="text-xs text-muted-foreground mb-1">關鍵字</p>
+                            <p className="text-lg font-bold text-accent">{item.keyword}</p>
+                          </div>
+                          
+                          {/* 回覆內容 */}
+                          <div className="min-w-0">
+                            <p className="text-xs text-muted-foreground mb-1">回覆內容</p>
+                            <p className="text-sm text-muted-foreground line-clamp-2 whitespace-pre-line">
+                              {item.content}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* 下半部分：統計資訊橫排 */}
+                        <div className="flex flex-wrap gap-4 text-sm">
+                          <div className="flex items-center gap-2">
+                            <span className="text-muted-foreground">📊 總領取：</span>
+                            <span className="font-semibold">{item.email_count || 0} 人</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-muted-foreground">📈 今日：</span>
+                            <span className="font-semibold text-green-600 dark:text-green-400">+{item.today_count || 0}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* 中間連結操作區 */}
+                      <div className="space-y-2 min-w-0 md:min-w-[300px]">
+                        <p className="text-xs text-muted-foreground">專屬連結</p>
+                        <div className="flex gap-2 flex-wrap">
+                          <code className="text-xs bg-muted px-2 py-1 rounded flex-1 min-w-0 truncate">
+                            {item.short_code
+                              ? `${window.location.origin}/${item.short_code}`
+                              : `${window.location.origin}/box/${item.id}`}
+                          </code>
+                        </div>
+                        <div className="flex gap-2 flex-wrap">
+                          <Button
+                            size="sm"
+                            className="bg-green-500 hover:bg-green-600 text-white"
+                            onClick={() => {
+                              const url = item.short_code
+                                ? `${window.location.origin}/${item.short_code}`
+                                : `${window.location.origin}/box/${item.id}`;
+                              navigator.clipboard.writeText(url);
+                              toast.success("連結已複製！");
+                            }}
+                          >
+                            📋 複製連結
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              navigator.clipboard.writeText(item.content);
+                              toast.success("文案已複製！");
+                            }}
+                          >
+                            複製文案
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              const url = item.short_code
+                                ? `${window.location.origin}/${item.short_code}`
+                                : `${window.location.origin}/box/${item.id}`;
+                              window.open(url, '_blank');
+                            }}
+                          >
+                            👁️ 預覽
+                          </Button>
+                          <Button
+                            size="sm"
+                            className="bg-accent hover:bg-accent/90 text-accent-foreground"
+                            onClick={() => fetchEmailLogs(item.id)}
+                          >
+                            📋 查看領取記錄
+                          </Button>
+                        </div>
+                      </div>
+
+                      {/* 右側編輯區 */}
+                      <div className="flex md:flex-col gap-2 self-start md:self-center shrink-0">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleEdit(item)}
+                          className="flex-1 md:flex-none"
+                        >
+                          ✏️ 編輯
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="flex-1 md:flex-none text-destructive hover:text-destructive/80"
+                          onClick={() => handleDelete(item.id, item.keyword)}
+                        >
+                          🗑️ 刪除
+                        </Button>
+                      </div>
+                    </>
                   )}
                 </div>
               ))}
