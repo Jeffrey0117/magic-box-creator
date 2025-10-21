@@ -8,9 +8,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Trash2, Plus, LogOut, Download, Edit, ClipboardList, User } from "lucide-react";
+import { Trash2, Plus, LogOut, Download, Edit, ClipboardList, User, Eye } from "lucide-react";
 import { generateUniqueShortCode } from "@/lib/shortcode";
 import { ProfileEditDialog } from "@/components/ProfileEditDialog";
+import { TemplateSelector } from "@/components/TemplateSelector";
 import { Tables } from "@/integrations/supabase/types";
 
 interface Keyword {
@@ -41,6 +42,12 @@ interface MyRecord {
     content: string;
   };
 }
+
+// 圖片過濾函數 - 移除空白 URL
+const filterEmptyImages = (urls: string[]): string[] | null => {
+  const filtered = urls.filter(url => url.trim() !== '');
+  return filtered.length > 0 ? filtered : null;
+};
 
 const Creator = () => {
   const [keywords, setKeywords] = useState<Keyword[]>([]);
@@ -181,7 +188,7 @@ const Creator = () => {
       short_code: shortCode,
       quota: newQuota ? parseInt(newQuota) : null,
       expires_at: expiresAt,
-      images: newImageUrls.length > 0 ? newImageUrls : null,
+      images: filterEmptyImages(newImageUrls),
       package_title: newPackageTitle.trim() || null,
       package_description: newPackageDescription.trim() || null,
       required_fields: newRequiredFields,
@@ -287,7 +294,7 @@ const Creator = () => {
         content: editContent,
         quota: editQuota ? parseInt(editQuota) : null,
         expires_at: expiresAt,
-        images: editImageUrls.length > 0 ? editImageUrls : null,
+        images: filterEmptyImages(editImageUrls),
         package_title: editPackageTitle.trim() || null,
         package_description: editPackageDescription.trim() || null,
         required_fields: editRequiredFields,
@@ -720,29 +727,16 @@ const Creator = () => {
                    <span className="text-sm">稱呼 / 暱稱</span>
                  </label>
                  <p className="text-xs text-muted-foreground">
-                   勾選後，領取者需填寫稱呼才能解鎖
+                   勾選後,領取者需填寫稱呼才能解鎖
                  </p>
                </div>
-              <div className="space-y-2">
-                <Label>🎨 選擇模板樣式</Label>
-                <select
-                  value={newTemplateType}
-                  onChange={(e) => setNewTemplateType(e.target.value)}
-                  className="w-full h-10 px-3 rounded-md border border-input bg-background"
-                >
-                  <option value="default">經典樣式 (免費)</option>
-                  <option value="layout1">左右分欄型 (免費)</option>
-                  <option value="layout2">Hero 卡片 (免費)</option>
-                  <option value="layout4">玻璃擬態 (免費)</option>
-                  <option value="layout5">特色網格 (進階)</option>
-                  <option value="layout6">對比分欄 (進階)</option>
-                  <option value="layout7">多段落長頁 (進階)</option>
-                  <option value="layout8">視訊風格 (進階)</option>
-                </select>
-                <p className="text-xs text-muted-foreground">
-                  選擇資料包頁面的視覺樣式
-                </p>
-              </div>
+               <div className="space-y-3">
+                 <label className="text-sm font-medium">🎨 頁面模板</label>
+                 <TemplateSelector
+                   currentTemplate={newTemplateType}
+                   onSelect={setNewTemplateType}
+                 />
+               </div>
                </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between mb-2">
@@ -995,31 +989,19 @@ const Creator = () => {
                           <span className="text-sm">稱呼 / 暱稱</span>
                         </label>
                         <p className="text-xs text-muted-foreground">
-                          勾選後，領取者需填寫稱呼才能解鎖
-                        </p>
-                      <div className="space-y-2">
-                        <Label>🎨 選擇模板樣式</Label>
-                        <select
-                          value={editTemplateType}
-                          onChange={(e) => setEditTemplateType(e.target.value)}
-                          className="w-full h-10 px-3 rounded-md border border-input bg-background"
-                        >
-                          <option value="default">經典樣式 (免費)</option>
-                          <option value="layout1">左右分欄型 (免費)</option>
-                          <option value="layout2">Hero 卡片 (免費)</option>
-                          <option value="layout4">玻璃擬態 (免費)</option>
-                          <option value="layout5">特色網格 (進階)</option>
-                          <option value="layout6">對比分欄 (進階)</option>
-                          <option value="layout7">多段落長頁 (進階)</option>
-                          <option value="layout8">視訊風格 (進階)</option>
-                        </select>
-                        <p className="text-xs text-muted-foreground">
-                          選擇資料包頁面的視覺樣式
+                          勾選後,領取者需填寫稱呼才能解鎖
                         </p>
                       </div>
+                      <div className="space-y-3">
+                        <label className="text-sm font-medium">🎨 頁面模板</label>
+                        <TemplateSelector
+                          currentTemplate={editTemplateType}
+                          onSelect={setEditTemplateType}
+                          packageShortCode={item.short_code}
+                        />
                       </div>
                       </div>
-                      <div className="space-y-2">
+                       <div className="space-y-2">
                         <div className="flex items-center justify-between mb-2">
                           <label className="text-sm font-medium">📷 資料包圖片（最多 5 張）</label>
                           <Dialog open={showBatchImageDialog && isEditMode} onOpenChange={(open) => {
@@ -1176,6 +1158,20 @@ const Creator = () => {
                               className="flex-1 sm:flex-none"
                             >
                               複製文案
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                const url = item.short_code
+                                  ? `${window.location.origin}/${item.short_code}`
+                                  : `${window.location.origin}/box/${item.id}`;
+                                window.open(url, '_blank');
+                              }}
+                              className="flex-1 sm:flex-none gap-2"
+                            >
+                              <Eye className="w-4 h-4" />
+                              預覽
                             </Button>
                             <Button
                               size="sm"
