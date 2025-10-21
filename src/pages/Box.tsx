@@ -1,14 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Lock, Key, Unlock } from "lucide-react";
-import { CountdownTimer } from "@/components/CountdownTimer";
-import { WaitlistCard } from "@/components/WaitlistCard";
-import { CreatorCard } from "@/components/CreatorCard";
-import { PackageImageCarousel } from "@/components/PackageImageCarousel";
+import { getTemplateComponent } from "@/components/templates/registry";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Info } from "lucide-react";
 
 const Box = () => {
   const [keyword, setKeyword] = useState("");
@@ -20,6 +17,8 @@ const Box = () => {
   const [currentCount, setCurrentCount] = useState(0);
   const [waitlistCount, setWaitlistCount] = useState(0);
   const [extraData, setExtraData] = useState({ nickname: '' });
+  const [templateType, setTemplateType] = useState('default');
+  const [isCreatorPreview, setIsCreatorPreview] = useState(false);
   const navigate = useNavigate();
   const { id, shortCode } = useParams();
   const location = useLocation();
@@ -74,14 +73,11 @@ const Box = () => {
     console.log("📦 Keyword data:", keywordData);
     if (!keywordData) return;
 
-    // 🎯 檢查是否為創作者本人
+    // 🎯 檢查是否為創作者本人 (改為預覽模式,不再 redirect)
     if (session.user.id === keywordData.creator_id) {
-      console.log("👤 創作者本人訪問，導向管理面板");
-      toast.info("這是您的資料包，已為您導向管理面板", {
-        duration: 3000,
-      });
-      navigate("/creator");
-      return;
+      console.log("👤 創作者本人訪問,啟用預覽模式");
+      setIsCreatorPreview(true);
+      return; // 不自動解鎖,但繼續顯示頁面
     }
 
     const { data: existingLog } = await supabase
@@ -114,7 +110,7 @@ const Box = () => {
   };
 
   const fetchBoxData = async () => {
-    let query = supabase.from("keywords").select("id, keyword, created_at, quota, current_count, expires_at, creator_id, images, package_title, package_description, required_fields");
+    let query = supabase.from("keywords").select("id, keyword, created_at, quota, current_count, expires_at, creator_id, images, package_title, package_description, required_fields, short_code, template_type");
     
     if (shortCode && !location.pathname.startsWith('/box/')) {
       query = query.eq("short_code", shortCode);
@@ -129,6 +125,7 @@ const Box = () => {
       navigate("/");
     } else {
       setBoxData(data);
+      setTemplateType(data.template_type || 'default');
       
       if (data.quota) {
         setCurrentCount(data.current_count || 0);
@@ -248,232 +245,53 @@ const Box = () => {
     setExtraData({ nickname: '' });
   };
 
-  const isExpired = boxData?.expires_at && new Date(boxData.expires_at) < new Date();
-  const isCompleted = boxData?.quota !== null && boxData?.current_count >= boxData?.quota;
+  // 🔥 動態載入模板元件
+  const TemplateComponent = getTemplateComponent(templateType);
 
-  if (isExpired) {
-    return (
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <div className="w-full max-w-lg">
-          <div className="glass-card rounded-2xl p-6 md:p-8 shadow-card text-center">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-muted mb-4">
-              <Lock className="w-8 h-8 text-muted-foreground" />
-            </div>
-            <h2 className="text-2xl font-bold mb-2">此資料包已過期</h2>
-            <p className="text-muted-foreground mb-6">此資料包的領取期限已結束</p>
-            <Button onClick={() => navigate("/")} variant="outline">
-              返回首頁
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (isCompleted && !result) {
-    return (
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <div className="w-full max-w-lg">
-          <WaitlistCard keyword={boxData} waitlistCount={waitlistCount} />
-        </div>
-      </div>
-    );
-  }
+  // 準備傳給模板的 props
+  const templateProps = {
+    boxData,
+    keyword,
+    setKeyword,
+    email,
+    setEmail,
+    extraData,
+    setExtraData,
+    onUnlock: handleUnlock,
+    onReset: handleReset,
+    loading,
+    result,
+    currentCount,
+    waitlistCount,
+    isLoggedIn,
+    isCreatorPreview,
+  };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <div className="w-full max-w-lg space-y-6">
-        {!result ? (
-          <>
-            {boxData && (
-              <>
-                <div className="text-center">
-                  <div className="inline-flex items-center justify-center w-16 h-16 md:w-20 md:h-20 rounded-full gradient-magic mb-4 glow">
-                    <Lock className="w-8 h-8 md:w-10 md:h-10 text-white" />
-                  </div>
-                  <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gradient mb-3">
-                    KeyBox 🔑
-                  </h1>
-                  <p className="text-muted-foreground text-lg">
-                    輸入關鍵字解鎖內容
-                  </p>
-                </div>
-
-                <CreatorCard creatorId={boxData.creator_id} />
-
-                <div className="flex flex-col items-center gap-3">
-                  {boxData.expires_at && (
-                    <CountdownTimer expiresAt={boxData.expires_at} />
-                  )}
-                  {boxData.quota && (
-                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-accent/10 border border-accent/30 rounded-lg w-full">
-                      <p className="text-sm font-medium text-accent">
-                        🔥 限量 {boxData.quota} 份 · 剩餘 {Math.max(0, boxData.quota - currentCount)} 份
-                      </p>
-                    </div>
-                  )}
-                  <div className="bg-accent/10 border border-accent/30 rounded-lg p-3 w-full">
-                    <p className="text-sm font-medium text-accent mb-1">
-                      ✨ 註冊會員免輸入關鍵字
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      • 登入後自動解鎖，無需輸入關鍵字<br/>
-                      • 查看我的領取記錄<br/>
-                      • 創建資料包，分享給你的受眾
-                    </p>
-                  </div>
-                </div>
-
-                {(boxData.package_title || boxData.package_description) && (
-                  <div className="bg-muted/30 rounded-lg p-4">
-                    {boxData.package_title && (
-                      <h3 className="text-base font-semibold text-foreground mb-2 flex items-center gap-2">
-                        📦 {boxData.package_title}
-                      </h3>
-                    )}
-                    {boxData.package_description && (
-                      <p className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">
-                        {boxData.package_description}
-                      </p>
-                    )}
-                  </div>
-                )}
-
-                {boxData.images && boxData.images.length > 0 && (
-                  <div className="bg-white rounded-lg p-4">
-                    <PackageImageCarousel images={boxData.images} />
-                  </div>
-                )}
-
-                <div className="space-y-4">
-                  <form onSubmit={handleUnlock} className="space-y-4">
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">關鍵字</label>
-                      <Input
-                        placeholder="輸入關鍵字..."
-                        value={keyword}
-                        onChange={(e) => setKeyword(e.target.value)}
-                        required
-                        className="w-full"
-                      />
-                      <p className="text-xs text-muted-foreground mt-1">
-                        💡 請向創作者索取關鍵字（不分大小寫）
-                      </p>
-                    </div>
-
-                    {boxData?.required_fields && (boxData.required_fields as any).nickname && (
-                      <div>
-                        <label className="text-sm font-medium mb-2 block">稱呼 / 暱稱</label>
-                        <Input
-                          placeholder="請輸入您的稱呼"
-                          value={extraData.nickname}
-                          onChange={(e) => setExtraData({ nickname: e.target.value })}
-                          required
-                          className="w-full"
-                        />
-                      </div>
-                    )}
-
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">Email</label>
-                      <Input
-                        type="email"
-                        placeholder="your@email.com"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                        className="w-full"
-                      />
-                      <p className="text-xs text-muted-foreground mt-1">
-                        🔒 僅創作者可見
-                      </p>
-                    </div>
-
-                    <Button
-                      type="submit"
-                      disabled={loading}
-                      className="w-full gradient-magic hover:opacity-90 transition-opacity font-medium gap-2"
-                    >
-                      {loading ? (
-                        <div className="flex items-center gap-2">
-                          <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                          解鎖中...
-                        </div>
-                      ) : (
-                        <>
-                          <Key className="w-5 h-5" />
-                          立即解鎖 🔓
-                        </>
-                      )}
-                    </Button>
-                  </form>
-
-                  <div className="text-center">
-                    <button
-                      onClick={() => navigate(`/login?returnTo=${location.pathname}`)}
-                      className="text-sm font-medium text-foreground hover:text-accent transition-colors"
-                    >
-                      免費註冊／登入 →
-                    </button>
-                  </div>
-                </div>
-
-                <div className="pt-6 border-t border-border/50 text-center">
-                  <p className="text-xs text-muted-foreground">
-                    © 2025 Powered by UPPER |{" "}
-                    <button
-                      onClick={() => navigate("/help")}
-                      className="hover:text-accent transition-colors"
-                    >
-                      使用說明
-                    </button>
-                    {" "}
-                    <button
-                      onClick={() => navigate("/privacy")}
-                      className="hover:text-accent transition-colors"
-                    >
-                      隱私權政策
-                    </button>
-                  </p>
-                </div>
-              </>
-            )}
-          </>
-        ) : (
-          <div className="glass-card rounded-2xl p-6 md:p-8 shadow-card glow">
-            <div className="text-center mb-6">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-accent/20 mb-4">
-                <Unlock className="w-8 h-8 text-accent" />
-              </div>
-              <h2 className="text-2xl font-bold text-accent mb-2">
-                ✅ 解鎖成功！
-              </h2>
-              <p className="text-muted-foreground">這是您的專屬內容：</p>
-            </div>
-
-            <div className="bg-muted/50 rounded-lg p-6 mb-6">
-              <p className="text-lg break-all whitespace-pre-line">{result}</p>
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-3">
-              <Button
-                onClick={handleReset}
-                className="flex-1 gradient-magic"
-              >
-                重新查詢
-              </Button>
-              <Button
-                onClick={() => navigate(isLoggedIn ? "/creator" : "/login")}
-                variant="outline"
-                className="flex-1"
-              >
-                {isLoggedIn ? "前往創作者面板 →" : "註冊 KeyBox 創建資料包 →"}
-              </Button>
-            </div>
-          </div>
-        )}
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
       </div>
-    </div>
+    }>
+      {isCreatorPreview && (
+        <Alert className="mx-4 mt-4 bg-accent/10 border-accent">
+          <Info className="h-4 w-4 text-accent" />
+          <AlertTitle className="text-accent">創作者預覽模式</AlertTitle>
+          <AlertDescription className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+            <span>這是你的資料包,你可以預覽模板效果但無法領取。</span>
+            <Button
+              variant="link"
+              size="sm"
+              onClick={() => navigate('/creator')}
+              className="text-accent hover:text-accent/80 p-0 h-auto"
+            >
+              返回後台 →
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
+      <TemplateComponent {...templateProps} />
+    </Suspense>
   );
 };
 

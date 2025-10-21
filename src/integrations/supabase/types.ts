@@ -59,6 +59,7 @@ export type Database = {
           quota: number | null
           required_fields: Json | null
           short_code: string
+          template_type: string
           updated_at: string
         }
         Insert: {
@@ -75,6 +76,7 @@ export type Database = {
           quota?: number | null
           required_fields?: Json | null
           short_code?: string
+          template_type?: string
           updated_at?: string
         }
         Update: {
@@ -91,6 +93,7 @@ export type Database = {
           quota?: number | null
           required_fields?: Json | null
           short_code?: string
+          template_type?: string
           updated_at?: string
         }
         Relationships: []
@@ -102,6 +105,7 @@ export type Database = {
           created_at: string
           display_name: string | null
           id: string
+          membership_tier: string
           social_link: string | null
           updated_at: string
         }
@@ -111,6 +115,7 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id: string
+          membership_tier?: string
           social_link?: string | null
           updated_at?: string
         }
@@ -120,6 +125,7 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id?: string
+          membership_tier?: string
           social_link?: string | null
           updated_at?: string
         }
