@@ -22,8 +22,3 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-
-
-# Local sandbox project (ignore nested workspace)
-template-layout-hub/
-template-layout-hub/**
