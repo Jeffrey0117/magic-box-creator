@@ -81,6 +81,8 @@ const Creator = () => {
   const [editPackageDescription, setEditPackageDescription] = useState('');
   const [newRequiredFields, setNewRequiredFields] = useState({ nickname: false });
   const [editRequiredFields, setEditRequiredFields] = useState({ nickname: false });
+  const [newTemplateType, setNewTemplateType] = useState('default');
+  const [editTemplateType, setEditTemplateType] = useState('default');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -183,6 +185,7 @@ const Creator = () => {
       package_title: newPackageTitle.trim() || null,
       package_description: newPackageDescription.trim() || null,
       required_fields: newRequiredFields,
+      template_type: newTemplateType,
     });
 
     if (error) {
@@ -201,6 +204,7 @@ const Creator = () => {
       setNewPackageTitle('');
       setNewPackageDescription('');
       setNewRequiredFields({ nickname: false });
+      setNewTemplateType('default');
       setShowAddForm(false);
       fetchKeywords();
     }
@@ -240,6 +244,7 @@ const Creator = () => {
         ? (typeof item.required_fields === 'object' ? item.required_fields as any : { nickname: false })
         : { nickname: false }
     );
+    setEditTemplateType(item.template_type || 'default');
     
     if (item.expires_at) {
       setEditEnableExpiry(true);
@@ -286,6 +291,7 @@ const Creator = () => {
         package_title: editPackageTitle.trim() || null,
         package_description: editPackageDescription.trim() || null,
         required_fields: editRequiredFields,
+        template_type: editTemplateType,
       })
       .eq("id", editingKeywordId);
 
@@ -306,6 +312,7 @@ const Creator = () => {
       setEditPackageTitle('');
       setEditPackageDescription('');
       setEditRequiredFields({ nickname: false });
+      setEditTemplateType('default');
       fetchKeywords();
     }
   };
@@ -341,6 +348,7 @@ const Creator = () => {
     setEditPackageTitle('');
     setEditPackageDescription('');
     setEditRequiredFields({ nickname: false });
+    setEditTemplateType('default');
   };
 
   const fetchEmailLogs = async (keywordId: string) => {
@@ -823,6 +831,7 @@ const Creator = () => {
                     setNewPackageTitle('');
                     setNewPackageDescription('');
                     setNewRequiredFields({ nickname: false });
+                    setNewTemplateType('default');
                   }}
                 >
                   取消
