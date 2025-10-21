@@ -723,6 +723,26 @@ const Creator = () => {
                    勾選後，領取者需填寫稱呼才能解鎖
                  </p>
                </div>
+              <div className="space-y-2">
+                <Label>🎨 選擇模板樣式</Label>
+                <select
+                  value={newTemplateType}
+                  onChange={(e) => setNewTemplateType(e.target.value)}
+                  className="w-full h-10 px-3 rounded-md border border-input bg-background"
+                >
+                  <option value="default">經典樣式 (免費)</option>
+                  <option value="layout1">左右分欄型 (免費)</option>
+                  <option value="layout2">Hero 卡片 (免費)</option>
+                  <option value="layout4">玻璃擬態 (免費)</option>
+                  <option value="layout5">特色網格 (進階)</option>
+                  <option value="layout6">對比分欄 (進階)</option>
+                  <option value="layout7">多段落長頁 (進階)</option>
+                  <option value="layout8">視訊風格 (進階)</option>
+                </select>
+                <p className="text-xs text-muted-foreground">
+                  選擇資料包頁面的視覺樣式
+                </p>
+              </div>
                </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between mb-2">
@@ -977,6 +997,26 @@ const Creator = () => {
                         <p className="text-xs text-muted-foreground">
                           勾選後，領取者需填寫稱呼才能解鎖
                         </p>
+                      <div className="space-y-2">
+                        <Label>🎨 選擇模板樣式</Label>
+                        <select
+                          value={editTemplateType}
+                          onChange={(e) => setEditTemplateType(e.target.value)}
+                          className="w-full h-10 px-3 rounded-md border border-input bg-background"
+                        >
+                          <option value="default">經典樣式 (免費)</option>
+                          <option value="layout1">左右分欄型 (免費)</option>
+                          <option value="layout2">Hero 卡片 (免費)</option>
+                          <option value="layout4">玻璃擬態 (免費)</option>
+                          <option value="layout5">特色網格 (進階)</option>
+                          <option value="layout6">對比分欄 (進階)</option>
+                          <option value="layout7">多段落長頁 (進階)</option>
+                          <option value="layout8">視訊風格 (進階)</option>
+                        </select>
+                        <p className="text-xs text-muted-foreground">
+                          選擇資料包頁面的視覺樣式
+                        </p>
+                      </div>
                       </div>
                       </div>
                       <div className="space-y-2">
