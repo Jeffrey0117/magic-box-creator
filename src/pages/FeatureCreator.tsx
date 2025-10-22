@@ -182,7 +182,7 @@ const FeatureCreator = () => {
               <Button
                 variant="outline"
                 size="lg"
-                className="border-slate-300 text-slate-500 hover:bg-slate-50 hover:text-slate-700 px-8 py-4 text-lg"
+                className="border-slate-200 text-slate-400 hover:bg-slate-50 hover:text-slate-600 px-8 py-4 text-lg"
               >
                 觀看 3 分鐘介紹 <Video className="ml-2 w-5 h-5" />
               </Button>
@@ -549,7 +549,7 @@ const FeatureCreator = () => {
             <Button
               variant="outline"
               size="lg"
-              className="border-slate-300 text-slate-700 hover:bg-slate-50 px-8 py-4 text-lg"
+              className="border-slate-200 text-slate-400 hover:bg-slate-50 hover:text-slate-600 px-8 py-4 text-lg"
             >
               預約產品演示
             </Button>
