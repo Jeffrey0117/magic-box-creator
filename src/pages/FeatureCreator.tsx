@@ -198,21 +198,21 @@ const FeatureCreator = () => {
       <section className="py-16 bg-white dark:bg-slate-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <Card className="text-center bg-[#EEF5FF] border-2 border-yellow-300">
+            <Card className="text-center bg-[#EEF5FF]" style={{boxShadow: '0 0 6px 0 #3e8e9cff'}}>
               <CardContent className="pt-6">
                 <Package className="w-12 h-12 text-green-600 mx-auto mb-4" />
                 <div className="text-4xl font-bold text-green-600 mb-2">500+</div>
                 <p className="text-slate-600">創作者正在使用</p>
               </CardContent>
             </Card>
-            <Card className="text-center bg-[#EEF5FF] border-2 border-yellow-300">
+            <Card className="text-center bg-[#EEF5FF]" style={{boxShadow: '0 0 6px 0 #3e8e9cff'}}>
               <CardContent className="pt-6">
                 <Users className="w-12 h-12 text-blue-600 mx-auto mb-4" />
                 <div className="text-4xl font-bold text-blue-600 mb-2">10K+</div>
                 <p className="text-slate-600">資料包已分發</p>
               </CardContent>
             </Card>
-            <Card className="text-center bg-[#EEF5FF] border-2 border-yellow-300">
+            <Card className="text-center bg-[#EEF5FF]" style={{boxShadow: '0 0 6px 0 #3e8e9cff'}}>
               <CardContent className="pt-6">
                 <TrendingUp className="w-12 h-12 text-green-600 mx-auto mb-4" />
                 <div className="text-4xl font-bold text-green-600 mb-2">300%</div>
@@ -323,7 +323,7 @@ const FeatureCreator = () => {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {templates.map((template, index) => (
-              <Card key={index} className="bg-slate-50 border-2 border-yellow-300 hover:border-yellow-400 transition-all duration-300 hover:scale-105">
+              <Card key={index} className="bg-slate-50 hover:scale-105 transition-all duration-300" style={{boxShadow: '0 0 6px 0 #3e8e9cff'}}>
                 <CardContent className="p-4">
                   <div className="aspect-square bg-[#EEF5FF] rounded-lg mb-4 flex items-center justify-center border border-blue-200">
                     <span className="text-4xl">🎨</span>
