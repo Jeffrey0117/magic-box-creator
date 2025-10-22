@@ -8,8 +8,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Trash2, Plus, LogOut, Download, Edit, ClipboardList, User, Eye, Package, Users, TrendingUp, BarChart3, FileText, History, LayoutGrid, List } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { CountdownTimer } from "@/components/CountdownTimer";
 import { generateUniqueShortCode } from "@/lib/shortcode";
 import { ProfileEditDialog } from "@/components/ProfileEditDialog";
 import { TemplateSelector } from "@/components/TemplateSelector";
@@ -94,6 +97,7 @@ const Creator = () => {
   const [editTemplateType, setEditTemplateType] = useState('default');
   const [searchKeyword, setSearchKeyword] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'warning' | 'exhausted'>('all');
+  const [expiryFilter, setExpiryFilter] = useState<'all' | 'active' | 'expired'>('all');
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
   const navigate = useNavigate();
 
@@ -490,6 +494,12 @@ const Creator = () => {
     return { totalPackages, totalClaims, todayGrowth };
   }, [keywords]);
 
+  // 計算是否過期
+  const isExpired = (item: Keyword): boolean => {
+    if (!item.expires_at) return false;
+    return new Date(item.expires_at).getTime() <= Date.now();
+  };
+
   // 取得關鍵字狀態
   const getKeywordStatus = (item: Keyword): 'active' | 'warning' | 'exhausted' => {
     if (!item.quota) return 'active';
@@ -512,9 +522,14 @@ const Creator = () => {
       // 狀態過濾
       const matchesStatus = statusFilter === 'all' || getKeywordStatus(item) === statusFilter;
       
-      return matchesSearch && matchesStatus;
+      // 過期狀態過濾
+      const matchesExpiry = expiryFilter === 'all' ||
+        (expiryFilter === 'expired' && isExpired(item)) ||
+        (expiryFilter === 'active' && !isExpired(item));
+      
+      return matchesSearch && matchesStatus && matchesExpiry;
     });
-  }, [keywords, searchKeyword, statusFilter]);
+  }, [keywords, searchKeyword, statusFilter, expiryFilter]);
 
   return (
     <div className="min-h-screen p-4 md:p-8">
@@ -699,6 +714,20 @@ const Creator = () => {
                 </Button>
               </div>
 
+              {/* 過期狀態篩選 */}
+              <div className="border-l pl-3">
+                <Select value={expiryFilter} onValueChange={(value: 'all' | 'active' | 'expired') => setExpiryFilter(value)}>
+                  <SelectTrigger className="w-[140px] h-9">
+                    <SelectValue placeholder="時效篩選" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">全部時效</SelectItem>
+                    <SelectItem value="active">⏰ 使用中（未過期）</SelectItem>
+                    <SelectItem value="expired">⛔ 已過期</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
               {/* 視圖模式切換 */}
               <div className="flex gap-2 border-l pl-3">
                 <Button
@@ -725,7 +754,7 @@ const Creator = () => {
             </div>
             
             {/* 顯示篩選結果統計 */}
-            {(searchKeyword || statusFilter !== 'all') && (
+            {(searchKeyword || statusFilter !== 'all' || expiryFilter !== 'all') && (
               <div className="text-sm text-muted-foreground">
                 找到 {filteredKeywords.length} 個關鍵字
                 {searchKeyword && ` (搜尋: "${searchKeyword}")`}
@@ -1051,7 +1080,11 @@ const Creator = () => {
               {filteredKeywords.map((item) => (
                 <div
                   key={item.id}
-                  className="flex flex-col md:flex-row gap-4 p-4 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors"
+                  className={`flex flex-col md:flex-row gap-4 p-4 rounded-lg transition-colors ${
+                    isExpired(item)
+                      ? 'bg-red-50/50 dark:bg-red-950/20 border border-red-200/50 dark:border-red-800/50 hover:bg-red-50/70 dark:hover:bg-red-950/30'
+                      : 'bg-muted/30 hover:bg-muted/50'
+                  }`}
                 >
                   {editingKeywordId === item.id ? (
                     <div className="flex-1">
@@ -1063,7 +1096,7 @@ const Creator = () => {
                       <div className="flex flex-col lg:flex-row lg:items-center gap-6 flex-1">
                         {/* 左：主要資訊區 */}
                         <div className="flex-1 min-w-0 space-y-2">
-                          {/* 關鍵字 + 狀態點 */}
+                          {/* 關鍵字 + 狀態點 + 過期Badge */}
                           <div className="flex items-center gap-2">
                             {(() => {
                               const status = getKeywordStatus(item);
@@ -1077,6 +1110,11 @@ const Creator = () => {
                               );
                             })()}
                             <p className="text-2xl font-bold text-accent truncate">{item.keyword}</p>
+                            {isExpired(item) && (
+                              <Badge variant="destructive" className="shrink-0">
+                                已過期
+                              </Badge>
+                            )}
                           </div>
                           
                           {/* 回覆內容（截斷） */}
@@ -1128,6 +1166,13 @@ const Creator = () => {
                               <div className="text-xs text-muted-foreground mt-1">剩餘</div>
                             </div>
                           </div>
+                          
+                          {/* 倒數計時器 - 桌面版 */}
+                          {item.expires_at && !isExpired(item) && (
+                            <div className="hidden lg:block mt-3">
+                              <CountdownTimer expiresAt={item.expires_at} />
+                            </div>
+                          )}
                         </div>
 
                         {/* 右：操作區 */}
@@ -1137,6 +1182,10 @@ const Creator = () => {
                             size="default"
                             className="bg-green-500 hover:bg-green-600 text-white gap-2"
                             onClick={() => {
+                              if (isExpired(item)) {
+                                toast.error("⚠️ 此資料包已過期，無法使用");
+                                return;
+                              }
                               const url = item.short_code
                                 ? `${window.location.origin}/${item.short_code}`
                                 : `${window.location.origin}/box/${item.id}`;
@@ -1175,6 +1224,9 @@ const Creator = () => {
                             size="default"
                             className="bg-slate-700 hover:bg-slate-600 text-white gap-2"
                             onClick={() => {
+                              if (isExpired(item)) {
+                                toast.warning("⚠️ 此資料包已過期");
+                              }
                               const url = item.short_code
                                 ? `${window.location.origin}/${item.short_code}`
                                 : `${window.location.origin}/box/${item.id}`;
@@ -1224,10 +1276,17 @@ const Creator = () => {
                       <div className="flex-1 space-y-3 min-w-0">
                         {/* 上半部分：2x2 網格 */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {/* 關鍵字 */}
+                          {/* 關鍵字 + 過期Badge */}
                           <div>
                             <p className="text-xs text-muted-foreground mb-1">關鍵字</p>
-                            <p className="text-lg font-bold text-accent">{item.keyword}</p>
+                            <div className="flex items-center gap-2">
+                              <p className="text-lg font-bold text-accent">{item.keyword}</p>
+                              {isExpired(item) && (
+                                <Badge variant="destructive" className="shrink-0">
+                                  已過期
+                                </Badge>
+                              )}
+                            </div>
                           </div>
                           
                           {/* 回覆內容 */}
@@ -1267,6 +1326,10 @@ const Creator = () => {
                             size="sm"
                             className="bg-green-500 hover:bg-green-600 text-white"
                             onClick={() => {
+                              if (isExpired(item)) {
+                                toast.error("⚠️ 此資料包已過期，無法使用");
+                                return;
+                              }
                               const url = item.short_code
                                 ? `${window.location.origin}/${item.short_code}`
                                 : `${window.location.origin}/box/${item.id}`;
@@ -1290,6 +1353,9 @@ const Creator = () => {
                             size="sm"
                             variant="outline"
                             onClick={() => {
+                              if (isExpired(item)) {
+                                toast.warning("⚠️ 此資料包已過期");
+                              }
                               const url = item.short_code
                                 ? `${window.location.origin}/${item.short_code}`
                                 : `${window.location.origin}/box/${item.id}`;
