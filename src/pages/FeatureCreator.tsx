@@ -198,21 +198,21 @@ const FeatureCreator = () => {
       <section className="py-16 bg-white dark:bg-slate-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <Card className="text-center bg-gradient-to-br from-green-500/10 to-green-600/5 border-green-500/20">
+            <Card className="text-center bg-[#EEF5FF] shadow-lg shadow-purple-200/30">
               <CardContent className="pt-6">
                 <Package className="w-12 h-12 text-green-600 mx-auto mb-4" />
                 <div className="text-4xl font-bold text-green-600 mb-2">500+</div>
                 <p className="text-slate-600">創作者正在使用</p>
               </CardContent>
             </Card>
-            <Card className="text-center bg-gradient-to-br from-blue-500/10 to-blue-600/5 border-blue-500/20">
+            <Card className="text-center bg-[#EEF5FF] shadow-lg shadow-yellow-200/50">
               <CardContent className="pt-6">
                 <Users className="w-12 h-12 text-blue-600 mx-auto mb-4" />
                 <div className="text-4xl font-bold text-blue-600 mb-2">10K+</div>
                 <p className="text-slate-600">資料包已分發</p>
               </CardContent>
             </Card>
-            <Card className="text-center bg-gradient-to-br from-green-500/10 to-green-600/5 border-green-500/20">
+            <Card className="text-center bg-[#EEF5FF] shadow-lg shadow-purple-200/30">
               <CardContent className="pt-6">
                 <TrendingUp className="w-12 h-12 text-green-600 mx-auto mb-4" />
                 <div className="text-4xl font-bold text-green-600 mb-2">300%</div>
@@ -277,7 +277,7 @@ const FeatureCreator = () => {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {features.map((feature, index) => (
-              <Card key={index} className="hover:shadow-lg transition-shadow duration-300">
+              <Card key={index} className="bg-slate-50 shadow-md shadow-yellow-200/50 hover:shadow-lg hover:shadow-yellow-200/60 transition-shadow duration-300">
                 <CardContent className="p-6">
                   <div className="mb-4">{feature.icon}</div>
                   <h3 className="text-lg font-semibold mb-2 text-slate-700">{feature.title}</h3>
@@ -298,7 +298,7 @@ const FeatureCreator = () => {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {useCases.map((useCase, index) => (
-              <Card key={index} className="hover:shadow-lg transition-shadow duration-300">
+              <Card key={index} className="bg-[#EEF5FF] shadow-md shadow-purple-200/30 hover:shadow-lg hover:shadow-purple-200/40 transition-shadow duration-300">
                 <CardContent className="p-6">
                   <div className="mb-4">{useCase.icon}</div>
                   <h3 className="text-xl font-semibold mb-2 text-slate-700">{useCase.title}</h3>
@@ -323,7 +323,7 @@ const FeatureCreator = () => {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {templates.map((template, index) => (
-              <Card key={index} className="hover:shadow-lg transition-all duration-300 hover:scale-105">
+              <Card key={index} className="bg-slate-50 shadow-md shadow-yellow-200/50 hover:shadow-lg hover:shadow-yellow-200/60 transition-all duration-300 hover:scale-105">
                 <CardContent className="p-4">
                   <div className="aspect-square bg-[#EEF5FF] rounded-lg mb-4 flex items-center justify-center border border-blue-200">
                     <span className="text-4xl">🎨</span>
@@ -349,7 +349,7 @@ const FeatureCreator = () => {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12">
             {/* Free Plan */}
-            <Card className="relative">
+            <Card className="relative bg-slate-50 shadow-md shadow-purple-200/30">
               <CardHeader>
                 <div className="text-center">
                   <h3 className="text-2xl font-bold text-slate-700">🆓 免費版</h3>
@@ -373,7 +373,7 @@ const FeatureCreator = () => {
             </Card>
 
             {/* Standard Plan */}
-            <Card className="relative border-2 border-green-500">
+            <Card className="relative border-2 border-green-500 bg-[#EEF5FF] shadow-lg shadow-yellow-200/50">
               <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
                 <Badge className="bg-green-500 text-white">最受歡迎</Badge>
               </div>
@@ -401,7 +401,7 @@ const FeatureCreator = () => {
             </Card>
 
             {/* Professional Plan */}
-            <Card className="relative">
+            <Card className="relative bg-slate-50 shadow-md shadow-purple-200/30">
               <CardHeader>
                 <div className="text-center">
                   <h3 className="text-2xl font-bold text-slate-700">💎 專業版</h3>
@@ -441,7 +441,7 @@ const FeatureCreator = () => {
             <p className="text-xl text-slate-600">真實用戶的成功故事</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <Card className="p-6">
+            <Card className="p-6 bg-[#EEF5FF] shadow-md shadow-yellow-200/50">
               <CardContent className="p-0">
                 <div className="flex mb-4">
                   {[1,2,3,4,5].map((star) => (
@@ -462,7 +462,7 @@ const FeatureCreator = () => {
                 </div>
               </CardContent>
             </Card>
-            <Card className="p-6">
+            <Card className="p-6 bg-[#EEF5FF] shadow-md shadow-purple-200/30">
               <CardContent className="p-0">
                 <div className="flex mb-4">
                   {[1,2,3,4,5].map((star) => (
@@ -483,7 +483,7 @@ const FeatureCreator = () => {
                 </div>
               </CardContent>
             </Card>
-            <Card className="p-6">
+            <Card className="p-6 bg-[#EEF5FF] shadow-md shadow-yellow-200/50">
               <CardContent className="p-0">
                 <div className="flex mb-4">
                   {[1,2,3,4,5].map((star) => (
@@ -517,7 +517,7 @@ const FeatureCreator = () => {
           </div>
           <div className="space-y-4">
             {faqs.map((faq, index) => (
-              <Card key={index} className="cursor-pointer" onClick={() => setOpenFaq(openFaq === index ? null : index)}>
+              <Card key={index} className="cursor-pointer bg-slate-50 shadow-md shadow-purple-200/30 hover:shadow-lg hover:shadow-purple-200/40 transition-shadow" onClick={() => setOpenFaq(openFaq === index ? null : index)}>
                 <CardContent className="p-6">
                   <div className="flex justify-between items-center">
                     <h3 className="font-semibold text-lg text-slate-700">{faq.question}</h3>
