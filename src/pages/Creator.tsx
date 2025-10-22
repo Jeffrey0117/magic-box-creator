@@ -1111,7 +1111,7 @@ const Creator = () => {
                   key={item.id}
                   className={`flex flex-col md:flex-row gap-4 p-4 rounded-lg transition-colors ${
                     isExpired(item)
-                      ? 'bg-red-50/50 dark:bg-red-950/20 border border-red-200/50 dark:border-red-800/50 hover:bg-red-50/70 dark:hover:bg-red-950/30'
+                      ? 'bg-slate-100/60 dark:bg-slate-900/30 text-muted-foreground border border-dashed border-slate-300 dark:border-slate-700 hover:bg-slate-100/80 dark:hover:bg-slate-900/40'
                       : 'bg-muted/30 hover:bg-muted/50'
                   }`}
                 >
@@ -1138,9 +1138,9 @@ const Creator = () => {
                                 <span className={`w-2 h-2 rounded-full ${statusColors[status]} shrink-0`} />
                               );
                             })()}
-                            <p className="text-2xl font-bold text-accent truncate">{item.keyword}</p>
+                            <p className={`text-2xl font-bold truncate ${isExpired(item) ? 'text-muted-foreground' : 'text-accent'}`}>{item.keyword}</p>
                             {isExpired(item) && (
-                              <Badge variant="destructive" className="shrink-0">
+                              <Badge variant="secondary" className="shrink-0 bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border border-dashed">
                                 已過期
                               </Badge>
                             )}
@@ -1172,24 +1172,48 @@ const Creator = () => {
                         <div className="flex-shrink-0 lg:w-80">
                           <div className="grid grid-cols-3 gap-3">
                             {/* 總領取 - 藍色 */}
-                            <div className="text-center p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
-                              <div className="text-lg font-bold text-blue-600 dark:text-blue-400">
+                            <div className={`text-center p-3 rounded-lg ${
+                              isExpired(item)
+                                ? 'bg-slate-200/40 border-slate-300/40 text-slate-600 dark:bg-slate-800/30 dark:border-slate-700/40 dark:text-slate-300 border-dashed'
+                                : 'bg-blue-500/10 border border-blue-500/20'
+                            }`}>
+                              <div className={`text-lg font-bold ${
+                                isExpired(item)
+                                  ? 'text-slate-600 dark:text-slate-400'
+                                  : 'text-blue-600 dark:text-blue-400'
+                              }`}>
                                 {item.email_count || 0}
                               </div>
                               <div className="text-xs text-muted-foreground mt-1">總領取</div>
                             </div>
 
                             {/* 今日新增 - 綠色 */}
-                            <div className="text-center p-3 rounded-lg bg-green-500/10 border border-green-500/20">
-                              <div className="text-lg font-bold text-green-600 dark:text-green-400">
+                            <div className={`text-center p-3 rounded-lg ${
+                              isExpired(item)
+                                ? 'bg-slate-200/40 border-slate-300/40 text-slate-600 dark:bg-slate-800/30 dark:border-slate-700/40 dark:text-slate-300 border-dashed'
+                                : 'bg-green-500/10 border border-green-500/20'
+                            }`}>
+                              <div className={`text-lg font-bold ${
+                                isExpired(item)
+                                  ? 'text-slate-600 dark:text-slate-400'
+                                  : 'text-green-600 dark:text-green-400'
+                              }`}>
                                 +{item.today_count || 0}
                               </div>
                               <div className="text-xs text-muted-foreground mt-1">今日</div>
                             </div>
 
                             {/* 剩餘配額 - 黃色 */}
-                            <div className="text-center p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
-                              <div className="text-lg font-bold text-yellow-600 dark:text-yellow-400">
+                            <div className={`text-center p-3 rounded-lg ${
+                              isExpired(item)
+                                ? 'bg-slate-200/40 border-slate-300/40 text-slate-600 dark:bg-slate-800/30 dark:border-slate-700/40 dark:text-slate-300 border-dashed'
+                                : 'bg-yellow-500/10 border border-yellow-500/20'
+                            }`}>
+                              <div className={`text-lg font-bold ${
+                                isExpired(item)
+                                  ? 'text-slate-600 dark:text-slate-400'
+                                  : 'text-yellow-600 dark:text-yellow-400'
+                              }`}>
                                 {item.quota ? item.quota - (item.email_count || 0) : '∞'}
                               </div>
                               <div className="text-xs text-muted-foreground mt-1">剩餘</div>
@@ -1312,9 +1336,9 @@ const Creator = () => {
                           <div>
                             <p className="text-xs text-muted-foreground mb-1">關鍵字</p>
                             <div className="flex items-center gap-2">
-                              <p className="text-lg font-bold text-accent">{item.keyword}</p>
+                              <p className={`text-lg font-bold ${isExpired(item) ? 'text-muted-foreground' : 'text-accent'}`}>{item.keyword}</p>
                               {isExpired(item) && (
-                                <Badge variant="destructive" className="shrink-0">
+                                <Badge variant="secondary" className="shrink-0 bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border border-dashed">
                                   已過期
                                 </Badge>
                               )}
@@ -1347,7 +1371,11 @@ const Creator = () => {
                       <div className="space-y-2 min-w-0 md:min-w-[300px]">
                         <p className="text-xs text-muted-foreground">專屬連結</p>
                         <div className="flex gap-2 flex-wrap">
-                          <code className="text-xs bg-muted px-2 py-1 rounded flex-1 min-w-0 truncate">
+                          <code className={`text-xs px-2 py-1 rounded flex-1 min-w-0 truncate ${
+                            isExpired(item)
+                              ? 'text-slate-500 dark:text-slate-400 border border-dashed border-slate-300 dark:border-slate-700'
+                              : 'bg-muted'
+                          }`}>
                             {item.short_code
                               ? `${window.location.origin}/${item.short_code}`
                               : `${window.location.origin}/box/${item.id}`}
