@@ -175,14 +175,14 @@ const FeatureCreator = () => {
               <Button
                 size="lg"
                 onClick={() => navigate("/login")}
-                className="bg-gradient-to-r from-green-400 to-emerald-500 hover:from-green-500 hover:to-emerald-600 text-white font-semibold px-8 py-4 text-lg shadow-lg transform hover:scale-105 transition-all duration-200"
+                className="bg-green-100 hover:bg-green-200 text-green-700 font-semibold px-8 py-4 text-lg shadow-md transform hover:scale-105 transition-all duration-200"
               >
                 免費開始使用 <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
               <Button
                 variant="outline"
                 size="lg"
-                className="border-slate-300 text-slate-700 hover:bg-slate-50 px-8 py-4 text-lg"
+                className="border-slate-300 text-slate-500 hover:bg-slate-50 hover:text-slate-700 px-8 py-4 text-lg"
               >
                 觀看 3 分鐘介紹 <Video className="ml-2 w-5 h-5" />
               </Button>
