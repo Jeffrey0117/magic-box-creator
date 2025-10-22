@@ -1111,7 +1111,7 @@ const Creator = () => {
                   key={item.id}
                   className={`flex flex-col md:flex-row gap-4 p-4 rounded-lg transition-colors ${
                     isExpired(item)
-                      ? 'bg-slate-100/60 dark:bg-slate-900/30 text-muted-foreground border border-dashed border-slate-300 dark:border-slate-700 hover:bg-slate-100/80 dark:hover:bg-slate-900/40'
+                      ? 'border border-dashed border-slate-300 dark:border-slate-700 hover:bg-muted/50'
                       : 'bg-muted/30 hover:bg-muted/50'
                   }`}
                 >
@@ -1140,9 +1140,9 @@ const Creator = () => {
                             })()}
                             <p className={`text-2xl font-bold truncate ${isExpired(item) ? 'text-muted-foreground' : 'text-accent'}`}>{item.keyword}</p>
                             {isExpired(item) && (
-                              <Badge variant="secondary" className="shrink-0 bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border border-dashed">
-                                已過期
-                              </Badge>
+                              <Badge variant="destructive" className="shrink-0 bg-red-500 text-white dark:bg-red-600 dark:text-white">
+                                   已過期
+                                 </Badge>
                             )}
                           </div>
                           
@@ -1254,7 +1254,7 @@ const Creator = () => {
                             size="default"
                             className="bg-blue-500 hover:bg-blue-600 text-white gap-2"
                             onClick={() => {
-                              navigator.clipboard.writeText(item.content);
+                              navigator.clipboard.writeText(`使用${item.keyword}關鍵字領取`);
                               toast.success("文案已複製！");
                             }}
                           >
@@ -1338,9 +1338,9 @@ const Creator = () => {
                             <div className="flex items-center gap-2">
                               <p className={`text-lg font-bold ${isExpired(item) ? 'text-muted-foreground' : 'text-accent'}`}>{item.keyword}</p>
                               {isExpired(item) && (
-                                <Badge variant="secondary" className="shrink-0 bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border border-dashed">
-                                  已過期
-                                </Badge>
+                                <Badge variant="destructive" className="shrink-0 bg-red-500 text-white dark:bg-red-600 dark:text-white">
+                                    已過期
+                                  </Badge>
                               )}
                             </div>
                           </div>
@@ -1403,7 +1403,7 @@ const Creator = () => {
                             size="sm"
                             variant="outline"
                             onClick={() => {
-                              navigator.clipboard.writeText(item.content);
+                              navigator.clipboard.writeText(`使用${item.keyword}關鍵字領取`);
                               toast.success("文案已複製！");
                             }}
                           >
