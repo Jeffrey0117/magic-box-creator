@@ -151,10 +151,9 @@ const FeatureCreator = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800">
+    <div className="min-h-screen bg-white dark:from-slate-900 dark:to-slate-800">
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-green-600 via-teal-600 to-emerald-700 text-white">
-        <div className="absolute inset-0 bg-black/20"></div>
+      <section className="relative overflow-hidden bg-white">
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-32">
           <div className="text-center space-y-8">
             <div className="flex justify-center mb-6">
@@ -162,14 +161,14 @@ const FeatureCreator = () => {
                 <Key className="w-16 h-16 text-green-400" />
               </div>
             </div>
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold leading-tight">
-              <span className="bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold leading-tight text-slate-700">
+              <span className="text-green-500">
                 KeyBox
               </span>
               <br />
               讓你的內容創造真正價值
             </h1>
-            <p className="text-xl md:text-2xl text-blue-100 max-w-4xl mx-auto leading-relaxed">
+            <p className="text-xl md:text-2xl text-slate-600 max-w-4xl mx-auto leading-relaxed">
               用關鍵字解鎖機制，輕鬆建立專屬資料包，收集潛在客戶，提升內容變現效率
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-8">
@@ -180,15 +179,15 @@ const FeatureCreator = () => {
               >
                 免費開始使用 <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 size="lg"
-                className="border-white/30 text-white hover:bg-white/10 px-8 py-4 text-lg backdrop-blur-sm"
+                className="border-slate-300 text-slate-700 hover:bg-slate-50 px-8 py-4 text-lg"
               >
                 觀看 3 分鐘介紹 <Video className="ml-2 w-5 h-5" />
               </Button>
             </div>
-            <p className="text-sm text-blue-200">
+            <p className="text-sm text-slate-600">
               免費試用 • 無需信用卡 • 隨時取消
             </p>
           </div>
@@ -203,21 +202,21 @@ const FeatureCreator = () => {
               <CardContent className="pt-6">
                 <Package className="w-12 h-12 text-green-600 mx-auto mb-4" />
                 <div className="text-4xl font-bold text-green-600 mb-2">500+</div>
-                <p className="text-muted-foreground">創作者正在使用</p>
+                <p className="text-slate-600">創作者正在使用</p>
               </CardContent>
             </Card>
             <Card className="text-center bg-gradient-to-br from-blue-500/10 to-blue-600/5 border-blue-500/20">
               <CardContent className="pt-6">
                 <Users className="w-12 h-12 text-blue-600 mx-auto mb-4" />
                 <div className="text-4xl font-bold text-blue-600 mb-2">10K+</div>
-                <p className="text-muted-foreground">資料包已分發</p>
+                <p className="text-slate-600">資料包已分發</p>
               </CardContent>
             </Card>
             <Card className="text-center bg-gradient-to-br from-green-500/10 to-green-600/5 border-green-500/20">
               <CardContent className="pt-6">
                 <TrendingUp className="w-12 h-12 text-green-600 mx-auto mb-4" />
                 <div className="text-4xl font-bold text-green-600 mb-2">300%</div>
-                <p className="text-muted-foreground">平均提升轉換率</p>
+                <p className="text-slate-600">平均提升轉換率</p>
               </CardContent>
             </Card>
           </div>
@@ -225,19 +224,19 @@ const FeatureCreator = () => {
       </section>
 
       {/* Process Section */}
-      <section className="py-20 bg-slate-50 dark:bg-slate-800">
+      <section className="py-20 bg-white dark:bg-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">簡單三步驟，開始你的內容變現之旅</h2>
-            <p className="text-xl text-muted-foreground">從創建到成長，KeyBox 讓一切變得簡單</p>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-slate-700">簡單三步驟，開始你的內容變現之旅</h2>
+            <p className="text-xl text-slate-600">從創建到成長，KeyBox 讓一切變得簡單</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="text-center">
               <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6">
                 <Sparkles className="w-10 h-10 text-white" />
               </div>
-              <h3 className="text-2xl font-semibold mb-4">🎨 建立</h3>
-              <ul className="space-y-2 text-muted-foreground">
+              <h3 className="text-2xl font-semibold mb-4 text-green-500">🎨 建立</h3>
+              <ul className="space-y-2 text-slate-600">
                 <li>• 選擇精美模板</li>
                 <li>• 設定關鍵字與內容</li>
                 <li>• 客製化樣式與欄位</li>
@@ -247,8 +246,8 @@ const FeatureCreator = () => {
               <div className="w-20 h-20 bg-gradient-to-br from-teal-500 to-cyan-500 rounded-full flex items-center justify-center mx-auto mb-6">
                 <Rocket className="w-10 h-10 text-white" />
               </div>
-              <h3 className="text-2xl font-semibold mb-4">🚀 分享</h3>
-              <ul className="space-y-2 text-muted-foreground">
+              <h3 className="text-2xl font-semibold mb-4 text-green-500">🚀 分享</h3>
+              <ul className="space-y-2 text-slate-600">
                 <li>• 一鍵生成專屬連結</li>
                 <li>• 多平台輕鬆分享</li>
                 <li>• 即時追蹤點擊狀況</li>
@@ -258,8 +257,8 @@ const FeatureCreator = () => {
               <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-teal-500 rounded-full flex items-center justify-center mx-auto mb-6">
                 <TrendingUp className="w-10 h-10 text-white" />
               </div>
-              <h3 className="text-2xl font-semibold mb-4">📊 成長</h3>
-              <ul className="space-y-2 text-muted-foreground">
+              <h3 className="text-2xl font-semibold mb-4 text-green-500">📊 成長</h3>
+              <ul className="space-y-2 text-slate-600">
                 <li>• 收集潛在客戶資料</li>
                 <li>• 分析用戶行為數據</li>
                 <li>• 優化內容策略</li>
@@ -273,16 +272,16 @@ const FeatureCreator = () => {
       <section className="py-20 bg-white dark:bg-slate-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">強大功能，滿足所有需求</h2>
-            <p className="text-xl text-muted-foreground">從模板選擇到數據分析，一站式解決方案</p>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-slate-700">強大功能，滿足所有需求</h2>
+            <p className="text-xl text-slate-600">從模板選擇到數據分析，一站式解決方案</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {features.map((feature, index) => (
               <Card key={index} className="hover:shadow-lg transition-shadow duration-300">
                 <CardContent className="p-6">
                   <div className="mb-4">{feature.icon}</div>
-                  <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>
-                  <p className="text-sm text-muted-foreground">{feature.description}</p>
+                  <h3 className="text-lg font-semibold mb-2 text-slate-700">{feature.title}</h3>
+                  <p className="text-sm text-slate-600">{feature.description}</p>
                 </CardContent>
               </Card>
             ))}
@@ -291,22 +290,22 @@ const FeatureCreator = () => {
       </section>
 
       {/* Use Cases */}
-      <section className="py-20 bg-slate-50 dark:bg-slate-800">
+      <section className="py-20 bg-white dark:bg-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">誰在使用 KeyBox？</h2>
-            <p className="text-xl text-muted-foreground">各行各業的創作者都在用 KeyBox 提升內容價值</p>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-slate-700">誰在使用 KeyBox？</h2>
+            <p className="text-xl text-slate-600">各行各業的創作者都在用 KeyBox 提升內容價值</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {useCases.map((useCase, index) => (
               <Card key={index} className="hover:shadow-lg transition-shadow duration-300">
                 <CardContent className="p-6">
                   <div className="mb-4">{useCase.icon}</div>
-                  <h3 className="text-xl font-semibold mb-2">{useCase.title}</h3>
-                  <p className="text-muted-foreground mb-4">{useCase.description}</p>
+                  <h3 className="text-xl font-semibold mb-2 text-slate-700">{useCase.title}</h3>
+                  <p className="text-slate-600 mb-4">{useCase.description}</p>
                   <div className="text-sm">
-                    <span className="font-medium text-accent">使用案例：</span>
-                    <span className="text-muted-foreground">{useCase.examples}</span>
+                    <span className="font-medium text-green-500">使用案例：</span>
+                    <span className="text-slate-600">{useCase.examples}</span>
                   </div>
                 </CardContent>
               </Card>
@@ -319,8 +318,8 @@ const FeatureCreator = () => {
       <section className="py-20 bg-white dark:bg-slate-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">精美模板，隨心選擇</h2>
-            <p className="text-xl text-muted-foreground">8+ 專業設計模板，適應各種使用場景</p>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-slate-700">精美模板，隨心選擇</h2>
+            <p className="text-xl text-slate-600">8+ 專業設計模板，適應各種使用場景</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {templates.map((template, index) => (
@@ -330,10 +329,10 @@ const FeatureCreator = () => {
                     <span className="text-4xl">🎨</span>
                   </div>
                   <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-semibold">{template.name}</h3>
+                    <h3 className="font-semibold text-slate-700">{template.name}</h3>
                     <Badge variant="secondary" className="text-xs">{template.tag}</Badge>
                   </div>
-                  <p className="text-sm text-muted-foreground">{template.description}</p>
+                  <p className="text-sm text-slate-600">{template.description}</p>
                 </CardContent>
               </Card>
             ))}
@@ -342,22 +341,22 @@ const FeatureCreator = () => {
       </section>
 
       {/* Pricing */}
-      <section className="py-20 bg-slate-50 dark:bg-slate-800">
+      <section className="py-20 bg-white dark:bg-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">選擇適合你的方案</h2>
-            <p className="text-xl text-muted-foreground">從個人創作者到企業團隊，我們都有完美方案</p>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-slate-700">選擇適合你的方案</h2>
+            <p className="text-xl text-slate-600">從個人創作者到企業團隊，我們都有完美方案</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12">
             {/* Free Plan */}
             <Card className="relative">
               <CardHeader>
                 <div className="text-center">
-                  <h3 className="text-2xl font-bold">🆓 免費版</h3>
+                  <h3 className="text-2xl font-bold text-slate-700">🆓 免費版</h3>
                   <div className="mt-4">
-                    <span className="text-4xl font-bold">免費</span>
+                    <span className="text-4xl font-bold text-slate-700">免費</span>
                   </div>
-                  <p className="text-muted-foreground mt-2">適合初學者試用</p>
+                  <p className="text-slate-600 mt-2">適合初學者試用</p>
                 </div>
               </CardHeader>
               <CardContent>
@@ -380,12 +379,12 @@ const FeatureCreator = () => {
               </div>
               <CardHeader>
                 <div className="text-center">
-                  <h3 className="text-2xl font-bold">⭐ 標準版</h3>
+                  <h3 className="text-2xl font-bold text-slate-700">⭐ 標準版</h3>
                   <div className="mt-4">
-                    <span className="text-4xl font-bold">$29</span>
-                    <span className="text-muted-foreground">/月</span>
+                    <span className="text-4xl font-bold text-green-500">$29</span>
+                    <span className="text-slate-600">/月</span>
                   </div>
-                  <p className="text-muted-foreground mt-2">適合專業創作者</p>
+                  <p className="text-slate-600 mt-2">適合專業創作者</p>
                 </div>
               </CardHeader>
               <CardContent>
@@ -405,12 +404,12 @@ const FeatureCreator = () => {
             <Card className="relative">
               <CardHeader>
                 <div className="text-center">
-                  <h3 className="text-2xl font-bold">💎 專業版</h3>
+                  <h3 className="text-2xl font-bold text-slate-700">💎 專業版</h3>
                   <div className="mt-4">
-                    <span className="text-4xl font-bold">$99</span>
-                    <span className="text-muted-foreground">/月</span>
+                    <span className="text-4xl font-bold text-slate-700">$99</span>
+                    <span className="text-slate-600">/月</span>
                   </div>
-                  <p className="text-muted-foreground mt-2">適合企業團隊</p>
+                  <p className="text-slate-600 mt-2">適合企業團隊</p>
                 </div>
               </CardHeader>
               <CardContent>
@@ -427,7 +426,7 @@ const FeatureCreator = () => {
             </Card>
           </div>
           <div className="text-center mt-8">
-            <p className="text-muted-foreground">
+            <p className="text-slate-600">
               <strong>企業版</strong>：客製化需求，請聯繫我們獲取專屬方案
             </p>
           </div>
@@ -438,8 +437,8 @@ const FeatureCreator = () => {
       <section className="py-20 bg-white dark:bg-slate-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">用戶怎麼說</h2>
-            <p className="text-xl text-muted-foreground">真實用戶的成功故事</p>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-slate-700">用戶怎麼說</h2>
+            <p className="text-xl text-slate-600">真實用戶的成功故事</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <Card className="p-6">
@@ -449,7 +448,7 @@ const FeatureCreator = () => {
                     <Star key={star} className="w-5 h-5 fill-green-400 text-green-400" />
                   ))}
                 </div>
-                <p className="text-muted-foreground mb-4">
+                <p className="text-slate-600 mb-4">
                   "KeyBox 讓我的 YouTube 頻道訂閱數在三個月內成長了 200%，關鍵字解鎖機制真的很有趣！"
                 </p>
                 <div className="flex items-center">
@@ -457,8 +456,8 @@ const FeatureCreator = () => {
                     張
                   </div>
                   <div>
-                    <p className="font-semibold">張小明</p>
-                    <p className="text-sm text-muted-foreground">科技 YouTuber</p>
+                    <p className="font-semibold text-slate-700">張小明</p>
+                    <p className="text-sm text-slate-600">科技 YouTuber</p>
                   </div>
                 </div>
               </CardContent>
@@ -470,7 +469,7 @@ const FeatureCreator = () => {
                     <Star key={star} className="w-5 h-5 fill-green-400 text-green-400" />
                   ))}
                 </div>
-                <p className="text-muted-foreground mb-4">
+                <p className="text-slate-600 mb-4">
                   "透過 KeyBox，我成功建立了 5000+ 的精準讀者名單，轉換率比其他方式高出 3 倍！"
                 </p>
                 <div className="flex items-center">
@@ -478,8 +477,8 @@ const FeatureCreator = () => {
                     李
                   </div>
                   <div>
-                    <p className="font-semibold">李美華</p>
-                    <p className="text-sm text-muted-foreground">部落格作家</p>
+                    <p className="font-semibold text-slate-700">李美華</p>
+                    <p className="text-sm text-slate-600">部落格作家</p>
                   </div>
                 </div>
               </CardContent>
@@ -491,7 +490,7 @@ const FeatureCreator = () => {
                     <Star key={star} className="w-5 h-5 fill-green-400 text-green-400" />
                   ))}
                 </div>
-                <p className="text-muted-foreground mb-4">
+                <p className="text-slate-600 mb-4">
                   "課程資源分發變得超級簡單，學員滿意度大幅提升，後台數據分析也很實用！"
                 </p>
                 <div className="flex items-center">
@@ -499,8 +498,8 @@ const FeatureCreator = () => {
                     王
                   </div>
                   <div>
-                    <p className="font-semibold">王教授</p>
-                    <p className="text-sm text-muted-foreground">線上教育講師</p>
+                    <p className="font-semibold text-slate-700">王教授</p>
+                    <p className="text-sm text-slate-600">線上教育講師</p>
                   </div>
                 </div>
               </CardContent>
@@ -510,22 +509,22 @@ const FeatureCreator = () => {
       </section>
 
       {/* FAQ */}
-      <section className="py-20 bg-slate-50 dark:bg-slate-800">
+      <section className="py-20 bg-white dark:bg-slate-800">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">常見問題</h2>
-            <p className="text-xl text-muted-foreground">快速解答你的疑問</p>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-slate-700">常見問題</h2>
+            <p className="text-xl text-slate-600">快速解答你的疑問</p>
           </div>
           <div className="space-y-4">
             {faqs.map((faq, index) => (
               <Card key={index} className="cursor-pointer" onClick={() => setOpenFaq(openFaq === index ? null : index)}>
                 <CardContent className="p-6">
                   <div className="flex justify-between items-center">
-                    <h3 className="font-semibold text-lg">{faq.question}</h3>
+                    <h3 className="font-semibold text-lg text-slate-700">{faq.question}</h3>
                     <ChevronDown className={`w-5 h-5 transition-transform ${openFaq === index ? 'transform rotate-180' : ''}`} />
                   </div>
                   {openFaq === index && (
-                    <p className="mt-4 text-muted-foreground">{faq.answer}</p>
+                    <p className="mt-4 text-slate-600">{faq.answer}</p>
                   )}
                 </CardContent>
               </Card>
@@ -535,27 +534,27 @@ const FeatureCreator = () => {
       </section>
 
       {/* Final CTA */}
-      <section className="py-20 bg-gradient-to-r from-green-600 to-emerald-600 text-white">
+      <section className="py-20 bg-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">準備開始了嗎？</h2>
-          <p className="text-xl mb-8">加入 500+ 創作者的行列，讓你的內容創造更大價值</p>
+          <h2 className="text-3xl md:text-4xl font-bold mb-4 text-green-500">準備開始了嗎？</h2>
+          <p className="text-xl mb-8 text-slate-600">加入 500+ 創作者的行列，讓你的內容創造更大價值</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Button
               size="lg"
               onClick={() => navigate("/login")}
-              className="bg-white text-green-600 hover:bg-gray-100 px-8 py-4 text-lg font-semibold shadow-lg"
+              className="bg-gradient-to-r from-green-400 to-emerald-500 hover:from-green-500 hover:to-emerald-600 text-white px-8 py-4 text-lg font-semibold shadow-lg"
             >
               免費註冊 KeyBox <Heart className="ml-2 w-5 h-5" />
             </Button>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               size="lg"
-              className="border-white/30 text-white hover:bg-white/10 px-8 py-4 text-lg"
+              className="border-slate-300 text-slate-700 hover:bg-slate-50 px-8 py-4 text-lg"
             >
               預約產品演示
             </Button>
           </div>
-          <p className="text-sm text-blue-200 mt-4">
+          <p className="text-sm text-slate-600 mt-4">
             免費試用 • 無需信用卡 • 隨時取消
           </p>
         </div>
