@@ -561,14 +561,14 @@ const FeatureCreator = () => {
       </section>
 
       {/* Footer */}
-      <footer className="py-12 bg-slate-900 text-slate-300">
+      <footer className="py-12 bg-[#EEF5FF] text-slate-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <div className="flex justify-center items-center mb-4">
               <Key className="w-8 h-8 text-green-400 mr-2" />
-              <span className="text-2xl font-bold text-white">KeyBox</span>
+              <span className="text-2xl font-bold text-slate-700">KeyBox</span>
             </div>
-            <p className="text-slate-400 mb-6">用關鍵字解鎖無限可能</p>
+            <p className="text-slate-600 mb-6">用關鍵字解鎖無限可能</p>
             <div className="flex justify-center space-x-6 mb-6">
               <Button variant="ghost" size="sm" onClick={() => navigate("/help")}>
                 使用說明
@@ -580,7 +580,7 @@ const FeatureCreator = () => {
                 聯繫我們
               </Button>
             </div>
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-slate-600">
               © 2024 KeyBox. All rights reserved.
             </p>
           </div>
