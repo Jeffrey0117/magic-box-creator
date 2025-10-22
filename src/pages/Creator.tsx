@@ -1840,7 +1840,8 @@ const Creator = () => {
                   </DialogContent>
                 </Dialog>
               </div>
-              {editImageUrls.map((url, index) => (
+            </div>
+            {editImageUrls.map((url, index) => (
                 <div key={index} className="flex gap-2">
                   <Input
                     type="url"
