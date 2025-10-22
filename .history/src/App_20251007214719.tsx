@@ -8,7 +8,6 @@ import Index from "./pages/Index";
 import Box from "./pages/Box";
 import Login from "./pages/Login";
 import Creator from "./pages/Creator";
-import FeatureCreator from "./pages/FeatureCreator";
 import NotFound from "./pages/NotFound";
 import Privacy from "./pages/Privacy";
 import Help from "./pages/Help";
@@ -39,7 +38,6 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/login" element={<Login />} />
           <Route path="/creator" element={<Creator />} />
-          <Route path="/feature-creator" element={<FeatureCreator />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/admin/packages/:packageId" element={<PackageDetail />} />
           <Route path="/ui-preview" element={<UIPreview />} />

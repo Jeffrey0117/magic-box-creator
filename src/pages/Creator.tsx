@@ -99,6 +99,7 @@ const Creator = () => {
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'warning' | 'exhausted'>('all');
   const [expiryFilter, setExpiryFilter] = useState<'all' | 'active' | 'expired'>('all');
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
+  const [openRecordsDialog, setOpenRecordsDialog] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -1213,7 +1214,10 @@ const Creator = () => {
                           <Button
                             size="default"
                             className="bg-orange-500 hover:bg-orange-600 text-white gap-2"
-                            onClick={() => fetchEmailLogs(item.id)}
+                            onClick={() => {
+                              fetchEmailLogs(item.id);
+                              setOpenRecordsDialog(true);
+                            }}
                           >
                             <History className="w-4 h-4" />
                             查看記錄
@@ -1367,7 +1371,10 @@ const Creator = () => {
                           <Button
                             size="sm"
                             className="bg-accent hover:bg-accent/90 text-accent-foreground"
-                            onClick={() => fetchEmailLogs(item.id)}
+                            onClick={() => {
+                              fetchEmailLogs(item.id);
+                              setOpenRecordsDialog(true);
+                            }}
                           >
                             📋 查看領取記錄
                           </Button>
@@ -1400,23 +1407,13 @@ const Creator = () => {
             </div>
           )}
 
-          {selectedKeywordId && emailLogs.length > 0 && (
-            <div className="mt-6 p-4 bg-muted/30 rounded-lg">
-              <div className="flex flex-col gap-3 mb-3">
-                <div className="flex justify-between items-center">
-                  <h3 className="font-semibold">領取記錄 ({emailLogs.length})</h3>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => {
-                      setSelectedKeywordId(null);
-                      setEmailLogs([]);
-                    }}
-                    className="shrink-0"
-                  >
-                    關閉
-                  </Button>
-                </div>
+          {/* 領取記錄弹窗 */}
+          <Dialog open={openRecordsDialog} onOpenChange={setOpenRecordsDialog}>
+            <DialogContent className="max-w-3xl max-h-[80vh] overflow-hidden flex flex-col">
+              <DialogHeader>
+                <DialogTitle>領取記錄 ({emailLogs.length})</DialogTitle>
+              </DialogHeader>
+              <div className="flex flex-col gap-3 flex-1 overflow-hidden">
                 <div className="flex flex-col sm:flex-row gap-2">
                   <Button
                     size="sm"
@@ -1443,42 +1440,54 @@ const Creator = () => {
                     匯出 CSV
                   </Button>
                 </div>
-              </div>
-              <div className="space-y-2 max-h-60 overflow-y-auto">
-                {emailLogs.map((log) => (
-                  <div key={log.id} className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 text-xs md:text-sm p-2 bg-background rounded">
-                    <div className="flex-1 min-w-0">
-                      <span className="font-medium truncate block">{log.email}</span>
-                      <span className="text-muted-foreground text-xs">
-                        {new Date(log.unlocked_at).toLocaleString('zh-TW')}
-                      </span>
+                <div className="space-y-2 overflow-y-auto flex-1 pr-2">
+                  {emailLogs.map((log) => (
+                    <div key={log.id} className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 text-xs md:text-sm p-2 bg-muted/30 rounded">
+                      <div className="flex-1 min-w-0">
+                        <span className="font-medium truncate block">{log.email}</span>
+                        <span className="text-muted-foreground text-xs">
+                          {new Date(log.unlocked_at).toLocaleString('zh-TW')}
+                        </span>
+                      </div>
+                      <div className="flex gap-2 shrink-0">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            navigator.clipboard.writeText(log.email);
+                            toast.success("Email 已複製！");
+                          }}
+                          className="text-accent hover:text-accent/80"
+                        >
+                          複製
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleDeleteEmailLog(log.id, log.email)}
+                          className="text-destructive hover:text-destructive/80"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
+                      </div>
                     </div>
-                    <div className="flex gap-2 shrink-0">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => {
-                          navigator.clipboard.writeText(log.email);
-                          toast.success("Email 已複製！");
-                        }}
-                        className="text-accent hover:text-accent/80"
-                      >
-                        複製
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => handleDeleteEmailLog(log.id, log.email)}
-                        className="text-destructive hover:text-destructive/80"
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
+                <div className="flex justify-end pt-3 border-t">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setOpenRecordsDialog(false);
+                      setSelectedKeywordId(null);
+                      setEmailLogs([]);
+                    }}
+                  >
+                    關閉
+                  </Button>
+                </div>
               </div>
-            </div>
-          )}
+            </DialogContent>
+          </Dialog>
 
           <div className="mt-8 pt-6 border-t border-border">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
