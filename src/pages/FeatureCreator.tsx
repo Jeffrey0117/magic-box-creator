@@ -325,7 +325,7 @@ const FeatureCreator = () => {
             {templates.map((template, index) => (
               <Card key={index} className="hover:shadow-lg transition-all duration-300 hover:scale-105">
                 <CardContent className="p-4">
-                  <div className="aspect-square bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 rounded-lg mb-4 flex items-center justify-center">
+                  <div className="aspect-square bg-[#EEF5FF] rounded-lg mb-4 flex items-center justify-center border border-blue-200">
                     <span className="text-4xl">🎨</span>
                   </div>
                   <div className="flex items-center justify-between mb-2">
