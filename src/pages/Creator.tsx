@@ -1293,7 +1293,7 @@ const Creator = () => {
                               size="sm"
                               variant="ghost"
                               className="flex-1"
-                              onClick={() => navigate(`/admin/packages/${item.short_code || item.id}`)}
+                              onClick={() => window.open(`/admin/packages/${item.short_code || item.id}`, '_blank')}
                               title="進階分析"
                             >
                               <BarChart3 className="w-4 h-4" />

@@ -631,7 +631,7 @@ export default function Admin() {
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => window.open(`/admin/packages/${kw.short_code}`, '_blank')}
+                                onClick={() => navigate(`/admin/packages/${kw.short_code}`)}
                               >
                                 查看詳情
                               </Button>
