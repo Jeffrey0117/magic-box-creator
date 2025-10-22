@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -948,23 +949,49 @@ const Creator = () => {
               <div className="space-y-2">
                 <div className="flex items-center justify-between mb-2">
                   <label className="text-sm font-medium">📷 資料包圖片（最多 5 張）</label>
-                  <Dialog open={showBatchImageDialog && !isEditMode} onOpenChange={(open) => {
-                    if (!isEditMode) setShowBatchImageDialog(open);
-                  }}>
-                    <DialogTrigger asChild>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          setIsEditMode(false);
-                          setShowBatchImageDialog(true);
-                        }}
-                        className="gap-2"
-                      >
-                        📋 批量貼入
-                      </Button>
-                    </DialogTrigger>
+                  <div className="flex gap-2">
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          size="sm"
+                        >
+                          上傳圖片
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>是否前往圖鴨上傳？</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            我們會在新分頁開啟 duk.tw。請完成上傳後，複製圖片連結並貼回「資料包圖片」欄位。
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>取消</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => window.open('https://duk.tw/u', '_blank')}>
+                            前往圖鴨
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                    <Dialog open={showBatchImageDialog && !isEditMode} onOpenChange={(open) => {
+                      if (!isEditMode) setShowBatchImageDialog(open);
+                    }}>
+                      <DialogTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setIsEditMode(false);
+                            setShowBatchImageDialog(true);
+                          }}
+                          className="gap-2"
+                        >
+                          📋 批量貼入
+                        </Button>
+                      </DialogTrigger>
                     <DialogContent>
                       <DialogHeader>
                         <DialogTitle>批量貼入圖片 URL</DialogTitle>
@@ -995,6 +1022,7 @@ const Creator = () => {
                       </div>
                     </DialogContent>
                   </Dialog>
+                  </div>
                 </div>
                 {newImageUrls.map((url, index) => (
                   <div key={index} className="flex gap-2">
@@ -1738,23 +1766,49 @@ const Creator = () => {
             <div className="space-y-2">
               <div className="flex items-center justify-between mb-2">
                 <label className="text-sm font-medium">📷 資料包圖片（最多 5 張）</label>
-                <Dialog open={showBatchImageDialog && isEditMode} onOpenChange={(open) => {
-                  if (isEditMode) setShowBatchImageDialog(open);
-                }}>
-                  <DialogTrigger asChild>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setIsEditMode(true);
-                        setShowBatchImageDialog(true);
-                      }}
-                      className="gap-2"
-                    >
-                      📋 批量貼入
-                    </Button>
-                  </DialogTrigger>
+                <div className="flex gap-2">
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="sm"
+                      >
+                        上傳圖片
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>是否前往圖鴨上傳？</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          我們會在新分頁開啟 duk.tw。請完成上傳後，複製圖片連結並貼回「資料包圖片」欄位。
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>取消</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => window.open('https://duk.tw/u', '_blank')}>
+                          前往圖鴨
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                  <Dialog open={showBatchImageDialog && isEditMode} onOpenChange={(open) => {
+                    if (isEditMode) setShowBatchImageDialog(open);
+                  }}>
+                    <DialogTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setIsEditMode(true);
+                          setShowBatchImageDialog(true);
+                        }}
+                        className="gap-2"
+                      >
+                        📋 批量貼入
+                      </Button>
+                    </DialogTrigger>
                   <DialogContent>
                     <DialogHeader>
                       <DialogTitle>批量貼入圖片 URL</DialogTitle>
