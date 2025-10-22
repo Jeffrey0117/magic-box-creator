@@ -616,7 +616,8 @@ export default function Admin() {
                                         />
                                       ))}
                                     </div>
-                                    <div className="flex justify-end gap-2">
+
+                                    <div className="flex justify-end gap-2 mt-4">
                                       <Button variant="outline" onClick={() => setEditingKeyword(null)}>
                                         取消
                                       </Button>

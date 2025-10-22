@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Trash2, Plus, LogOut, Download, Edit, ClipboardList, User, Eye, Package, Users, TrendingUp, BarChart3, FileText, History, LayoutGrid, List } from "lucide-react";
@@ -13,6 +14,7 @@ import { generateUniqueShortCode } from "@/lib/shortcode";
 import { ProfileEditDialog } from "@/components/ProfileEditDialog";
 import { TemplateSelector } from "@/components/TemplateSelector";
 import { Tables } from "@/integrations/supabase/types";
+import { getTemplateComponent } from "@/components/templates/registry";
 
 interface Keyword {
   id: string;
@@ -1052,230 +1054,9 @@ const Creator = () => {
                   className="flex flex-col md:flex-row gap-4 p-4 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors"
                 >
                   {editingKeywordId === item.id ? (
-                    <form onSubmit={handleUpdateKeyword} className="flex-1 space-y-3">
-                      <Input
-                        placeholder="關鍵字"
-                        value={editKeyword}
-                        onChange={(e) => setEditKeyword(e.target.value)}
-                        required
-                        className="h-10"
-                      />
-                      <Textarea
-                        placeholder="回覆內容"
-                        value={editContent}
-                        onChange={(e) => setEditContent(e.target.value)}
-                        required
-                        className="min-h-[100px]"
-                      />
-                      <Input
-                        type="number"
-                        placeholder="限額數量（留空=無限制）"
-                        value={editQuota}
-                        onChange={(e) => setEditQuota(e.target.value)}
-                        min="1"
-                        className="h-10"
-                      />
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="checkbox"
-                            checked={editEnableExpiry}
-                            onChange={(e) => setEditEnableExpiry(e.target.checked)}
-                            className="w-4 h-4"
-                          />
-                          <span className="text-sm">啟用限時領取</span>
-                        </div>
-                        {editEnableExpiry && (
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <Input
-                              type="text"
-                              inputMode="numeric"
-                              value={editExpiryDays}
-                              onChange={(e) => setEditExpiryDays(e.target.value.replace(/\D/g, ''))}
-                              placeholder="0"
-                              className="w-16 h-10"
-                            />
-                            <span className="text-sm">天</span>
-                            <Input
-                              type="text"
-                              inputMode="numeric"
-                              value={editExpiryHours}
-                              onChange={(e) => {
-                                const val = e.target.value.replace(/\D/g, '');
-                                setEditExpiryHours(val ? val.padStart(2, '0') : '');
-                              }}
-                              placeholder="00"
-                              maxLength={2}
-                              className="w-16 h-10"
-                            />
-                            <span className="text-sm">小時</span>
-                            <Input
-                              type="text"
-                              inputMode="numeric"
-                              value={editExpiryMinutes}
-                              onChange={(e) => {
-                                const val = e.target.value.replace(/\D/g, '');
-                                const num = parseInt(val || '0');
-                                if (num <= 59) {
-                                  setEditExpiryMinutes(val ? val.padStart(2, '0') : '');
-                                }
-                              }}
-                              placeholder="00"
-                              maxLength={2}
-                              className="w-16 h-10"
-                            />
-                            <span className="text-sm">分鐘後失效</span>
-                          </div>
-                        )}
-                      <div className="space-y-3">
-                        <div>
-                          <Label>📦 資料包標題（選填）</Label>
-                          <Input
-                            value={editPackageTitle}
-                            onChange={(e) => setEditPackageTitle(e.target.value)}
-                            placeholder="例如：🎨 設計師專屬資源包"
-                            maxLength={50}
-                            className="h-10 mt-1"
-                          />
-                          <p className="text-xs text-muted-foreground mt-1">
-                            顯示在資料包頁面頂部，最多 50 字
-                          </p>
-                        </div>
-                        <div>
-                          <Label>📝 資料包介紹（選填）</Label>
-                          <Textarea
-                            value={editPackageDescription}
-                            onChange={(e) => setEditPackageDescription(e.target.value)}
-                            placeholder="介紹這個資料包的內容、適合誰使用..."
-                            rows={3}
-                            maxLength={300}
-                            className="mt-1"
-                          />
-                          <p className="text-xs text-muted-foreground mt-1">
-                            顯示在資料包圖片上方，最多 300 字
-                          </p>
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <Label>📝 要求領取者填寫（選填）</Label>
-                        <label className="flex items-center gap-2">
-                          <input
-                            type="checkbox"
-                            checked={editRequiredFields.nickname}
-                            onChange={(e) => setEditRequiredFields({ nickname: e.target.checked })}
-                            className="w-4 h-4"
-                          />
-                          <span className="text-sm">稱呼 / 暱稱</span>
-                        </label>
-                        <p className="text-xs text-muted-foreground">
-                          勾選後,領取者需填寫稱呼才能解鎖
-                        </p>
-                      </div>
-                      <div className="space-y-3">
-                        <label className="text-sm font-medium">🎨 頁面模板</label>
-                        <TemplateSelector
-                          currentTemplate={editTemplateType}
-                          onSelect={setEditTemplateType}
-                          packageShortCode={item.short_code}
-                        />
-                      </div>
-                      </div>
-                       <div className="space-y-2">
-                        <div className="flex items-center justify-between mb-2">
-                          <label className="text-sm font-medium">📷 資料包圖片（最多 5 張）</label>
-                          <Dialog open={showBatchImageDialog && isEditMode} onOpenChange={(open) => {
-                            if (isEditMode) setShowBatchImageDialog(open);
-                          }}>
-                            <DialogTrigger asChild>
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={() => {
-                                  setIsEditMode(true);
-                                  setShowBatchImageDialog(true);
-                                }}
-                                className="gap-2"
-                              >
-                                📋 批量貼入
-                              </Button>
-                            </DialogTrigger>
-                            <DialogContent>
-                              <DialogHeader>
-                                <DialogTitle>批量貼入圖片 URL</DialogTitle>
-                              </DialogHeader>
-                              <div className="space-y-4">
-                                <Label htmlFor="batch-images-edit">每行一個 URL（最多 5 個）</Label>
-                                <Textarea
-                                  id="batch-images-edit"
-                                  placeholder="https://example.com/image1.jpg&#10;https://example.com/image2.jpg&#10;https://example.com/image3.jpg"
-                                  value={batchImageInput}
-                                  onChange={(e) => setBatchImageInput(e.target.value)}
-                                  rows={8}
-                                />
-                                <div className="flex justify-end gap-2">
-                                  <Button
-                                    variant="outline"
-                                    onClick={() => {
-                                      setShowBatchImageDialog(false);
-                                      setBatchImageInput('');
-                                    }}
-                                  >
-                                    取消
-                                  </Button>
-                                  <Button onClick={handleBatchImagePaste}>
-                                    確定匯入
-                                  </Button>
-                                </div>
-                              </div>
-                            </DialogContent>
-                          </Dialog>
-                        </div>
-                        {editImageUrls.map((url, index) => (
-                          <div key={index} className="flex gap-2">
-                            <Input
-                              type="url"
-                              value={url}
-                              onChange={(e) => {
-                                const updated = [...editImageUrls];
-                                updated[index] = e.target.value;
-                                setEditImageUrls(updated);
-                              }}
-                              placeholder={`圖片 ${index + 1} URL`}
-                              className="h-10"
-                            />
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => setEditImageUrls(editImageUrls.filter((_, i) => i !== index))}
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        ))}
-                        {editImageUrls.length < 5 && (
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setEditImageUrls([...editImageUrls, ''])}
-                            className="gap-2"
-                          >
-                            <Plus className="w-4 h-4" />
-                            新增圖片
-                          </Button>
-                        )}
-                      </div>
-                      <div className="flex gap-2">
-                        <Button type="submit" size="sm" className="gradient-magic">
-                          儲存
-                        </Button>
-                        <Button type="button" size="sm" variant="ghost" onClick={cancelEdit}>
-                          取消
-                        </Button>
-                      </div>
-                    </form>
+                    <div className="flex-1">
+                      <p className="text-sm text-muted-foreground">編輯模式已啟用，請在右側面板中編輯</p>
+                    </div>
                   ) : viewMode === 'card' ? (
                     <>
                       {/* 卡片模式：三欄式布局 */}
@@ -1656,6 +1437,335 @@ const Creator = () => {
           </div>
         </div>
       </div>
+      {/* 側邊編輯面板 */}
+      <Sheet open={!!editingKeywordId} onOpenChange={(open) => !open && cancelEdit()}>
+        <SheetContent side="right" className="w-full sm:max-w-[90vw] md:max-w-[80vw] lg:max-w-[70vw] p-0 overflow-hidden">
+          <div className="flex h-full">
+            {/* 左側：完整頁面預覽區 */}
+            <div className="w-2/5 bg-muted/30 overflow-y-auto border-r">
+              <SheetHeader className="p-6 pb-4 sticky top-0 bg-muted/30 backdrop-blur-sm z-10 border-b">
+                <SheetTitle className="text-sm text-muted-foreground">即時預覽</SheetTitle>
+              </SheetHeader>
+              <div className="relative">
+                {/* 模糊遮罩層 */}
+                <div className="absolute inset-0 z-10 pointer-events-none">
+                  <div className="w-full h-full backdrop-blur-[2px]"></div>
+                </div>
+                {/* 完整模板預覽 */}
+                <div className="pointer-events-none select-none scale-90 origin-top">
+                  <Suspense fallback={
+                    <div className="flex items-center justify-center min-h-screen">
+                      <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                    </div>
+                  }>
+                    {(() => {
+                      // 準備模擬的 boxData
+                      const previewBoxData = {
+                        id: 'preview-id',
+                        keyword: editKeyword || 'preview',
+                        created_at: new Date().toISOString(),
+                        quota: editQuota ? parseInt(editQuota) : null,
+                        current_count: 0,
+                        expires_at: editEnableExpiry && (editExpiryDays || editExpiryHours || editExpiryMinutes)
+                          ? new Date(Date.now() + (parseInt(editExpiryDays || "0") * 24 * 60 + parseInt(editExpiryHours || "0") * 60 + parseInt(editExpiryMinutes || "0")) * 60 * 1000).toISOString()
+                          : null,
+                        creator_id: userId,
+                        images: editImageUrls.filter(url => url.trim()) || null,
+                        package_title: editPackageTitle || null,
+                        package_description: editPackageDescription || null,
+                        required_fields: editRequiredFields,
+                        short_code: 'preview',
+                        template_type: editTemplateType,
+                      };
+
+                      // 載入對應的模板元件
+                      const TemplateComponent = getTemplateComponent(editTemplateType);
+
+                      // 準備傳給模板的 props
+                      const templateProps = {
+                        boxData: previewBoxData,
+                        keyword: '',
+                        setKeyword: () => {},
+                        email: '',
+                        setEmail: () => {},
+                        extraData: { nickname: '' },
+                        setExtraData: () => {},
+                        onUnlock: (e: React.FormEvent) => { e.preventDefault(); },
+                        onReset: () => {},
+                        loading: false,
+                        result: null,
+                        currentCount: 0,
+                        waitlistCount: 0,
+                        isLoggedIn: false,
+                        isCreatorPreview: false,
+                      };
+
+                      return <TemplateComponent {...templateProps} />;
+                    })()}
+                  </Suspense>
+                </div>
+                {/* 提示文字 */}
+                <div className="absolute bottom-4 left-0 right-0 text-center z-20 pointer-events-none">
+                  <div className="inline-block bg-background/90 backdrop-blur-sm px-4 py-2 rounded-full border shadow-lg">
+                    <p className="text-xs text-muted-foreground">
+                      ℹ️ 即時預覽模式 - 修改右側表單即可看到效果
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 右側：編輯表單區 */}
+            <div className="w-3/5 overflow-y-auto">
+              <SheetHeader className="px-6 pt-6 pb-4">
+                <SheetTitle>編輯關鍵字</SheetTitle>
+              </SheetHeader>
+              <form onSubmit={handleUpdateKeyword} className="px-6 pb-6 space-y-4">
+            <div>
+              <Label>關鍵字</Label>
+              <Input
+                value={editKeyword}
+                onChange={(e) => setEditKeyword(e.target.value)}
+                required
+                className="h-10 mt-1"
+              />
+            </div>
+
+            <div>
+              <Label>回覆內容</Label>
+              <Textarea
+                value={editContent}
+                onChange={(e) => setEditContent(e.target.value)}
+                required
+                className="min-h-[120px] resize-y mt-1"
+              />
+            </div>
+
+            <div>
+              <Label>限額數量（留空=無限制）</Label>
+              <Input
+                type="number"
+                value={editQuota}
+                onChange={(e) => setEditQuota(e.target.value)}
+                min="1"
+                className="h-10 mt-1"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={editEnableExpiry}
+                  onChange={(e) => setEditEnableExpiry(e.target.checked)}
+                  className="w-4 h-4"
+                />
+                <span className="text-sm">啟用限時領取</span>
+              </div>
+              {editEnableExpiry && (
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Input
+                    type="text"
+                    inputMode="numeric"
+                    value={editExpiryDays}
+                    onChange={(e) => setEditExpiryDays(e.target.value.replace(/\D/g, ''))}
+                    placeholder="0"
+                    className="w-16 h-10"
+                  />
+                  <span className="text-sm">天</span>
+                  <Input
+                    type="text"
+                    inputMode="numeric"
+                    value={editExpiryHours}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/\D/g, '');
+                      setEditExpiryHours(val ? val.padStart(2, '0') : '');
+                    }}
+                    placeholder="00"
+                    maxLength={2}
+                    className="w-16 h-10"
+                  />
+                  <span className="text-sm">小時</span>
+                  <Input
+                    type="text"
+                    inputMode="numeric"
+                    value={editExpiryMinutes}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/\D/g, '');
+                      const num = parseInt(val || '0');
+                      if (num <= 59) {
+                        setEditExpiryMinutes(val ? val.padStart(2, '0') : '');
+                      }
+                    }}
+                    placeholder="00"
+                    maxLength={2}
+                    className="w-16 h-10"
+                  />
+                  <span className="text-sm">分鐘後失效</span>
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <Label>📦 資料包標題（選填）</Label>
+                <Input
+                  value={editPackageTitle}
+                  onChange={(e) => setEditPackageTitle(e.target.value)}
+                  placeholder="例如：🎨 設計師專屬資源包"
+                  maxLength={50}
+                  className="h-10 mt-1"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  顯示在資料包頁面頂部，最多 50 字
+                </p>
+              </div>
+              <div>
+                <Label>📝 資料包介紹（選填）</Label>
+                <Textarea
+                  value={editPackageDescription}
+                  onChange={(e) => setEditPackageDescription(e.target.value)}
+                  placeholder="介紹這個資料包的內容、適合誰使用..."
+                  rows={3}
+                  maxLength={300}
+                  className="mt-1"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  顯示在資料包圖片上方，最多 300 字
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>📝 要求領取者填寫（選填）</Label>
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={editRequiredFields.nickname}
+                  onChange={(e) => setEditRequiredFields({ nickname: e.target.checked })}
+                  className="w-4 h-4"
+                />
+                <span className="text-sm">稱呼 / 暱稱</span>
+              </label>
+              <p className="text-xs text-muted-foreground">
+                勾選後,領取者需填寫稱呼才能解鎖
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              <label className="text-sm font-medium">🎨 頁面模板</label>
+              <TemplateSelector
+                currentTemplate={editTemplateType}
+                onSelect={setEditTemplateType}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-sm font-medium">📷 資料包圖片（最多 5 張）</label>
+                <Dialog open={showBatchImageDialog && isEditMode} onOpenChange={(open) => {
+                  if (isEditMode) setShowBatchImageDialog(open);
+                }}>
+                  <DialogTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setIsEditMode(true);
+                        setShowBatchImageDialog(true);
+                      }}
+                      className="gap-2"
+                    >
+                      📋 批量貼入
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>批量貼入圖片 URL</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <Label htmlFor="batch-images-edit">每行一個 URL（最多 5 個）</Label>
+                      <Textarea
+                        id="batch-images-edit"
+                        placeholder="https://example.com/image1.jpg&#10;https://example.com/image2.jpg&#10;https://example.com/image3.jpg"
+                        value={batchImageInput}
+                        onChange={(e) => setBatchImageInput(e.target.value)}
+                        rows={8}
+                      />
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            setShowBatchImageDialog(false);
+                            setBatchImageInput('');
+                          }}
+                        >
+                          取消
+                        </Button>
+                        <Button onClick={handleBatchImagePaste}>
+                          確定匯入
+                        </Button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </div>
+              {editImageUrls.map((url, index) => (
+                <div key={index} className="flex gap-2">
+                  <Input
+                    type="url"
+                    value={url}
+                    onChange={(e) => {
+                      const updated = [...editImageUrls];
+                      updated[index] = e.target.value;
+                      setEditImageUrls(updated);
+                    }}
+                    placeholder={`圖片 ${index + 1} URL`}
+                    className="h-10"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setEditImageUrls(editImageUrls.filter((_, i) => i !== index))}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              ))}
+              {editImageUrls.length < 5 && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setEditImageUrls([...editImageUrls, ''])}
+                  className="gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  新增圖片
+                </Button>
+              )}
+            </div>
+
+            <SheetFooter className="flex flex-col sm:flex-row gap-2 pt-4">
+              <Button type="submit" className="gradient-magic">
+                儲存變更
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={cancelEdit}
+              >
+                取消
+              </Button>
+            </SheetFooter>
+          </form>
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
+
     </div>
   );
 };
