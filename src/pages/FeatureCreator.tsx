@@ -205,14 +205,14 @@ const FeatureCreator = () => {
                 <p className="text-slate-600">創作者正在使用</p>
               </CardContent>
             </Card>
-            <Card className="text-center bg-[#EEF5FF] shadow-lg shadow-purple-200/40">
+            <Card className="text-center bg-[#EEF5FF] shadow-lg shadow-yellow-200/50">
               <CardContent className="pt-6">
                 <Users className="w-12 h-12 text-blue-600 mx-auto mb-4" />
                 <div className="text-4xl font-bold text-blue-600 mb-2">10K+</div>
                 <p className="text-slate-600">資料包已分發</p>
               </CardContent>
             </Card>
-            <Card className="text-center bg-[#EEF5FF] shadow-lg shadow-blue-200/40">
+            <Card className="text-center bg-[#EEF5FF] shadow-lg shadow-yellow-200/50">
               <CardContent className="pt-6">
                 <TrendingUp className="w-12 h-12 text-green-600 mx-auto mb-4" />
                 <div className="text-4xl font-bold text-green-600 mb-2">300%</div>
@@ -277,11 +277,7 @@ const FeatureCreator = () => {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {features.map((feature, index) => (
-              <Card key={index} className={`bg-slate-50 shadow-lg hover:shadow-xl transition-shadow duration-300 ${
-                index % 3 === 0 ? 'shadow-yellow-200/50 hover:shadow-yellow-200/60' :
-                index % 3 === 1 ? 'shadow-purple-200/40 hover:shadow-purple-200/50' :
-                'shadow-blue-200/40 hover:shadow-blue-200/50'
-              }`}>
+              <Card key={index} className="bg-slate-50 shadow-lg shadow-purple-200/40 hover:shadow-xl hover:shadow-purple-200/50 transition-shadow duration-300">
                 <CardContent className="p-6">
                   <div className="mb-4">{feature.icon}</div>
                   <h3 className="text-lg font-semibold mb-2 text-slate-700">{feature.title}</h3>
@@ -302,10 +298,7 @@ const FeatureCreator = () => {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {useCases.map((useCase, index) => (
-              <Card key={index} className={`bg-[#EEF5FF] shadow-lg hover:shadow-xl transition-shadow duration-300 ${
-                index % 2 === 0 ? 'shadow-purple-200/40 hover:shadow-purple-200/50' :
-                'shadow-yellow-200/50 hover:shadow-yellow-200/60'
-              }`}>
+              <Card key={index} className="bg-[#EEF5FF] shadow-lg shadow-blue-200/40 hover:shadow-xl hover:shadow-blue-200/50 transition-shadow duration-300">
                 <CardContent className="p-6">
                   <div className="mb-4">{useCase.icon}</div>
                   <h3 className="text-xl font-semibold mb-2 text-slate-700">{useCase.title}</h3>
@@ -330,11 +323,7 @@ const FeatureCreator = () => {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {templates.map((template, index) => (
-              <Card key={index} className={`bg-slate-50 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 ${
-                index % 3 === 0 ? 'shadow-yellow-200/50 hover:shadow-yellow-200/60' :
-                index % 3 === 1 ? 'shadow-blue-200/40 hover:shadow-blue-200/50' :
-                'shadow-purple-200/40 hover:shadow-purple-200/50'
-              }`}>
+              <Card key={index} className="bg-slate-50 shadow-lg shadow-yellow-200/50 hover:shadow-xl hover:shadow-yellow-200/60 transition-all duration-300 hover:scale-105">
                 <CardContent className="p-4">
                   <div className="aspect-square bg-[#EEF5FF] rounded-lg mb-4 flex items-center justify-center border border-blue-200">
                     <span className="text-4xl">🎨</span>
@@ -360,7 +349,7 @@ const FeatureCreator = () => {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12">
             {/* Free Plan */}
-            <Card className="relative bg-slate-50 shadow-lg shadow-blue-200/40">
+            <Card className="relative bg-slate-50 shadow-lg shadow-purple-200/40">
               <CardHeader>
                 <div className="text-center">
                   <h3 className="text-2xl font-bold text-slate-700">🆓 免費版</h3>
@@ -384,7 +373,7 @@ const FeatureCreator = () => {
             </Card>
 
             {/* Standard Plan */}
-            <Card className="relative border-2 border-green-500 bg-[#EEF5FF] shadow-xl shadow-yellow-200/60">
+            <Card className="relative border-2 border-green-500 bg-[#EEF5FF] shadow-xl shadow-purple-200/50">
               <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
                 <Badge className="bg-green-500 text-white">最受歡迎</Badge>
               </div>
@@ -452,7 +441,7 @@ const FeatureCreator = () => {
             <p className="text-xl text-slate-600">真實用戶的成功故事</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <Card className="p-6 bg-[#EEF5FF] shadow-lg shadow-yellow-200/50">
+            <Card className="p-6 bg-[#EEF5FF] shadow-lg shadow-blue-200/40">
               <CardContent className="p-0">
                 <div className="flex mb-4">
                   {[1,2,3,4,5].map((star) => (
@@ -473,7 +462,7 @@ const FeatureCreator = () => {
                 </div>
               </CardContent>
             </Card>
-            <Card className="p-6 bg-[#EEF5FF] shadow-lg shadow-purple-200/40">
+            <Card className="p-6 bg-[#EEF5FF] shadow-lg shadow-blue-200/40">
               <CardContent className="p-0">
                 <div className="flex mb-4">
                   {[1,2,3,4,5].map((star) => (
@@ -528,10 +517,7 @@ const FeatureCreator = () => {
           </div>
           <div className="space-y-4">
             {faqs.map((faq, index) => (
-              <Card key={index} className={`cursor-pointer bg-slate-50 shadow-lg hover:shadow-xl transition-shadow ${
-                index % 2 === 0 ? 'shadow-yellow-200/50 hover:shadow-yellow-200/60' :
-                'shadow-blue-200/40 hover:shadow-blue-200/50'
-              }`} onClick={() => setOpenFaq(openFaq === index ? null : index)}>
+              <Card key={index} className="cursor-pointer bg-slate-50 hover:shadow-md transition-shadow" onClick={() => setOpenFaq(openFaq === index ? null : index)}>
                 <CardContent className="p-6">
                   <div className="flex justify-between items-center">
                     <h3 className="font-semibold text-lg text-slate-700">{faq.question}</h3>
