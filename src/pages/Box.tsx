@@ -110,7 +110,7 @@ const Box = () => {
   };
 
   const fetchBoxData = async () => {
-    let query = supabase.from("keywords").select("id, keyword, created_at, quota, current_count, expires_at, creator_id, images, package_title, package_description, required_fields, short_code, template_type");
+    let query = supabase.from("keywords").select("id, keyword, created_at, quota, current_count, expires_at, creator_id, images, package_title, package_description, required_fields, short_code, template_type, hide_author_info, unlock_rule_enabled, unlock_rule_json");
     
     if (shortCode && !location.pathname.startsWith('/box/')) {
       query = query.eq("short_code", shortCode);
@@ -150,6 +150,7 @@ const Box = () => {
 
     try {
       let keywordData;
+      let matchedRule: any = null;
       
       if (id || shortCode) {
         let query = supabase.from("keywords").select("*");
@@ -169,10 +170,102 @@ const Box = () => {
           return;
         }
 
-        if (data.keyword !== keyword.toLowerCase().trim()) {
-          toast.error("❌ 關鍵字錯誤，請重新輸入");
-          setLoading(false);
-          return;
+        // 進階規則驗證（多關鍵字）
+        if (data.unlock_rule_enabled) {
+          const raw = keyword.trim();
+          const values = raw
+            .split(/[,\s]+/)
+            .map(v => v.toLowerCase().trim())
+            .filter(Boolean);
+ 
+          // 先讀取正規化資料表的規則，若無則回退至 JSON 欄位（向後相容）
+          let rules: any[] = [];
+          try {
+            const { data: tableRules } = await supabase
+              .from("unlock_rules")
+              .select("*")
+              .eq("package_id", data.id);
+
+            if (tableRules && tableRules.length > 0) {
+              rules = tableRules.map((r: any) => ({
+                id: r.id,
+                name: r.name,
+                keywords: r.keywords || [],
+                matchMode: r.match_mode,
+                quota: r.quota,
+                startAt: r.start_at,
+                endAt: r.end_at,
+                errorMessage: r.error_message,
+              }));
+            } else {
+              rules = (data.unlock_rule_json as any[]) || [];
+            }
+          } catch {
+            rules = (data.unlock_rule_json as any[]) || [];
+          }
+ 
+          const normalize = (arr: string[]) => arr.map(s => s.toLowerCase().trim()).filter(Boolean);
+          const isRuleActive = (rule: any) => {
+            const now = Date.now();
+            const start = rule.startAt ? new Date(rule.startAt).getTime() : null;
+            const end = rule.endAt ? new Date(rule.endAt).getTime() : null;
+            if (start && now < start) return false;
+            if (end && now > end) return false;
+            return true;
+          };
+ 
+          const matchRule = (rule: any) => {
+            const kws = normalize(rule.keywords || []);
+            if (kws.length === 0) return false;
+ 
+            const mode = (rule.matchMode || 'AND').toUpperCase();
+            if (mode === 'AND') {
+              return kws.every(k => values.includes(k));
+            }
+            if (mode === 'OR') {
+              return kws.some(k => values.includes(k));
+            }
+            if (mode === 'ORDER') {
+              // 必須完全相同順序匹配（忽略大小寫與空白）
+              const v = values.join('|');
+              const k = kws.join('|');
+              return v === k;
+            }
+            return false;
+          };
+ 
+          const activeRules = rules.filter(isRuleActive);
+          const hit = activeRules.find(matchRule);
+ 
+          if (!hit) {
+            const msg = rules.find(r => r?.errorMessage)?.errorMessage || "❌ 關鍵字組合不正確，請重新輸入";
+            toast.error(msg);
+            setLoading(false);
+            return;
+          }
+ 
+          // 規則級配額檢查（以 email_logs.extra_data.rule_id 統計）
+          if (hit?.quota != null) {
+            const { count: ruleCount } = await supabase
+              .from("email_logs")
+              .select("*", { count: "exact", head: true })
+              .eq("keyword_id", data.id)
+              .contains("extra_data", { rule_id: hit.id });
+            if ((ruleCount || 0) >= hit.quota) {
+              toast.error("❌ 此規則配額已用完");
+              setLoading(false);
+              return;
+            }
+          }
+ 
+          matchedRule = hit;
+        } else {
+          // 單一關鍵字驗證
+          if (data.keyword !== keyword.toLowerCase().trim()) {
+            toast.error("❌ 關鍵字錯誤，請重新輸入");
+            setLoading(false);
+            return;
+          }
         }
 
         keywordData = data;
@@ -204,6 +297,22 @@ const Box = () => {
         }
       }
 
+      // 防刷：簡易速率限制（10 秒內同一 email 對同一資料包最多 3 次）
+      try {
+        const sinceIso = new Date(Date.now() - 10 * 1000).toISOString();
+        const { count: recentCount } = await supabase
+          .from("email_logs")
+          .select("*", { count: "exact", head: true })
+          .eq("keyword_id", keywordData.id)
+          .eq("email", email.trim())
+          .gte("unlocked_at", sinceIso);
+        if ((recentCount || 0) >= 3) {
+          toast.error("⚠️ 操作過於頻繁，請稍後再試");
+          setLoading(false);
+          return;
+        }
+      } catch {}
+
       const { data: existingLog } = await supabase
         .from("email_logs")
         .select("id")
@@ -218,15 +327,21 @@ const Box = () => {
         const extraDataToSave: any = {};
         const requiredFields = keywordData.required_fields as any || {};
         if (requiredFields.nickname) extraDataToSave.nickname = extraData.nickname;
-
+        // 記錄此次提供的關鍵字與命中規則（若有）
+        extraDataToSave.provided_keywords = (keyword || '')
+          .split(/[,\s]+/)
+          .map(v => v.toLowerCase().trim())
+          .filter(Boolean);
+        if (matchedRule?.id) extraDataToSave.rule_id = matchedRule.id;
+ 
         const { error: logError } = await supabase.from("email_logs").insert({
           keyword_id: keywordData.id,
           email: email.trim(),
           extra_data: Object.keys(extraDataToSave).length > 0 ? extraDataToSave : null,
         });
-
+ 
         if (logError) throw logError;
-
+ 
         setResult(keywordData.content);
         toast.success("🔓 解鎖成功！");
       }

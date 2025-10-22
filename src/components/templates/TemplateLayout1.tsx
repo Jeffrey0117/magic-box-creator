@@ -67,7 +67,7 @@ const TemplateLayout1 = (props: BoxTemplateProps) => {
 
             {/* 創作者資訊 */}
             <div className="mt-auto w-full">
-              <CreatorCard creatorId={boxData?.creator_id} variant="light" />
+              {!boxData?.hide_author_info && <CreatorCard creatorId={boxData?.creator_id} variant="light" />}
             </div>
           </div>
 

@@ -29,6 +29,8 @@ interface Keyword {
   quota?: number | null;
   email_count?: number;
   today_count?: number;
+  unlock_rule_enabled?: boolean;
+  unlock_rule_json?: any;
 }
 
 interface EmailLog {
@@ -96,18 +98,74 @@ const Creator = () => {
   const [editRequiredFields, setEditRequiredFields] = useState({ nickname: false });
   const [newTemplateType, setNewTemplateType] = useState('default');
   const [editTemplateType, setEditTemplateType] = useState('default');
+  const [newHideAuthor, setNewHideAuthor] = useState(false);
+  const [editHideAuthor, setEditHideAuthor] = useState(false);
+  // 進階規則（簡化 UI）
+  const [newUnlockEnabled, setNewUnlockEnabled] = useState(false);
+  const [newUnlockKeywords, setNewUnlockKeywords] = useState('');
+  const [editUnlockEnabled, setEditUnlockEnabled] = useState(false);
+  const [editUnlockKeywords, setEditUnlockKeywords] = useState('');
   const [searchKeyword, setSearchKeyword] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'warning' | 'exhausted'>('all');
   const [expiryFilter, setExpiryFilter] = useState<'all' | 'active' | 'expired'>('all');
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
   const [openRecordsDialog, setOpenRecordsDialog] = useState(false);
+  // Schema probe flags（用於避免因未部署 migrations 造成 400/404）
+  const [hasUnlockRulesTable, setHasUnlockRulesTable] = useState<boolean | null>(null);
+  const [hasUnlockRuleColumns, setHasUnlockRuleColumns] = useState<boolean | null>(null);
+  const [hasHideAuthorInfo, setHasHideAuthorInfo] = useState<boolean | null>(null);
   const navigate = useNavigate();
 
+  // 啟動時探測資料表/欄位是否存在（驗證 migrations 是否已部署）
+  const probeSchema = async () => {
+    try {
+      const ur = await supabase.from('unlock_rules').select('id').limit(1);
+      if (ur.error) {
+        console.warn('🔎 probe unlock_rules 失敗（疑似 404 表不存在）:', ur.error);
+        setHasUnlockRulesTable(false);
+      } else {
+        setHasUnlockRulesTable(true);
+      }
+    } catch (e) {
+      console.warn('🔎 probe unlock_rules 例外:', e);
+      setHasUnlockRulesTable(false);
+    }
+
+    try {
+      const kw = await supabase.from('keywords').select('id, unlock_rule_json, unlock_rule_enabled').limit(1);
+      if (kw.error) {
+        console.warn('🔎 probe keywords.unlock_rule_* 欄位失敗（疑似未加欄位）:', kw.error);
+        setHasUnlockRuleColumns(false);
+      } else {
+        setHasUnlockRuleColumns(true);
+      }
+    } catch (e) {
+      console.warn('🔎 probe keywords.unlock_rule_* 欄位例外:', e);
+      setHasUnlockRuleColumns(false);
+    }
+
+    // 檢查 keywords.hide_author_info 欄位（避免 schema cache 未更新導致 400）
+    try {
+      const kw2 = await supabase.from('keywords').select('id, hide_author_info').limit(1);
+      if (kw2.error) {
+        console.warn('🔎 probe keywords.hide_author_info 欄位失敗（疑似未加欄位或 schema cache 未更新）:', kw2.error);
+        setHasHideAuthorInfo(false);
+      } else {
+        setHasHideAuthorInfo(true);
+      }
+    } catch (e) {
+      console.warn('🔎 probe keywords.hide_author_info 欄位例外:', e);
+      setHasHideAuthorInfo(false);
+    }
+  };
+ 
   useEffect(() => {
     checkAuth();
     fetchKeywords();
     fetchMyRecords();
     fetchUserProfile();
+    // 探測 schema 狀態
+    probeSchema();
   }, []);
 
   const checkAuth = async () => {
@@ -187,12 +245,27 @@ const Creator = () => {
     if (!session) return;
 
     const shortCode = await generateUniqueShortCode(supabase);
-
+ 
     const expiresAt = enableExpiry && (newExpiryDays || newExpiryHours || newExpiryMinutes)
       ? new Date(Date.now() + (parseInt(newExpiryDays || "0") * 24 * 60 + parseInt(newExpiryHours || "0") * 60 + parseInt(newExpiryMinutes || "0")) * 60 * 1000).toISOString()
       : null;
 
-    const { error } = await supabase.from("keywords").insert({
+    // 組裝進階規則（OR 模式，允許 1+ 關鍵字）
+    let parsedNewRules: any = null;
+    if (newUnlockEnabled) {
+      const kws = (newUnlockKeywords || '')
+        .split(',')
+        .map(s => s.trim())
+        .filter(s => s.length > 0);
+      parsedNewRules = [{
+        name: '多關鍵字規則',
+        keywords: kws,
+        matchMode: 'OR',
+      }];
+    }
+ 
+    // 動態組裝 payload，避免未部署欄位造成 400
+    const insertPayload: any = {
       keyword: newKeyword.toLowerCase().trim(),
       content: newContent,
       creator_id: session.user.id,
@@ -204,12 +277,52 @@ const Creator = () => {
       package_description: newPackageDescription.trim() || null,
       required_fields: newRequiredFields,
       template_type: newTemplateType,
-    });
+    };
+    // 僅在欄位存在時送出，避免 schema cache 未含此欄位導致 400
+    if (hasHideAuthorInfo === true) {
+      insertPayload.hide_author_info = newHideAuthor;
+    }
+    if (hasUnlockRuleColumns) {
+      insertPayload.unlock_rule_enabled = newUnlockEnabled;
+      insertPayload.unlock_rule_json = parsedNewRules;
+    }
+
+    const { data: inserted, error } = await supabase
+      .from("keywords")
+      .insert(insertPayload)
+      .select()
+      .single();
 
     if (error) {
       console.error("新增關鍵字失敗:", error);
       toast.error("新增失敗，請確認關鍵字是否重複");
     } else {
+      // 同步進新表（使用新表；同時保留 JSON 作為相容備援）
+      try {
+        if (newUnlockEnabled && inserted?.id && hasUnlockRulesTable) {
+          await supabase.from('unlock_rules').delete().eq('package_id', inserted.id);
+          const arr = Array.isArray(parsedNewRules) ? parsedNewRules : [];
+          if (arr.length > 0) {
+            const rows = arr.map((r: any) => ({
+              package_id: inserted.id,
+              name: r.name ?? null,
+              keywords: Array.isArray(r.keywords) ? r.keywords : [],
+              match_mode: 'OR',
+              quota: r.quota ?? null,
+              start_at: r.startAt ? new Date(r.startAt).toISOString() : null,
+              end_at: r.endAt ? new Date(r.endAt).toISOString() : null,
+              error_message: r.errorMessage ?? null,
+            }));
+            if (rows.length > 0) {
+              await supabase.from('unlock_rules').insert(rows);
+            }
+          }
+        } else if (newUnlockEnabled && inserted?.id && hasUnlockRulesTable === false) {
+          console.warn('🔧 unlock_rules 表不存在，跳過插入（使用 JSON 備援）');
+        }
+      } catch (e) {
+        console.warn('同步 unlock_rules 失敗（將使用 JSON 作為備援）:', e);
+      }
       toast.success("關鍵字已新增！");
       setNewKeyword("");
       setNewContent("");
@@ -223,6 +336,9 @@ const Creator = () => {
       setNewPackageDescription('');
       setNewRequiredFields({ nickname: false });
       setNewTemplateType('default');
+      setNewHideAuthor(false);
+      setNewUnlockEnabled(false);
+      setNewUnlockKeywords('');
       setShowAddForm(false);
       fetchKeywords();
     }
@@ -249,7 +365,7 @@ const Creator = () => {
     }
   };
 
-  const handleEdit = (item: any) => {
+  const handleEdit = async (item: any) => {
     setEditingKeywordId(item.id);
     setEditKeyword(item.keyword);
     setEditContent(item.content);
@@ -263,6 +379,33 @@ const Creator = () => {
         : { nickname: false }
     );
     setEditTemplateType(item.template_type || 'default');
+    setEditHideAuthor(!!item.hide_author_info);
+
+    // 設定簡化規則欄位（預設取舊 JSON 的第一組）
+    setEditUnlockEnabled(!!item.unlock_rule_enabled);
+    (() => {
+      const fromJson = Array.isArray(item.unlock_rule_json) ? item.unlock_rule_json : [];
+      if (fromJson && fromJson.length > 0) {
+        const r = fromJson[0];
+        setEditUnlockKeywords(Array.isArray(r.keywords) ? r.keywords.join(', ') : '');
+      } else {
+        setEditUnlockKeywords('');
+      }
+    })();
+
+    // 若新表有資料，優先以新表第一筆覆蓋（使用新表，並保留向後相容）
+    try {
+      const { data: ruleRows } = await supabase
+        .from('unlock_rules')
+        .select('*')
+        .eq('package_id', item.id);
+      if (ruleRows && ruleRows.length > 0) {
+        setEditUnlockEnabled(true);
+        const r = ruleRows[0];
+        const kws = Array.isArray(r.keywords) ? r.keywords : [];
+        setEditUnlockKeywords(kws.join(', '));
+      }
+    } catch {}
     
     if (item.expires_at) {
       setEditEnableExpiry(true);
@@ -298,25 +441,107 @@ const Creator = () => {
       expiresAt = new Date(Date.now() + totalMs).toISOString();
     }
 
+    // 組裝進階規則（OR 模式，允許 1+ 關鍵字）
+    let parsedEditRules: any = null;
+    let hasValidRule = false;
+    if (editUnlockEnabled) {
+      const kws = (editUnlockKeywords || '')
+        .split(',')
+        .map(s => s.trim().toLowerCase())
+        .filter(s => s.length > 0);
+      if (kws.length > 0) {
+        parsedEditRules = [{
+          name: '多關鍵字規則',
+          keywords: kws,
+          matchMode: 'OR',
+        }];
+        hasValidRule = true;
+      } else {
+        // 若啟用但沒有任何有效關鍵字，避免送出無效 JSON 造成 400
+        parsedEditRules = null;
+        hasValidRule = false;
+      }
+    }
+
+    // 動態組裝 payload，避免未部署欄位造成 400
+    const updatePayload: any = {
+      keyword: editKeyword.toLowerCase().trim(),
+      content: editContent,
+      quota: editQuota ? parseInt(editQuota) : null,
+      expires_at: expiresAt,
+      images: filterEmptyImages(editImageUrls),
+      package_title: editPackageTitle.trim() || null,
+      package_description: editPackageDescription.trim() || null,
+      required_fields: editRequiredFields,
+      template_type: editTemplateType,
+    };
+    // 僅在欄位存在時送出，避免 schema cache 未含此欄位導致 400
+    if (hasHideAuthorInfo === true) {
+      updatePayload.hide_author_info = editHideAuthor;
+    }
+    if (hasUnlockRuleColumns) {
+      if (editUnlockEnabled && hasValidRule && Array.isArray(parsedEditRules)) {
+        updatePayload.unlock_rule_enabled = true;
+        updatePayload.unlock_rule_json = parsedEditRules;
+      } else {
+        // 若未啟用或無有效規則，確保欄位為關閉狀態並清空 JSON，避免 400
+        updatePayload.unlock_rule_enabled = false;
+        updatePayload.unlock_rule_json = null;
+      }
+    }
+
+    // 送出前記錄 payload（偵錯 400 用）
+    try {
+      console.debug("🛰️ keywords.update payload:", JSON.stringify(updatePayload));
+    } catch {}
+
     const { error } = await supabase
       .from("keywords")
-      .update({
-        keyword: editKeyword.toLowerCase().trim(),
-        content: editContent,
-        quota: editQuota ? parseInt(editQuota) : null,
-        expires_at: expiresAt,
-        images: filterEmptyImages(editImageUrls),
-        package_title: editPackageTitle.trim() || null,
-        package_description: editPackageDescription.trim() || null,
-        required_fields: editRequiredFields,
-        template_type: editTemplateType,
-      })
+      .update(updatePayload)
       .eq("id", editingKeywordId);
 
     if (error) {
-      console.error("更新關鍵字失敗:", error);
+      // 補充更多錯誤訊息以定位 400 來源
+      console.error("更新關鍵字失敗:", {
+        message: (error as any)?.message,
+        details: (error as any)?.details,
+        hint: (error as any)?.hint,
+        code: (error as any)?.code,
+      });
       toast.error("更新失敗，請稍後再試");
     } else {
+      // 使用新表同步（若啟用），否則清空規則表資料以回退為停用狀態（向後相容保留 JSON）
+      try {
+        if (editingKeywordId) {
+          if (editUnlockEnabled && hasUnlockRulesTable) {
+            await supabase.from('unlock_rules').delete().eq('package_id', editingKeywordId);
+            const arr = Array.isArray(parsedEditRules) ? parsedEditRules : [];
+            if (arr.length > 0) {
+              const rows = arr.map((r: any) => ({
+                package_id: editingKeywordId,
+                name: r.name ?? null,
+                keywords: Array.isArray(r.keywords) ? r.keywords : [],
+                match_mode: 'OR',
+                quota: r.quota ?? null,
+                start_at: r.startAt ? new Date(r.startAt).toISOString() : null,
+                end_at: r.endAt ? new Date(r.endAt).toISOString() : null,
+                error_message: r.errorMessage ?? null,
+              }));
+              if (rows.length > 0) {
+                await supabase.from('unlock_rules').insert(rows);
+              }
+            }
+          } else if (editUnlockEnabled && hasUnlockRulesTable === false) {
+            console.warn('🔧 unlock_rules 表不存在（更新），跳過同步（使用 JSON 備援）');
+          } else if (hasUnlockRulesTable) {
+            // 停用規則時清理 unlock_rules（若表存在）
+            await supabase.from('unlock_rules').delete().eq('package_id', editingKeywordId);
+          }
+        }
+      } catch (e) {
+        console.warn('同步 unlock_rules（更新）失敗（將使用 JSON 作為備援）:', e);
+      }
+
       toast.success("更新成功！");
       setEditingKeywordId(null);
       setEditKeyword("");
@@ -331,6 +556,9 @@ const Creator = () => {
       setEditPackageDescription('');
       setEditRequiredFields({ nickname: false });
       setEditTemplateType('default');
+      setEditUnlockEnabled(false);
+      setEditUnlockKeywords('');
+      setEditHideAuthor(false);
       fetchKeywords();
     }
   };
@@ -367,6 +595,10 @@ const Creator = () => {
     setEditPackageDescription('');
     setEditRequiredFields({ nickname: false });
     setEditTemplateType('default');
+    // reset simplified unlock rule editor states
+    setEditUnlockEnabled(false);
+    setEditUnlockKeywords('');
+    setEditHideAuthor(false);
   };
 
   const fetchEmailLogs = async (keywordId: string) => {
@@ -938,12 +1170,65 @@ const Creator = () => {
                    勾選後,領取者需填寫稱呼才能解鎖
                  </p>
                </div>
+               <div className="space-y-2">
+                 <Label>👤 顯示設定</Label>
+                 <label className="flex items-center gap-2">
+                   <input
+                     type="checkbox"
+                     checked={newHideAuthor}
+                     onChange={(e) => setNewHideAuthor(e.target.checked)}
+                     className="w-4 h-4"
+                   />
+                   <span className="text-sm">隱藏作者資訊</span>
+                 </label>
+                 <p className="text-xs text-muted-foreground">
+                   啟用後，前台將不顯示創作者頭像、名稱與社群連結
+                 </p>
+               </div>
                <div className="space-y-3">
                  <label className="text-sm font-medium">🎨 頁面模板</label>
                  <TemplateSelector
                    currentTemplate={newTemplateType}
                    onSelect={setNewTemplateType}
                  />
+               </div>
+
+               {/* 進階規則（JSON 編輯器 - Phase 1 簡版） */}
+               <div className="space-y-2">
+                 <Label>🧩 進階規則（多關鍵字）</Label>
+                 {userProfile?.membership_tier === 'free' ? (
+                   <div className="p-3 rounded border bg-muted/30 text-sm">
+                     此功能為進階功能，請升級後使用。
+                   </div>
+                 ) : (
+                   <>
+                     <label className="flex items-center gap-2">
+                       <input
+                         type="checkbox"
+                         checked={newUnlockEnabled}
+                         onChange={(e) => setNewUnlockEnabled(e.target.checked)}
+                         className="w-4 h-4"
+                       />
+                       <span className="text-sm">啟用多關鍵字規則（OR 模式）</span>
+                     </label>
+                     {newUnlockEnabled && (
+                       <div className="space-y-3">
+                         <div>
+                           <Label>關鍵字列表（逗號分隔）</Label>
+                           <Textarea
+                             value={newUnlockKeywords}
+                             onChange={(e) => setNewUnlockKeywords(e.target.value)}
+                             rows={3}
+                             placeholder="alpha, beta, gamma"
+                           />
+                           <p className="text-xs text-muted-foreground mt-1">
+                             輸入 1 個或多個關鍵字，使用逗號分隔。任一符合即解鎖
+                           </p>
+                         </div>
+                       </div>
+                     )}
+                   </>
+                 )}
                </div>
                </div>
               <div className="space-y-2">
@@ -1081,6 +1366,10 @@ const Creator = () => {
                     setNewPackageDescription('');
                     setNewRequiredFields({ nickname: false });
                     setNewTemplateType('default');
+                    // reset simplified unlock rule editor states
+                    setNewUnlockEnabled(false);
+                    setNewUnlockKeywords('');
+                    setNewHideAuthor(false);
                   }}
                 >
                   取消
@@ -1615,6 +1904,7 @@ const Creator = () => {
                         required_fields: editRequiredFields,
                         short_code: 'preview',
                         template_type: editTemplateType,
+                        hide_author_info: editHideAuthor,
                       };
 
                       // 載入對應的模板元件
@@ -1790,6 +2080,21 @@ const Creator = () => {
                 勾選後,領取者需填寫稱呼才能解鎖
               </p>
             </div>
+            <div className="space-y-2">
+              <Label>👤 顯示設定</Label>
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={editHideAuthor}
+                  onChange={(e) => setEditHideAuthor(e.target.checked)}
+                  className="w-4 h-4"
+                />
+                <span className="text-sm">隱藏作者資訊</span>
+              </label>
+              <p className="text-xs text-muted-foreground">
+                啟用後，前台將不顯示創作者頭像、名稱與社群連結
+              </p>
+            </div>
 
             <div className="space-y-3">
               <label className="text-sm font-medium">🎨 頁面模板</label>
@@ -1797,6 +2102,44 @@ const Creator = () => {
                 currentTemplate={editTemplateType}
                 onSelect={setEditTemplateType}
               />
+            </div>
+
+            {/* 進階規則（簡化 UI） */}
+            <div className="space-y-2">
+              <Label>🧩 進階規則（多關鍵字）</Label>
+              {userProfile?.membership_tier === 'free' ? (
+                <div className="p-3 rounded border bg-muted/30 text-sm">
+                  此功能為進階功能，請升級後使用。
+                </div>
+              ) : (
+                <>
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={editUnlockEnabled}
+                      onChange={(e) => setEditUnlockEnabled(e.target.checked)}
+                      className="w-4 h-4"
+                    />
+                    <span className="text-sm">啟用多關鍵字規則（OR 模式）</span>
+                  </label>
+                  {editUnlockEnabled && (
+                    <div className="space-y-3">
+                      <div>
+                        <Label>關鍵字列表（逗號分隔）</Label>
+                        <Textarea
+                          value={editUnlockKeywords}
+                          onChange={(e) => setEditUnlockKeywords(e.target.value)}
+                          rows={3}
+                          placeholder="alpha, beta, gamma"
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">
+                          輸入 1 個或多個關鍵字，使用逗號分隔。任一符合即解鎖
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
             </div>
 
             <div className="space-y-2">

@@ -60,10 +60,12 @@ export default function TemplateLayout4(props: BoxTemplateProps) {
             />
 
             {/* Creator Info */}
-            <CreatorCard
-              creatorId={boxData.creator_id}
-              isLoggedIn={props.isLoggedIn}
-            />
+            {!boxData.hide_author_info && (
+              <CreatorCard
+                creatorId={boxData.creator_id}
+                isLoggedIn={props.isLoggedIn}
+              />
+            )}
           </div>
         </div>
       </div>

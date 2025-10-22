@@ -61,6 +61,9 @@ export type Database = {
           short_code: string
           template_type: string
           updated_at: string
+          hide_author_info: boolean
+          unlock_rule_json: Json | null
+          unlock_rule_enabled: boolean
         }
         Insert: {
           content: string
@@ -78,6 +81,9 @@ export type Database = {
           short_code?: string
           template_type?: string
           updated_at?: string
+          hide_author_info?: boolean
+          unlock_rule_json?: Json | null
+          unlock_rule_enabled?: boolean
         }
         Update: {
           content?: string
@@ -95,8 +101,58 @@ export type Database = {
           short_code?: string
           template_type?: string
           updated_at?: string
+          hide_author_info?: boolean
+          unlock_rule_json?: Json | null
+          unlock_rule_enabled?: boolean
         }
         Relationships: []
+      }
+      unlock_rules: {
+        Row: {
+          id: string
+          package_id: string
+          name: string | null
+          keywords: string[]
+          match_mode: string
+          quota: number | null
+          start_at: string | null
+          end_at: string | null
+          error_message: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          package_id: string
+          name?: string | null
+          keywords?: string[]
+          match_mode: string
+          quota?: number | null
+          start_at?: string | null
+          end_at?: string | null
+          error_message?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          package_id?: string
+          name?: string | null
+          keywords?: string[]
+          match_mode?: string
+          quota?: number | null
+          start_at?: string | null
+          end_at?: string | null
+          error_message?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "unlock_rules_package_id_fkey",
+            columns: ["package_id"],
+            isOneToOne: false,
+            referencedRelation: "keywords",
+            referencedColumns: ["id"]
+          }
+        ]
       }
       user_profiles: {
         Row: {

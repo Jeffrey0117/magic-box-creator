@@ -78,7 +78,7 @@ const TemplateDefault = (props: BoxTemplateProps) => {
                   </p>
                 </div>
 
-                <CreatorCard creatorId={boxData.creator_id} />
+                {!boxData.hide_author_info && <CreatorCard creatorId={boxData.creator_id} />}
 
                 <div className="flex flex-col items-center gap-3">
                   {boxData.expires_at && (

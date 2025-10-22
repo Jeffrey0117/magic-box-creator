@@ -477,7 +477,12 @@ export default function Admin() {
                                 {kw.short_code}
                               </code>
                             </TableCell>
-                            <TableCell className="text-sm text-gray-600">{kw.creator_email}</TableCell>
+                            <TableCell className="text-sm text-gray-600">
+                              {kw.creator_email}
+                              {kw.hide_author_info && (
+                                <Badge variant="secondary" className="ml-2">匿名</Badge>
+                              )}
+                            </TableCell>
                             <TableCell>{progress}</TableCell>
                             <TableCell>
                               <Badge variant={status.variant}>{status.label}</Badge>
@@ -496,7 +501,9 @@ export default function Admin() {
                                   <div className="space-y-4">
                                     <div className="bg-secondary/30 p-4 rounded-lg">
                                       <p className="text-sm text-muted-foreground mb-2">短碼：{kw.short_code}</p>
-                                      <p className="text-sm text-muted-foreground mb-2">創作者：{kw.creator_email}</p>
+                                      <p className="text-sm text-muted-foreground mb-2">
+                                        創作者：{kw.creator_email} {kw.hide_author_info && <Badge variant="secondary" className="ml-2">匿名</Badge>}
+                                      </p>
                                       <p className="text-sm text-muted-foreground mb-2">領取進度：{progress}</p>
                                       {kw.expires_at && (
                                         <p className="text-sm text-muted-foreground mb-2">
