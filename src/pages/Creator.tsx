@@ -1254,7 +1254,11 @@ const Creator = () => {
                             size="default"
                             className="bg-blue-500 hover:bg-blue-600 text-white gap-2"
                             onClick={() => {
-                              navigator.clipboard.writeText(`使用${item.keyword}關鍵字領取`);
+                              const url = item.short_code
+                                ? `${window.location.origin}/${item.short_code}`
+                                : `${window.location.origin}/box/${item.id}`;
+                              const copyText = `🎁 我為你準備了一份專屬資料包！\n輸入關鍵字「${item.keyword}」即可免費領取：\n${url}\n👉 立即解鎖專屬內容！`;
+                              navigator.clipboard.writeText(copyText);
                               toast.success("文案已複製！");
                             }}
                           >
@@ -1403,7 +1407,11 @@ const Creator = () => {
                             size="sm"
                             variant="outline"
                             onClick={() => {
-                              navigator.clipboard.writeText(`使用${item.keyword}關鍵字領取`);
+                              const url = item.short_code
+                                ? `${window.location.origin}/${item.short_code}`
+                                : `${window.location.origin}/box/${item.id}`;
+                              const copyText = `🎁 我為你準備了一份專屬資料包！\n輸入關鍵字「${item.keyword}」即可免費領取：\n${url}\n👉 立即解鎖專屬內容！`;
+                              navigator.clipboard.writeText(copyText);
                               toast.success("文案已複製！");
                             }}
                           >
