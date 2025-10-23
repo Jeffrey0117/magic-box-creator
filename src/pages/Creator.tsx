@@ -888,11 +888,12 @@ const Creator = () => {
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6">
             <h2 className="text-lg md:text-xl font-semibold">關鍵字列表</h2>
             <Button
+              size="lg"
               onClick={() => setShowAddForm(!showAddForm)}
-              className="gradient-magic gap-2 w-full sm:w-auto"
+              className="px-8 py-5 md:py-6 text-lg font-semibold hover:bg-yellow-50 hover:text-yellow-700 hover:border-yellow-300 transition-colors w-full sm:w-auto"
             >
-              <Plus className="w-4 h-4" />
-              新增關鍵字
+              <Plus className="w-5 h-5 mr-2" />
+              🔥 新增關鍵字
             </Button>
           </div>
 
