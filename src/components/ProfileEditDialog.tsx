@@ -115,134 +115,238 @@ export function ProfileEditDialog({ open, onOpenChange, userId, userEmail }: Pro
     }
   };
 
+  // 計算字數計數器的色彩狀態
+  const getCharCountColor = (length: number, max: number) => {
+    if (length === 0) return 'text-gray-400';
+    const percentage = length / max;
+    if (percentage >= 1) return 'text-red-500';
+    if (percentage >= 0.8) return 'text-amber-500';
+    return 'text-green-500';
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>✏️ 編輯個人資料</DialogTitle>
+      <DialogContent className="max-w-[600px] max-h-[90vh] p-6 sm:p-10 bg-gray-900 border-gray-800 shadow-2xl rounded-2xl flex flex-col [&_.overflow-y-auto]:scrollbar-thin [&_.overflow-y-auto]:scrollbar-thumb-gray-700 [&_.overflow-y-auto]:scrollbar-track-gray-900 [&_.overflow-y-auto]:hover:scrollbar-thumb-gray-600">
+        <DialogHeader className="mb-8 flex-shrink-0">
+          <DialogTitle className="text-[28px] font-semibold text-white">✏️ 編輯個人資料</DialogTitle>
         </DialogHeader>
         {fetching ? (
-          <div className="py-8 text-center text-muted-foreground">載入中...</div>
+          <div className="py-8 text-center text-gray-400">載入中...</div>
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <Label htmlFor="email">Email（不可編輯）</Label>
-              <Input
-                id="email"
-                type="email"
-                value={userEmail}
-                disabled
-                className="bg-muted"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="avatarUrl">大頭貼圖片 URL（選填）</Label>
-              <div className="flex items-center gap-2">
-                <Input
-                  id="avatarUrl"
-                  type="url"
-                  placeholder="https://example.com/avatar.jpg"
-                  value={avatarUrl}
-                  onChange={(e) => setAvatarUrl(e.target.value)}
-                  className="flex-1"
-                />
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button type="button" variant="secondary">
-                      上傳圖片
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>是否前往圖鴨上傳？</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        我們會在新分頁開啟 duk.tw。請完成上傳後，複製圖片連結並貼回「大頭貼圖片 URL」欄位以預覽與儲存。
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>取消</AlertDialogCancel>
-                      <AlertDialogAction onClick={() => window.open('https://duk.tw/u', '_blank')}>
-                        前往圖鴨
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
+          <form onSubmit={handleSubmit} className="space-y-8 overflow-y-auto flex-1 pr-2" style={{ scrollbarWidth: 'thin', scrollbarColor: '#374151 #111827' }}>
+            {/* 基本資訊區塊 */}
+            <div className="pb-8 border-b border-gray-800">
+              <div className="text-sm font-semibold text-green-500 uppercase tracking-wider mb-5">
+                📋 基本資訊
               </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                建議尺寸 200×200 以上。若使用圖鴨，請貼上公開圖片連結（例如 https://i.duk.tw/...）。
-              </p>
-              {avatarUrl && (
-                <div className="mt-2 flex items-center gap-2">
-                  <img
-                    src={avatarUrl}
-                    alt="Avatar preview"
-                    className="w-16 h-16 rounded-full border object-cover"
-                  />
-                  <span className="text-xs text-muted-foreground">預覽</span>
+
+              {/* Email - 不可編輯 */}
+              <div className="mb-6">
+                <div className="flex items-center gap-2 mb-2.5">
+                  <Label htmlFor="email" className="text-[15px] font-medium text-gray-200">Email</Label>
+                  <span className="text-sm">🔒</span>
+                  <span className="text-[11px] px-2 py-0.5 rounded bg-gray-700 text-gray-400 font-medium">
+                    不可編輯
+                  </span>
                 </div>
-              )}
+                <Input
+                  id="email"
+                  type="email"
+                  value={userEmail}
+                  disabled
+                  className="bg-gray-800/70 border-transparent text-gray-400 cursor-not-allowed opacity-70"
+                />
+              </div>
+
+              {/* 頭像上傳區 - 優化版 */}
+              <div className="mb-6">
+                <div className="flex items-center gap-2 mb-2.5">
+                  <Label htmlFor="avatarUrl" className="text-[15px] font-medium text-gray-200">大頭貼圖片</Label>
+                  <span className="text-[11px] px-2 py-0.5 rounded bg-gray-700 text-gray-400 font-medium">
+                    選填
+                  </span>
+                </div>
+                <div className="text-xs text-muted-foreground mb-2">
+                  建議使用 duk.tw 圖鴨上傳
+                </div>
+                
+                <div className="bg-gradient-to-br from-gray-800 to-gray-900 border-2 border-gray-700 rounded-xl p-6">
+                  {/* 頭像預覽與說明 */}
+                  <div className="flex items-center gap-4 mb-5">
+                    <div className="w-20 h-20 rounded-full border-3 border-gray-600 overflow-hidden bg-gray-700 flex items-center justify-center flex-shrink-0">
+                      {avatarUrl ? (
+                        <img src={avatarUrl} alt="預覽" className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-4xl text-gray-500">👤</span>
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-[15px] font-semibold text-gray-200 mb-1">當前頭像</div>
+                      <div className="text-[13px] text-gray-400 leading-relaxed">
+                        建議尺寸 200×200 以上
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* URL 輸入區 */}
+                  <div className="mb-5">
+                    <Input
+                      id="avatarUrl"
+                      type="url"
+                      placeholder="貼上圖片連結"
+                      value={avatarUrl}
+                      onChange={(e) => setAvatarUrl(e.target.value)}
+                      className="bg-gray-700 border-2 border-transparent focus:border-green-500 focus:bg-gray-600 text-white placeholder:text-gray-500 rounded-lg py-3.5 px-4 transition-all duration-300"
+                    />
+                    {avatarUrl && (
+                      <div className="flex items-center gap-1.5 mt-2 text-[13px] text-green-500">
+                        <span>✓</span>
+                        <span>圖片連結有效</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* 上傳引導 - 精簡版 */}
+                  <div className="bg-gradient-to-br from-blue-900 to-blue-950 rounded-lg p-4 mb-4">
+                    <div className="text-[13px] text-blue-100 leading-relaxed mb-3">
+                      📸 沒有圖片連結？
+                    </div>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          type="button"
+                          className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold shadow-lg shadow-green-500/30 hover:shadow-green-500/40 hover:-translate-y-0.5 transition-all duration-300"
+                        >
+                          <span className="text-lg mr-2">🚀</span>
+                          前往上傳圖片
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>是否前往圖鴨上傳？</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            我們會在新分頁開啟 duk.tw。請完成上傳後，複製圖片連結並貼回「大頭貼圖片」欄位。
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>取消</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => window.open('https://duk.tw/u', '_blank')}>
+                            前往圖鴨
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+
+                </div>
+              </div>
+
+              {/* 暱稱 */}
+              <div className="px-[10px]">
+                <div className="flex items-center gap-2 mb-2.5">
+                  <Label htmlFor="displayName" className="text-[15px] font-medium text-gray-200">暱稱</Label>
+                  <span className="text-[11px] px-2 py-0.5 rounded bg-gray-700 text-gray-400 font-medium">
+                    選填
+                  </span>
+                </div>
+                <Input
+                  id="displayName"
+                  placeholder="請輸入暱稱"
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  maxLength={20}
+                  className="bg-gray-700 border-2 border-transparent focus:border-green-500 focus:bg-gray-600 text-white placeholder:text-gray-500 rounded-lg py-3.5 px-4 transition-all duration-300"
+                />
+                <div className="flex justify-between items-center mt-2">
+                  <span className="text-[13px] text-gray-400">建議使用真實姓名或常用暱稱</span>
+                  <span className={`text-[13px] font-medium ${getCharCountColor(displayName.length, 20)}`}>
+                    {displayName.length} / 20
+                  </span>
+                </div>
+              </div>
             </div>
 
-            <div>
-              <Label htmlFor="displayName">暱稱（選填）</Label>
-              <Input
-                id="displayName"
-                placeholder="請輸入暱稱"
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-                maxLength={20}
-              />
-              <p className="text-xs text-muted-foreground mt-1">
-                2-20 字元 {displayName.length > 0 && `（已使用 ${displayName.length} 字元）`}
-              </p>
+            {/* 個人簡介區塊 */}
+            <div className="pb-8 border-b border-gray-800">
+              <div className="text-sm font-semibold text-green-500 uppercase tracking-wider mb-5">
+                📝 個人簡介
+              </div>
+
+              <div className="px-[10px]">
+                <div className="flex items-center gap-2 mb-2.5">
+                  <Label htmlFor="bio" className="text-[15px] font-medium text-gray-200">自我介紹</Label>
+                  <span className="text-[11px] px-2 py-0.5 rounded bg-gray-700 text-gray-400 font-medium">
+                    選填
+                  </span>
+                </div>
+                <Textarea
+                  id="bio"
+                  placeholder="分享一些關於你的資訊..."
+                  value={bio}
+                  onChange={(e) => setBio(e.target.value)}
+                  maxLength={200}
+                  className="min-h-[100px] bg-gray-700 border-2 border-transparent focus:border-green-500 focus:bg-gray-600 text-white placeholder:text-gray-500 rounded-lg py-3.5 px-4 resize-y leading-relaxed transition-all duration-300"
+                />
+                <div className="flex justify-between items-center mt-2">
+                  <span className="text-[13px] text-gray-400">讓其他人更認識你</span>
+                  <span className={`text-[13px] font-medium ${getCharCountColor(bio.length, 200)}`}>
+                    {bio.length} / 200
+                  </span>
+                </div>
+              </div>
             </div>
 
-            <div>
-              <Label htmlFor="bio">自我介紹（選填）</Label>
-              <Textarea
-                id="bio"
-                placeholder="介紹你的資料包主題，讓領取者更了解你"
-                value={bio}
-                onChange={(e) => setBio(e.target.value)}
-                maxLength={200}
-                className="min-h-[100px] resize-none"
-              />
-              <p className="text-xs text-muted-foreground mt-1">
-                最多 200 字元 {bio.length > 0 && `（已使用 ${bio.length} 字元）`}
-              </p>
+            {/* 社群平台區塊 */}
+            <div className="pb-8">
+              <div className="text-sm font-semibold text-green-500 uppercase tracking-wider mb-5">
+                🔗 社群平台
+              </div>
+
+              <div className="px-[10px]">
+                <div className="flex items-center gap-2 mb-2.5">
+                  <Label htmlFor="socialLink" className="text-[15px] font-medium text-gray-200">社群平台連結</Label>
+                  <span className="text-[11px] px-2 py-0.5 rounded bg-gray-700 text-gray-400 font-medium">
+                    選填
+                  </span>
+                </div>
+                <Input
+                  id="socialLink"
+                  type="url"
+                  placeholder="例如：https://facebook.com/yourname"
+                  value={socialLink}
+                  onChange={(e) => setSocialLink(e.target.value)}
+                  maxLength={200}
+                  className="bg-gray-700 border-2 border-transparent focus:border-green-500 focus:bg-gray-600 text-white placeholder:text-gray-500 rounded-lg py-3.5 px-4 transition-all duration-300"
+                />
+                <div className="flex justify-between items-center mt-2">
+                  <span className="text-[13px] text-gray-400">填寫你的社群媒體頁面連結</span>
+                </div>
+                {socialLink && (
+                  <div className="flex items-center gap-1.5 mt-2 text-[13px] text-green-500">
+                    <span>✓</span>
+                    <span>連結格式正確</span>
+                  </div>
+                )}
+              </div>
             </div>
 
-            <div>
-              <Label htmlFor="socialLink">社群平台連結（選填）</Label>
-              <Input
-                id="socialLink"
-                type="url"
-                placeholder="https://example.com/yourprofile"
-                value={socialLink}
-                onChange={(e) => setSocialLink(e.target.value)}
-                maxLength={200}
-              />
-              <p className="text-xs text-muted-foreground mt-1">
-                填寫後，資料包作者卡片將可點擊連至此連結
-              </p>
-            </div>
-
-            <div className="flex gap-2 pt-4">
+            {/* 按鈕組 */}
+            <div className="flex gap-3 pt-0">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => onOpenChange(false)}
-                className="flex-1"
+                className="flex-1 bg-transparent border-2 border-gray-700 text-gray-400 hover:border-gray-600 hover:text-gray-200 hover:bg-gray-800 rounded-lg py-3.5 font-semibold transition-all duration-300"
               >
                 取消
               </Button>
               <Button
                 type="submit"
                 disabled={loading}
-                className="flex-1 gradient-magic"
+                className="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold rounded-lg py-3.5 shadow-lg shadow-green-500/30 hover:shadow-green-500/40 hover:-translate-y-0.5 transition-all duration-300"
               >
-                {loading ? '儲存中...' : '儲存'}
+                <span className="mr-2">💾</span>
+                {loading ? '儲存中...' : '儲存變更'}
               </Button>
             </div>
           </form>
