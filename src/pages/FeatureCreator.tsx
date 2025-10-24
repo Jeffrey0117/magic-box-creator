@@ -366,8 +366,8 @@ const FeatureCreator = () => {
       <section className="py-20 dark:bg-slate-800" style={{ backgroundColor: '#F8F7F5' }}>
         <div className="max-w-6xl mx-auto px-8 sm:px-12 lg:px-16">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-slate-700">選擇適合你的方案</h2>
-            <p className="text-xl text-slate-600">從個人創作者到企業團隊，我們都有完美方案</p>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-slate-800">選擇適合你的方案</h2>
+            <p className="text-xl text-slate-700">從個人創作者到企業團隊，我們都有完美方案</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12">
             {/* Free Plan */}
@@ -383,10 +383,10 @@ const FeatureCreator = () => {
               </CardHeader>
               <CardContent>
                 <ul className="space-y-3 mb-6">
-                  <li className="flex items-center"><Check className="w-5 h-5 text-green-500 mr-2" /> 3 個資料包</li>
-                  <li className="flex items-center"><Check className="w-5 h-5 text-green-500 mr-2" /> 基礎模板</li>
-                  <li className="flex items-center"><Check className="w-5 h-5 text-green-500 mr-2" /> 基本數據分析</li>
-                  <li className="flex items-center"><Check className="w-5 h-5 text-green-500 mr-2" /> 社群支援</li>
+                  <li className="flex items-center text-slate-800"><Check className="w-5 h-5 text-green-500 mr-2" /> 3 個資料包</li>
+                  <li className="flex items-center text-slate-800"><Check className="w-5 h-5 text-green-500 mr-2" /> 基礎模板</li>
+                  <li className="flex items-center text-slate-800"><Check className="w-5 h-5 text-green-500 mr-2" /> 基本數據分析</li>
+                  <li className="flex items-center text-slate-800"><Check className="w-5 h-5 text-green-500 mr-2" /> 社群支援</li>
                 </ul>
                 <Button className="w-full" variant="outline" onClick={() => navigate("/login")}>
                   開始使用
@@ -411,10 +411,10 @@ const FeatureCreator = () => {
               </CardHeader>
               <CardContent>
                 <ul className="space-y-3 mb-6">
-                  <li className="flex items-center"><Check className="w-5 h-5 text-green-500 mr-2" /> 無限資料包</li>
-                  <li className="flex items-center"><Check className="w-5 h-5 text-green-500 mr-2" /> 全部模板</li>
-                  <li className="flex items-center"><Check className="w-5 h-5 text-green-500 mr-2" /> 進階數據分析</li>
-                  <li className="flex items-center"><Check className="w-5 h-5 text-green-500 mr-2" /> Email 支援</li>
+                  <li className="flex items-center text-slate-800"><Check className="w-5 h-5 text-green-500 mr-2" /> 無限資料包</li>
+                  <li className="flex items-center text-slate-800"><Check className="w-5 h-5 text-green-500 mr-2" /> 全部模板</li>
+                  <li className="flex items-center text-slate-800"><Check className="w-5 h-5 text-green-500 mr-2" /> 進階數據分析</li>
+                  <li className="flex items-center text-slate-800"><Check className="w-5 h-5 text-green-500 mr-2" /> Email 支援</li>
                 </ul>
                 <Button className="w-full gradient-magic" onClick={() => navigate("/login")}>
                   選擇方案
@@ -436,10 +436,10 @@ const FeatureCreator = () => {
               </CardHeader>
               <CardContent>
                 <ul className="space-y-3 mb-6">
-                  <li className="flex items-center"><Check className="w-5 h-5 text-green-500 mr-2" /> 所有功能</li>
-                  <li className="flex items-center"><Check className="w-5 h-5 text-green-500 mr-2" /> API 整合</li>
-                  <li className="flex items-center"><Check className="w-5 h-5 text-green-500 mr-2" /> 優先客服</li>
-                  <li className="flex items-center"><Check className="w-5 h-5 text-green-500 mr-2" /> 白標選項</li>
+                  <li className="flex items-center text-slate-800"><Check className="w-5 h-5 text-green-500 mr-2" /> 所有功能</li>
+                  <li className="flex items-center text-slate-800"><Check className="w-5 h-5 text-green-500 mr-2" /> API 整合</li>
+                  <li className="flex items-center text-slate-800"><Check className="w-5 h-5 text-green-500 mr-2" /> 優先客服</li>
+                  <li className="flex items-center text-slate-800"><Check className="w-5 h-5 text-green-500 mr-2" /> 白標選項</li>
                 </ul>
                 <Button className="w-full" variant="outline">
                   聯繫銷售
