@@ -1,437 +1,558 @@
-# KeyBox 創作者功能介紹頁面設計規劃
+# KeyBox 創作者功能介紹頁面 - 簡報輪播區設計
 
 ## 文檔資訊
-- **文檔版本**: v1.0
-- **建立日期**: 2025-10-22
-- **設計目標**: 為 KeyBox 設計一個吸引創作者的產品介紹頁面
-- **參考靈感**: launchill.ai 的簡潔有力設計理念
-- **目標受眾**: 內容創作者、KOL、教育工作者、數位產品開發者
+- **文檔版本**: v2.0
+- **更新日期**: 2025-10-24
+- **設計目標**: 在 Hero 區塊後新增教育型簡報輪播區
+- **核心理念**: 透過視覺化簡報幫助創作者理解 KeyBox 的價值與使用方式
 
 ---
 
-## 一、頁面總體設計理念
+## 簡報輪播區 (Education Carousel Section)
 
-### 核心價值主張
-**「用關鍵字解鎖無限可能 - 讓你的內容創造真正價值」**
+### 位置
+緊接在 Hero Section 之後，在統計數據展示區之前
 
-借鑒 launchill.ai 的「Launch your AI product in minutes, not months」概念，我們的核心訊息是：
-- **簡單** - 幾分鐘內建立專屬資料包
-- **有效** - 直接收集高質量潛在客戶
-- **靈活** - 多種模板適應不同需求
-
-### 設計哲學
-1. **視覺簡潔** - 減少認知負擔，聚焦核心功能
-2. **流程清晰** - 三步驟讓用戶快速理解使用方式
-3. **價值導向** - 突出創作者能獲得的實際收益
-4. **信任建立** - 展示真實數據和用戶案例
+### 設計理念
+使用類似簡報的視覺設計，透過輪播方式呈現關鍵概念，讓創作者快速理解：
+1. 為什麼要收集 Email？
+2. 如何提供價值資料？
+3. 如何行銷貼文吸引潛在客戶？
+4. 成功案例示範
 
 ---
 
-## 二、頁面結構設計
+## 輪播內容設計
 
-### 1. 英雄區塊 (Hero Section)
-```
-標題: 🔑 KeyBox - 讓你的內容創造真正價值
-副標題: 用關鍵字解鎖機制，輕鬆建立專屬資料包，收集潛在客戶，提升內容變現效率
+### 🎯 Slide 1: 為什麼要收集 Email？
 
-主要 CTA: [免費開始使用] (跳轉到註冊)
-次要 CTA: [觀看 3 分鐘介紹影片]
+**視覺元素**：
+- 主視覺：信封 💌 + 人群圖示
+- 色彩：紫藍漸層背景
+- 布局：左右分欄（60% 圖示 + 40% 文字）
 
-背景: 漸層紫藍色配合金色 accent，呼應 KeyBox 品牌識別
-視覺元素: 鑰匙 🔑 圖標動畫 + 解鎖效果
-```
-
-### 2. 統計數據展示區
-```
-三個關鍵數據卡片（參考 Creator.tsx 的儀表板設計）:
-📦 [X]+ 創作者正在使用
-🚀 [Y]+ 資料包已分發  
-💰 平均提升 [Z]% 轉換率
-
-設計: 使用 KeyBox 現有的漸層卡片設計
-```
-
-### 3. 三步驟流程 (仿 launchill.ai 的 Build-Launch-Grow)
-```
-🎨 建立 (Create)
-- 選擇精美模板
-- 設定關鍵字與內容
-- 客製化樣式與欄位
-
-🚀 分享 (Share)  
-- 一鍵生成專屬連結
-- 多平台輕鬆分享
-- 即時追蹤點擊狀況
-
-📊 成長 (Grow)
-- 收集潛在客戶資料
-- 分析用戶行為數據
-- 優化內容策略
+**HTML/CSS 結構**：
+```html
+<div class="carousel-slide bg-gradient-to-br from-purple-500 to-blue-500">
+  <div class="slide-visual">
+    <div class="icon-group">
+      📧 → 💰 → 🚀
+    </div>
+  </div>
+  <div class="slide-content">
+    <h2>為什麼要收集 Email？</h2>
+    <ul class="benefits-list">
+      <li>💎 建立專屬的潛在客戶資料庫</li>
+      <li>🎯 直接觸及真正感興趣的受眾</li>
+      <li>📈 Email 行銷 ROI 高達 4200%</li>
+      <li>🔐 擁有自己的流量，不受平台演算法影響</li>
+      <li>💌 持續培養關係，提升轉換率</li>
+    </ul>
+  </div>
+</div>
 ```
 
-### 4. 功能特色展示
-```
-8 個核心功能卡片 (2x4 網格):
+**關鍵訊息**：
+- 標題：「Email 是你最有價值的資產」
+- 副標題：「建立不受平台限制的私域流量」
+- 數據亮點：「Email 行銷投資報酬率平均 4200%」
+- 行動提示：「立即開始建立你的名單」
 
-💎 多樣化模板
-- 8+ 精美模板任選
-- 支援圖片、影片、連結
-- 完全響應式設計
+---
 
-🎯 精準收集名單
-- 自動收集 Email
-- 支援額外欄位 (暱稱等)
-- 防重複領取機制
+### 📦 Slide 2: 如何提供價值資料？
 
-📈 即時數據分析  
-- 領取趨勢分析
-- 來源追蹤
-- CSV 匯出功能
+**視覺元素**：
+- 主視覺：禮物盒 🎁 + 價值階梯圖
+- 色彩：綠色漸層背景
+- 布局：中央對齊，階梯式展示
 
-⏰ 靈活控制機制
-- 限量發放設定
-- 時效性控制
-- 候補名單功能
-
-🔒 內容保護
-- 關鍵字驗證機制
-- 創作者專屬後台
-- 安全的資料傳輸
-
-🌐 跨平台分享
-- 短連結自動生成
-- 社群媒體優化
-- 一鍵複製分享
-
-👥 會員自動解鎖
-- 登入用戶自動識別
-- 歷史記錄查詢
-- 無縫使用體驗
-
-💡 創新互動體驗
-- 解鎖動畫效果
-- 個人化感謝頁面
-- 品牌客製化選項
-```
-
-### 5. 適用場景展示
-```
-誰在使用 KeyBox?
-
-🎥 影片創作者
-"在 YouTube 影片描述放上關鍵字，直接收集觀眾 Email"
-使用案例: 免費素材包、專屬教學內容
-
-📚 線上教育者  
-"課程資源限時領取，建立學員資料庫"
-使用案例: 課程講義、額外習題、獨家資源
-
-💼 數位產品開發者
-"Beta 測試邀請、早鳥優惠發放"  
-使用案例: 測試碼分發、產品預覽、用戶調研
-
-📝 內容創作者
-"部落格讀者專屬內容，提升忠誠度"
-使用案例: 電子書、模板下載、會員內容
-
-🎨 設計師 & 藝術家
-"作品集、設計資源限定分享"
-使用案例: 設計模板、色彩搭配、創作工具
-
-🚀 新創團隊
-"產品發布、用戶反饋收集"
-使用案例: MVP 測試、市場調研、早期採用者招募
+**HTML/CSS 結構**：
+```html
+<div class="carousel-slide bg-gradient-to-br from-green-400 to-emerald-500">
+  <h2>提供價值的 5 個層次</h2>
+  <div class="value-ladder">
+    <div class="ladder-step step-5">
+      <span class="step-icon">🏆</span>
+      <h3>1對1 客製化服務</h3>
+      <p>深度諮詢、專屬方案</p>
+    </div>
+    <div class="ladder-step step-4">
+      <span class="step-icon">💼</span>
+      <h3>付費課程/產品</h3>
+      <p>完整系統化內容</p>
+    </div>
+    <div class="ladder-step step-3">
+      <span class="step-icon">🎓</span>
+      <h3>進階教學資源</h3>
+      <p>實戰案例、模板工具</p>
+    </div>
+    <div class="ladder-step step-2">
+      <span class="step-icon">📚</span>
+      <h3>基礎知識內容</h3>
+      <p>電子書、快速指南</p>
+    </div>
+    <div class="ladder-step step-1 highlight">
+      <span class="step-icon">🎁</span>
+      <h3>免費誘因 (Lead Magnet)</h3>
+      <p>清單、範本、速查表 ← KeyBox 從這裡開始</p>
+    </div>
+  </div>
+</div>
 ```
 
-### 6. 模板預覽展示
+**實用建議**：
+- **數位產品**：電子書、PDF 指南、檢查清單
+- **工具資源**：範本、設計素材、程式碼片段
+- **獨家內容**：未公開影片、幕後花絮、早鳥通知
+- **互動體驗**：測驗結果、個人化報告、限時優惠
+
+**成功公式**：
 ```
-8 個模板的視覺展示 (參考現有 templates):
-- TemplateDefault: 簡潔經典
-- TemplateLayout1: 卡片風格  
-- TemplateLayout2: 極簡主義
-- TemplateLayout4: 圖片焦點
-- TemplateLayout5: 列表式
-- TemplateLayout6: 雜誌風格
-- TemplateLayout7: 社群媒體風
-- TemplateLayout8: 專業商務
-
-每個模板展示:
-- 預覽圖 (1:1 比例縮圖)
-- 適用場景標籤
-- 特色功能說明
-```
-
-### 7. 定價方案 (呼應 PRD 中的會員分級)
-```
-三個方案卡片:
-
-🆓 免費版
-- 3 個資料包
-- 基礎模板
-- 基本數據分析
-- 社群支援
-[開始使用]
-
-⭐ 標準版 (月付 $X)
-- 無限資料包  
-- 全部模板
-- 進階數據分析
-- Email 支援
-[選擇方案]
-
-💎 專業版 (月付 $Y)  
-- 所有功能
-- API 整合
-- 優先客服
-- 白標選項
-[聯繫銷售]
-
-企業版: 客製化需求，聯繫我們
-```
-
-### 8. 社會證明區
-```
-用戶見證 (3-4 個):
-"KeyBox 讓我的 YouTube 頻道訂閱數在三個月內成長了 200%"
-- 張小明，科技 YouTuber
-
-"透過 KeyBox，我成功建立了 5000+ 的精準讀者名單"  
-- 李美華，部落格作家
-
-"課程資源分發變得超級簡單，學員滿意度大幅提升"
-- 王教授，線上教育講師
-
-合作品牌 Logo 展示 (如果有的話)
-```
-
-### 9. FAQ 常見問題
-```
-Q: KeyBox 與其他平台有什麼不同？
-A: 我們專注於關鍵字解鎖機制，讓內容分發更有趣味性，同時確保只有真正感興趣的用戶才能獲得內容。
-
-Q: 免費版有什麼限制？
-A: 免費版可建立 3 個資料包，享有基礎功能。升級後可享受無限資料包和進階功能。
-
-Q: 如何追蹤成效？  
-A: 內建完整的分析儀表板，包含領取趨勢、來源分析、轉換率等關鍵指標。
-
-Q: 是否支援自訂網域？
-A: 專業版以上支援自訂網域和白標功能。
-
-Q: 資料安全如何保障？
-A: 我們使用企業級加密技術，符合 GDPR 等隱私法規要求。
-```
-
-### 10. CTA 區塊
-```
-準備開始了嗎？
-
-副標題: 加入 [X]+ 創作者的行列，讓你的內容創造更大價值
-
-主要 CTA: [免費註冊 KeyBox] (大按鈕，漸層設計)
-次要 CTA: [預約產品演示] (輪廓按鈕)
-
-額外訊息: 免費試用 • 無需信用卡 • 隨時取消
+高價值感 + 立即可用 + 解決具體問題 = 有效的 Lead Magnet
 ```
 
 ---
 
-## 三、視覺設計規範
+### 📢 Slide 3: 如何行銷貼文吸引潛在客戶？
 
-### 色彩配置
-- **主色調**: 紫藍漸層 (呼應現有 KeyBox 品牌)
-- **強調色**: 金色 accent (#fbbf24)
-- **中性色**: 灰階系統
-- **狀態色**: 綠色 (成功)、紅色 (警告)、藍色 (資訊)
+**視覺元素**：
+- 主視覺：擴音器 📣 + 貼文範例卡片
+- 色彩：橙黃漸層背景
+- 布局：左側範例 + 右側技巧列表
 
-### 字體層級
-- **H1**: 48px/56px, 品牌標題
-- **H2**: 36px/44px, 區塊標題  
-- **H3**: 24px/32px, 子標題
-- **Body**: 16px/24px, 內文
-- **Caption**: 14px/20px, 說明文字
-
-### 間距系統
-- **大區塊間距**: 120px
-- **中區塊間距**: 80px  
-- **小區塊間距**: 40px
-- **元素間距**: 16px/24px
-
-### 組件設計
-- **按鈕**: 圓角 8px，高度 44px (Touch Target)
-- **卡片**: 圓角 12px，陰影 subtle
-- **輸入框**: 圓角 6px，邊框 1px
-- **圖片**: 圓角 8px，aspect ratio 1:1 或 16:9
-
----
-
-## 四、技術實現方案
-
-### 開發技術棧
-- **框架**: React + TypeScript (與現有系統一致)
-- **樣式**: Tailwind CSS + shadcn/ui 組件
-- **動畫**: Framer Motion 或 CSS 動畫
-- **圖示**: Lucide Icons (與現有系統一致)
-
-### 組件結構
+**HTML/CSS 結構**：
+```html
+<div class="carousel-slide bg-gradient-to-br from-orange-400 to-yellow-500">
+  <div class="split-layout">
+    <div class="post-examples">
+      <div class="social-post-card facebook">
+        <h4>Facebook 貼文範本</h4>
+        <p>🎁 免費領取【社群經營 10 大秘訣】！</p>
+        <p>只要輸入關鍵字「成長」就能解鎖</p>
+        <p>👉 [KeyBox 連結]</p>
+        <span class="cta-badge">立即領取 →</span>
+      </div>
+      <div class="social-post-card instagram">
+        <h4>Instagram 貼文範本</h4>
+        <p>✨ 限時免費！設計師必備色彩指南</p>
+        <p>留言「設計」+ 點擊連結領取</p>
+        <p>🔗 連結在個人簡介</p>
+      </div>
+    </div>
+    <div class="marketing-tips">
+      <h3>貼文吸睛 5 步驟</h3>
+      <ol>
+        <li>
+          <strong>🎯 鉤子開場</strong>
+          <p>用問題/數據/emoji 抓住注意力</p>
+        </li>
+        <li>
+          <strong>💎 價值承諾</strong>
+          <p>明確說明能獲得什麼</p>
+        </li>
+        <li>
+          <strong>⚡ 製造急迫性</strong>
+          <p>限時/限量增加行動動力</p>
+        </li>
+        <li>
+          <strong>✅ 簡單指示</strong>
+          <p>清楚告知如何領取</p>
+        </li>
+        <li>
+          <strong>🚀 強烈 CTA</strong>
+          <p>呼籲立即行動</p>
+        </li>
+      </ol>
+    </div>
+  </div>
+</div>
 ```
-/src/pages/FeatureCreator.tsx
-├── HeroSection.tsx
-├── StatsSection.tsx  
-├── ProcessSection.tsx
-├── FeaturesGrid.tsx
-├── UseCasesSection.tsx
-├── TemplatesShowcase.tsx
-├── PricingSection.tsx
-├── TestimonialsSection.tsx
-├── FAQSection.tsx
-└── CTASection.tsx
+
+**文案範本**：
+
+**YouTube 影片描述**：
+```
+📥 免費下載【剪輯師必備快捷鍵清單】
+輸入關鍵字「效率」立即領取 → [KeyBox 連結]
+
+⏱️ 限時 3 天，先搶先贏！
 ```
 
-### 響應式設計
-- **桌面版** (1024px+): 完整布局，3-4 欄網格
-- **平板版** (768px-1023px): 2 欄網格，調整間距
-- **手機版** (< 768px): 單欄布局，堆疊排列
+**Twitter/X 貼文**：
+```
+🧵 花了 3 年整理的【內容創作者工具箱】
+免費分享給你！
 
-### 互動效果
-- **滾動動畫**: 元素進入視窗時淡入
-- **懸停效果**: 按鈕、卡片的微互動
-- **載入動畫**: 骨架屏或漸進載入
-- **鑰匙動畫**: Hero 區塊的品牌動畫
+輸入「工具」解鎖 → [短連結]
 
----
+包含：
+✅ 50+ 免費資源
+✅ 實戰成長策略
+✅ 變現藍圖
 
-## 五、內容策略
-
-### SEO 優化
-- **頁面標題**: "KeyBox - 創作者專用的關鍵字內容分發平台"
-- **Meta 描述**: "輕鬆建立關鍵字解鎖資料包，收集潛在客戶，提升內容變現效率。支援多種模板，完整數據分析。"
-- **關鍵字**: 內容創作者、資料包、Email 收集、關鍵字、數位行銷
-
-### 文案語調
-- **親和力**: 使用第二人稱 "你"，建立親近感
-- **專業性**: 專業術語適度使用，保持可理解性
-- **行動導向**: 每個區塊都有明確的 CTA
-- **價值導向**: 強調用戶能獲得的實際收益
-
-### 本地化考量
-- **繁體中文**: 主要語言，台灣用戶優先
-- **用戶習慣**: 考慮台灣創作者的使用情境
-- **文化元素**: 融入在地化的案例和情境
+#內容創作 #自媒體
+```
 
 ---
 
-## 六、測量指標
+### 🏆 Slide 4: 成功案例示範
 
-### 轉換漏斗
-1. **頁面瀏覽** → 了解產品
-2. **特色功能點擊** → 深度興趣
-3. **CTA 點擊** → 註冊意圖
-4. **註冊完成** → 轉換成功
-5. **首次建立資料包** → 產品採用
+**視覺元素**：
+- 主視覺：獎杯 🏆 + 成長曲線圖
+- 色彩：藍紫漸層背景
+- 布局：三欄式案例卡片
 
-### 關鍵指標 (KPI)
-- **頁面停留時間**: 目標 > 2 分鐘
-- **跳出率**: 目標 < 60%
-- **CTA 點擊率**: 目標 > 5%
-- **註冊轉換率**: 目標 > 2%
-- **功能區塊交互率**: 各區塊點擊熱度
+**HTML/CSS 結構**：
+```html
+<div class="carousel-slide bg-gradient-to-br from-blue-500 to-purple-600">
+  <h2>真實成功案例</h2>
+  <div class="case-studies-grid">
+    
+    <div class="case-card">
+      <div class="case-header">
+        <div class="avatar">🎥</div>
+        <div>
+          <h3>科技 YouTuber - 小明</h3>
+          <p class="subscriber-count">訂閱數：5 萬</p>
+        </div>
+      </div>
+      <div class="case-results">
+        <div class="metric">
+          <span class="number">8,000+</span>
+          <span class="label">Email 名單</span>
+        </div>
+        <div class="metric">
+          <span class="number">35%</span>
+          <span class="label">開信率</span>
+        </div>
+        <div class="metric">
+          <span class="number">$12K</span>
+          <span class="label">月營收增長</span>
+        </div>
+      </div>
+      <div class="case-strategy">
+        <h4>策略</h4>
+        <p>在每支影片提供「程式碼範例包」，3 個月收集 8000+ 精準受眾</p>
+      </div>
+      <div class="quote">
+        "KeyBox 讓我從廣告收入轉向課程銷售，月收翻了 3 倍！"
+      </div>
+    </div>
 
-### A/B 測試項目
-- **Hero 標題文案**: 測試不同價值主張表達
-- **CTA 按鈕文字**: "免費開始" vs "立即試用" vs "馬上體驗"
-- **定價展示方式**: 月付 vs 年付優先展示
-- **模板預覽方式**: 靜態圖 vs 動態預覽
+    <div class="case-card">
+      <div class="case-header">
+        <div class="avatar">📝</div>
+        <div>
+          <h3>部落格作家 - 美華</h3>
+          <p class="subscriber-count">月流量：3 萬</p>
+        </div>
+      </div>
+      <div class="case-results">
+        <div class="metric">
+          <span class="number">5,000+</span>
+          <span class="label">Email 名單</span>
+        </div>
+        <div class="metric">
+          <span class="number">22%</span>
+          <span class="label">轉換率</span>
+        </div>
+        <div class="metric">
+          <span class="number">300%</span>
+          <span class="label">互動提升</span>
+        </div>
+      </div>
+      <div class="case-strategy">
+        <h4>策略</h4>
+        <p>提供「寫作模板大全」，搭配每週電子報培養鐵粉</p>
+      </div>
+      <div class="quote">
+        "讀者從匿名訪客變成真實朋友，這是最棒的轉變！"
+      </div>
+    </div>
+
+    <div class="case-card">
+      <div class="case-header">
+        <div class="avatar">🎨</div>
+        <div>
+          <h3>設計師 - 小傑</h3>
+          <p class="subscriber-count">IG 粉絲：2 萬</p>
+        </div>
+      </div>
+      <div class="case-results">
+        <div class="metric">
+          <span class="number">3,200+</span>
+          <span class="label">Email 名單</span>
+        </div>
+        <div class="metric">
+          <span class="number">45%</span>
+          <span class="label">課程購買率</span>
+        </div>
+        <div class="metric">
+          <span class="number">6 個月</span>
+          <span class="label">回本時間</span>
+        </div>
+      </div>
+      <div class="case-strategy">
+        <h4>策略</h4>
+        <p>分享「配色靈感庫」，後續推出付費設計課程</p>
+      </div>
+      <div class="quote">
+        "從免費資源建立信任，轉換成付費學員超順利！"
+      </div>
+    </div>
+
+  </div>
+  
+  <div class="success-formula">
+    <h3>成功公式</h3>
+    <div class="formula-flow">
+      <span>有價值的免費資源</span>
+      <span class="arrow">→</span>
+      <span>建立信任與關係</span>
+      <span class="arrow">→</span>
+      <span>推出付費產品</span>
+      <span class="arrow">→</span>
+      <span>持續營收成長</span>
+    </div>
+  </div>
+</div>
+```
+
+**關鍵數據展示**：
+- ⏱️ 平均建立時間：不到 10 分鐘
+- 📈 平均轉換率：15-30%
+- 💰 投資報酬率：平均 5-8 倍
+- 🎯 名單增長：每月 +200-500 人
 
 ---
 
-## 七、開發里程碑
+## 技術實現
 
-### Phase 1: 基礎建設 (Week 1-2)
-- [ ] 建立頁面骨架和路由
-- [ ] 實現基礎組件庫
-- [ ] 完成響應式框架
-- [ ] 整合現有設計系統
+### 輪播功能
+```typescript
+interface CarouselSlide {
+  id: number;
+  title: string;
+  content: ReactNode;
+  bgColor: string;
+  icon: string;
+}
 
-### Phase 2: 內容實現 (Week 3-4)  
-- [ ] Hero 區塊開發
-- [ ] 功能展示區實現
-- [ ] 模板預覽整合
-- [ ] 定價方案組件
+const EducationCarousel = () => {
+  const [activeSlide, setActiveSlide] = useState(0);
+  const slides: CarouselSlide[] = [
+    // Slide 1-4 定義
+  ];
 
-### Phase 3: 互動優化 (Week 5)
-- [ ] 動畫效果實現
-- [ ] 滾動互動優化
-- [ ] 表單整合測試
-- [ ] 性能優化調整
+  return (
+    <section className="py-20 bg-slate-50">
+      <div className="max-w-7xl mx-auto px-4">
+        <div className="mb-8 text-center">
+          <h2 className="text-3xl font-bold text-slate-800">
+            深入了解 KeyBox 如何幫助你成長
+          </h2>
+        </div>
+        
+        {/* 輪播主體 */}
+        <div className="carousel-container">
+          {slides.map((slide, index) => (
+            <div 
+              key={slide.id}
+              className={`slide ${index === activeSlide ? 'active' : 'hidden'}`}
+            >
+              {slide.content}
+            </div>
+          ))}
+        </div>
 
-### Phase 4: 上線準備 (Week 6)
-- [ ] 內容審核與校對
-- [ ] SEO 優化實施
-- [ ] 分析工具整合
-- [ ] 正式環境部署
+        {/* 導航控制 */}
+        <div className="carousel-controls">
+          <button onClick={() => setActiveSlide(prev => prev > 0 ? prev - 1 : slides.length - 1)}>
+            ← 上一頁
+          </button>
+          <div className="dots">
+            {slides.map((_, index) => (
+              <button
+                key={index}
+                className={`dot ${index === activeSlide ? 'active' : ''}`}
+                onClick={() => setActiveSlide(index)}
+              />
+            ))}
+          </div>
+          <button onClick={() => setActiveSlide(prev => prev < slides.length - 1 ? prev + 1 : 0)}>
+            下一頁 →
+          </button>
+        </div>
+
+        {/* 自動播放進度條 */}
+        <div className="auto-play-progress">
+          <div className="progress-bar" style={{width: `${(activeSlide + 1) / slides.length * 100}%`}} />
+        </div>
+      </div>
+    </section>
+  );
+};
+```
+
+### CSS 樣式
+```css
+.carousel-slide {
+  min-height: 600px;
+  border-radius: 24px;
+  padding: 60px;
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.slide-visual {
+  font-size: 120px;
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.benefits-list {
+  list-style: none;
+  padding: 0;
+}
+
+.benefits-list li {
+  padding: 16px 0;
+  font-size: 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.2);
+}
+
+.value-ladder {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.ladder-step {
+  background: rgba(255,255,255,0.1);
+  backdrop-filter: blur(10px);
+  padding: 24px;
+  border-radius: 12px;
+  border-left: 4px solid rgba(255,255,255,0.5);
+}
+
+.ladder-step.highlight {
+  background: rgba(255,255,255,0.25);
+  border-left-color: #fbbf24;
+  box-shadow: 0 4px 20px rgba(251, 191, 36, 0.3);
+}
+
+.case-studies-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 24px;
+  margin-top: 40px;
+}
+
+.case-card {
+  background: rgba(255,255,255,0.15);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  padding: 24px;
+  border: 1px solid rgba(255,255,255,0.2);
+}
+
+.metric {
+  text-align: center;
+}
+
+.metric .number {
+  display: block;
+  font-size: 36px;
+  font-weight: bold;
+  color: #fbbf24;
+}
+
+.carousel-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 32px;
+  margin-top: 32px;
+}
+
+.dots {
+  display: flex;
+  gap: 12px;
+}
+
+.dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #cbd5e1;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.dot.active {
+  background: #10b981;
+  transform: scale(1.5);
+}
+```
 
 ---
 
-## 八、風險評估與應對
+## 互動體驗
 
-### 潛在風險
-1. **內容過載**: 資訊太多導致用戶疲勞
-   - **應對**: 漸進式資訊揭露，重點突出
-   
-2. **競品模仿**: 類似產品容易複製功能
-   - **應對**: 強調獨特的關鍵字解鎖機制和使用體驗
-   
-3. **轉換率不佳**: 頁面無法有效促成註冊
-   - **應對**: 持續 A/B 測試，數據驅動優化
+### 自動播放
+- 預設每 8 秒自動切換下一張
+- 用戶操作時暫停自動播放
+- 滑鼠懸停時暫停
 
-4. **技術複雜度**: 與現有系統整合困難
-   - **應對**: 分階段開發，先實現核心功能
+### 手勢支援
+- 桌面版：滑鼠拖曳切換
+- 移動版：左右滑動切換
+- 鍵盤：← → 鍵切換
 
-### 成功要素
-- **清晰的價值主張**: 讓用戶快速理解產品價值
-- **優秀的視覺設計**: 與 KeyBox 品牌一致的專業形象
-- **流暢的用戶體驗**: 從認知到註冊的無縫體驗
-- **有效的社會證明**: 真實案例增強信任感
+### 動畫效果
+- 淡入淡出過渡
+- 內容由下而上浮現
+- 數字計數動畫
+- 進度條流動效果
 
 ---
 
-## 九、後續優化計劃
+## 響應式設計
 
-### 短期優化 (1-3 個月)
-- 根據用戶行為數據調整內容排列
-- 優化 CTA 按鈕設計和文案
-- 增加互動式元素 (如計算器、測驗)
-- 改善移動端體驗
+### 桌面版 (1024px+)
+- 完整橫向布局
+- 大字體展示
+- 豐富視覺元素
 
-### 中期擴展 (3-6 個月)  
-- 添加產品演示影片
-- 實現個人化內容推薦
-- 整合客戶成功案例
-- 開發互動式產品導覽
+### 平板版 (768px-1023px)
+- 調整內間距
+- 縮小字體
+- 簡化某些視覺元素
 
-### 長期發展 (6-12 個月)
-- 多語言版本支援
-- 國際化市場適配
-- AI 驅動的個人化體驗
-- 深度的用戶行為分析
+### 手機版 (< 768px)
+- 縱向堆疊布局
+- 觸控友善的導航
+- 簡化成關鍵資訊
 
 ---
 
-## 十、結語
+## 成功指標
 
-這個創作者介紹頁面設計借鑒了 launchill.ai 的簡潔有力設計理念，同時深度結合 KeyBox 的產品特色和目標用戶需求。透過清晰的價值主張、直觀的功能展示、和有效的轉換流程，我們期望能夠：
+### 用戶參與度
+- 平均停留時間 > 60 秒
+- 完整瀏覽率 > 40%
+- 互動率（點擊/滑動）> 60%
 
-1. **提升品牌認知**: 讓更多創作者了解 KeyBox 的獨特價值
-2. **增加用戶註冊**: 有效促成潛在用戶轉換為實際用戶  
-3. **降低學習成本**: 幫助新用戶快速理解和上手產品
-4. **建立社群信任**: 透過案例和數據建立產品可信度
-
-最終目標是創造一個既美觀又實用的產品介紹頁面，成為 KeyBox 獲取新用戶的重要入口，並為創作者社群的成長奠定堅實基礎。
+### 轉換效果
+- 簡報區後的 CTA 點擊率提升 30%+
+- 註冊轉換率提升 20%+
+- 頁面跳出率降低 15%+
 
 ---
 
-**文檔版本**: v1.0  
-**最後更新**: 2025-10-22  
-**負責團隊**: KeyBox 產品團隊  
-**審核狀態**: 待審核
+**文檔版本**: v2.0  
+**最後更新**: 2025-10-24  
+**更新內容**: 新增簡報輪播區完整設計規劃，移除舊版其他區塊內容
