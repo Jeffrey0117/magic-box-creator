@@ -1871,15 +1871,13 @@ const Creator = () => {
         <SheetContent side="right" className="w-full sm:max-w-[90vw] md:max-w-[80vw] lg:max-w-[70vw] p-0 overflow-hidden">
           <div className="flex h-full">
             {/* 左側：完整頁面預覽區 */}
-            <div className="w-2/5 bg-muted/30 overflow-y-auto border-r">
+            <div className="w-3/5 bg-muted/30 overflow-y-auto border-r">
               <SheetHeader className="p-6 pb-4 sticky top-0 bg-muted/30 backdrop-blur-sm z-10 border-b">
                 <SheetTitle className="text-sm text-muted-foreground">即時預覽</SheetTitle>
               </SheetHeader>
               <div className="relative">
-                {/* 模糊遮罩層 */}
-                <div className="absolute inset-0 z-10 pointer-events-none">
-                  <div className="w-full h-full backdrop-blur-[2px]"></div>
-                </div>
+                {/* 半透明遮罩層 */}
+                <div className="absolute inset-0 z-10 pointer-events-none bg-background/5"></div>
                 {/* 完整模板預覽 */}
                 <div className="pointer-events-none select-none scale-90 origin-top">
                   <Suspense fallback={
@@ -1946,7 +1944,7 @@ const Creator = () => {
             </div>
 
             {/* 右側：編輯表單區 */}
-            <div className="w-3/5 overflow-y-auto">
+            <div className="w-2/5 overflow-y-auto">
               <SheetHeader className="px-6 pt-6 pb-4">
                 <SheetTitle>編輯關鍵字</SheetTitle>
               </SheetHeader>
