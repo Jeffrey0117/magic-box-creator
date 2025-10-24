@@ -163,7 +163,7 @@ const FeatureCreator = () => {
       </div>
 
       {/* Navigation Bar */}
-      <nav className="bg-white border-b border-slate-200 py-4">
+      <nav className="bg-white border-b border-black py-4">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center">
             <div className="flex items-center">
@@ -200,20 +200,13 @@ const FeatureCreator = () => {
               <EducationCarousel />
             </div>
             
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-8">
+            <div className="flex justify-center pt-8">
               <Button
                 size="lg"
                 onClick={() => navigate("/login")}
                 className="bg-green-100 hover:bg-green-200 text-green-700 font-semibold px-8 py-4 text-lg shadow-md transform hover:scale-105 transition-all duration-200"
               >
                 免費開始使用 <ArrowRight className="ml-2 w-5 h-5" />
-              </Button>
-              <Button
-                variant="outline"
-                size="lg"
-                className="border-slate-200 text-slate-400 hover:bg-slate-50 hover:text-slate-600 px-8 py-4 text-lg"
-              >
-                觀看 3 分鐘介紹 <Video className="ml-2 w-5 h-5" />
               </Button>
             </div>
             <p className="text-sm text-slate-600">
@@ -224,8 +217,8 @@ const FeatureCreator = () => {
       </section>
 
       {/* Stats Section */}
-      <section className="py-16 bg-white dark:bg-slate-900">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-16 dark:bg-slate-900" style={{ backgroundColor: '#F8F7F5' }}>
+        <div className="max-w-6xl mx-auto px-8 sm:px-12 lg:px-16">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <Card className="text-center bg-[#EEF5FF]" style={{boxShadow: '0 0 6px 0 #3e8e9cff'}}>
               <CardContent className="pt-6">
@@ -253,8 +246,8 @@ const FeatureCreator = () => {
       </section>
 
       {/* Process Section */}
-      <section className="py-20 bg-white dark:bg-slate-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-20 dark:bg-slate-800" style={{ backgroundColor: '#F8F7F5' }}>
+        <div className="max-w-6xl mx-auto px-8 sm:px-12 lg:px-16">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold mb-4 text-slate-700">簡單三步驟，開始你的內容變現之旅</h2>
             <p className="text-xl text-slate-600">從創建到成長，KeyBox 讓一切變得簡單</p>
@@ -298,8 +291,8 @@ const FeatureCreator = () => {
       </section>
 
       {/* Features Grid */}
-      <section className="py-20 bg-white dark:bg-slate-900">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-20 dark:bg-slate-900" style={{ backgroundColor: '#F8F7F5' }}>
+        <div className="max-w-6xl mx-auto px-8 sm:px-12 lg:px-16">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold mb-4 text-slate-700">強大功能，滿足所有需求</h2>
             <p className="text-xl text-slate-600">從模板選擇到數據分析，一站式解決方案</p>
@@ -319,8 +312,8 @@ const FeatureCreator = () => {
       </section>
 
       {/* Use Cases */}
-      <section className="py-20 bg-white dark:bg-slate-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-20 dark:bg-slate-800" style={{ backgroundColor: '#F8F7F5' }}>
+        <div className="max-w-6xl mx-auto px-8 sm:px-12 lg:px-16">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold mb-4 text-slate-700">誰在使用 KeyBox？</h2>
             <p className="text-xl text-slate-600">各行各業的創作者都在用 KeyBox 提升內容價值</p>
@@ -344,8 +337,8 @@ const FeatureCreator = () => {
       </section>
 
       {/* Templates Showcase */}
-      <section className="py-20 bg-white dark:bg-slate-900">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-20 dark:bg-slate-900" style={{ backgroundColor: '#F8F7F5' }}>
+        <div className="max-w-6xl mx-auto px-8 sm:px-12 lg:px-16">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold mb-4 text-slate-700">精美模板，隨心選擇</h2>
             <p className="text-xl text-slate-600">8+ 專業設計模板，適應各種使用場景</p>
@@ -370,8 +363,8 @@ const FeatureCreator = () => {
       </section>
 
       {/* Pricing */}
-      <section className="py-20 bg-white dark:bg-slate-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-20 dark:bg-slate-800" style={{ backgroundColor: '#F8F7F5' }}>
+        <div className="max-w-6xl mx-auto px-8 sm:px-12 lg:px-16">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold mb-4 text-slate-700">選擇適合你的方案</h2>
             <p className="text-xl text-slate-600">從個人創作者到企業團隊，我們都有完美方案</p>
@@ -463,8 +456,8 @@ const FeatureCreator = () => {
       </section>
 
       {/* Testimonials */}
-      <section className="py-20 bg-white dark:bg-slate-900">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-20 dark:bg-slate-900" style={{ backgroundColor: '#F8F7F5' }}>
+        <div className="max-w-6xl mx-auto px-8 sm:px-12 lg:px-16">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold mb-4 text-slate-700">用戶怎麼說</h2>
             <p className="text-xl text-slate-600">真實用戶的成功故事</p>
@@ -538,8 +531,8 @@ const FeatureCreator = () => {
       </section>
 
       {/* FAQ */}
-      <section className="py-20 bg-white dark:bg-slate-800">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-20 dark:bg-slate-800" style={{ backgroundColor: '#F8F7F5' }}>
+        <div className="max-w-4xl mx-auto px-8 sm:px-12 lg:px-16">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold mb-4 text-slate-700">常見問題</h2>
             <p className="text-xl text-slate-600">快速解答你的疑問</p>
@@ -563,8 +556,8 @@ const FeatureCreator = () => {
       </section>
 
       {/* Final CTA */}
-      <section className="py-20 bg-white">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <section className="py-20" style={{ backgroundColor: '#F8F7F5' }}>
+        <div className="max-w-4xl mx-auto px-8 sm:px-12 lg:px-16 text-center">
           <h2 className="text-3xl md:text-4xl font-bold mb-4 text-green-500">準備開始了嗎？</h2>
           <p className="text-xl mb-8 text-slate-600">加入 500+ 創作者的行列，讓你的內容創造更大價值</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
@@ -590,7 +583,7 @@ const FeatureCreator = () => {
       </section>
 
       {/* Footer */}
-      <footer className="py-12 bg-[#EEF5FF] text-slate-700">
+      <footer className="py-12 bg-white text-slate-700 border-t border-black">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <div className="flex justify-center items-center mb-4">
