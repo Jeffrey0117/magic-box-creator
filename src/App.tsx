@@ -36,10 +36,10 @@ const App = () => (
       <BrowserRouter>
         <ScrollToTop />
         <Routes>
-          <Route path="/" element={<Index />} />
+          <Route path="/" element={<FeatureCreator />} />
+          <Route path="/intro" element={<Index />} />
           <Route path="/login" element={<Login />} />
           <Route path="/creator" element={<Creator />} />
-          <Route path="/feature-creator" element={<FeatureCreator />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/admin/packages/:packageId" element={<PackageDetail />} />
           <Route path="/ui-preview" element={<UIPreview />} />

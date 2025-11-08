@@ -170,12 +170,21 @@ const FeatureCreator = () => {
               <Key className="w-8 h-8 text-green-400 mr-2" />
               <span className="text-2xl font-bold text-slate-700">KeyBox</span>
             </div>
-            <Button
-              onClick={() => navigate("/login")}
-              className="bg-green-500 hover:bg-green-600 text-white px-6 py-2"
-            >
-              我要加入
-            </Button>
+            <div className="flex gap-3 items-center">
+              <Button
+                variant="outline"
+                onClick={() => navigate("/intro")}
+                className="border-green-500 text-green-600 hover:bg-green-50 px-4 py-2"
+              >
+                快速導覽
+              </Button>
+              <Button
+                onClick={() => navigate("/login")}
+                className="bg-green-500 hover:bg-green-600 text-white px-6 py-2"
+              >
+                我要加入
+              </Button>
+            </div>
           </div>
         </div>
       </nav>

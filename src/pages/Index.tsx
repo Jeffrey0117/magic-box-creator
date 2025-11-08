@@ -9,6 +9,17 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-secondary/20">
       <div className="container mx-auto px-4 py-16 max-w-4xl">
+        {/* Navigation Link to Full Homepage */}
+        <div className="text-center mb-8">
+          <Button
+            variant="outline"
+            onClick={() => navigate("/")}
+            className="border-green-500 text-green-600 hover:bg-green-50"
+          >
+            查看完整版首頁 →
+          </Button>
+        </div>
+
         <div className="text-center mb-16">
           <div className="inline-flex items-center justify-center w-16 h-16 md:w-20 md:h-20 rounded-full gradient-magic mb-4 glow">
             <Lock className="w-8 h-8 md:w-10 md:h-10 text-white" />

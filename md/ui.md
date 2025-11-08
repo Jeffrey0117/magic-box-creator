@@ -1,1373 +1,879 @@
-# 後台編輯個人資料彈窗 - UI 設計規範
+# 編輯關鍵字區塊 - UI 設計規範
 
 ## 一、設計分析與評估
 
-### 現有設計優點
-1. **視覺層次清晰** - 使用分區標題、間距、分隔線來區分不同功能區塊
-2. **引導流程完善** - 圖片上傳採用分步驟指引,降低使用門檻
-3. **即時反饋良好** - 字數計數器、URL 驗證、預覽功能提供即時視覺反饋
-4. **互動體驗佳** - hover 效果、focus 狀態、動畫過渡自然
-5. **深色主題一致** - 整體色調與主系統保持一致性
+### 參考來源：編輯作者資料彈窗設計
+參考 [`ProfileEditDialog.tsx`](src/components/ProfileEditDialog.tsx:1) 的優秀設計模式：
+- **分區標題系統** - 使用 emoji + 大寫英文 + 綠色品牌色
+- **標籤 Badge 系統** - 清楚標示「選填」「不可編輯」等狀態
+- **即時預覽機制** - 頭像上傳區提供即時預覽回饋
+- **字數計數器** - 動態顏色回饋（綠/黃/紅）
+- **引導式流程** - 圖片上傳使用 AlertDialog 引導使用者
+- **深色主題統一** - bg-gray-900 / 700 / 600 漸層層次
 
-### 可優化項目
-1. **資訊密度過高** - 圖片上傳區塊包含預覽、步驟指引、按鈕、輸入框、提示卡片,視覺負擔重
-2. **引導步驟冗長** - 3 步驟說明對於簡單任務來說過於詳細
-3. **提示卡片可精簡** - "為什麼要用 duk.tw?" 可改為更簡潔的提示
-4. **色彩對比可加強** - 某些輔助文字與背景對比度略低
-5. **間距標準化** - 各區塊間距不夠一致
+### 現有編輯關鍵字區塊問題
+參考 [`Creator.tsx:1870-2275`](src/pages/Creator.tsx:1870-2275) 側邊編輯面板：
+1. **缺乏視覺層次** - 所有欄位平鋪，沒有分區概念
+2. **標籤樣式不一致** - 使用純文字 Label，缺少狀態標示
+3. **即時回饋不足** - 字數計數器未實作顏色狀態
+4. **圖片管理混亂** - 多個輸入框垂直排列，視覺負擔重
+5. **進階功能藏太深** - 多關鍵字規則沒有明確分區
 
 ---
 
 ## 二、完整 UI 設計規範
 
-### 1. 布局結構
+### 1. 整體布局結構
 
-#### 1.1 整體容器
-- **最大寬度**: 600px
-- **內邊距**: 40px (桌面) / 24px (行動)
-- **背景**: `#1e1e1e` 深色背景
-- **圓角**: 16px
-- **陰影**: `0 20px 60px rgba(0, 0, 0, 0.5)`
+#### 1.1 側邊面板配置（Sheet 元件）
+```
+┌─────────────────────────────────────────────┐
+│ [60% 預覽區]        │ [40% 編輯表單區]      │
+│                     │                        │
+│  即時預覽模板       │  📋 基本資訊           │
+│  (半透明遮罩)       │  ├─ 關鍵字             │
+│                     │  ├─ 回覆內容           │
+│                     │  └─ 限額設定           │
+│                     │                        │
+│                     │  ⏰ 時效設定           │
+│                     │  └─ 啟用限時領取       │
+│                     │                        │
+│                     │  📦 資料包包裝         │
+│                     │  ├─ 標題               │
+│                     │  ├─ 介紹               │
+│                     │  └─ 必填欄位           │
+│                     │                        │
+│                     │  🎨 視覺設計           │
+│                     │  ├─ 頁面模板           │
+│                     │  ├─ 圖片管理           │
+│                     │  └─ 隱藏作者資訊       │
+│                     │                        │
+│                     │  🧩 進階規則           │
+│                     │  └─ 多關鍵字設定       │
+│                     │                        │
+│                     │  [儲存] [取消]         │
+└─────────────────────────────────────────────┘
+```
 
-#### 1.2 標題區 (Header)
-```
-[布局]
-┌─────────────────────────────────────┐
-│ ✏️ 編輯個人資料              [×]    │
-└─────────────────────────────────────┘
-```
-- **高度**: 自動,最小 40px
-- **對齊**: 左右分佈 (space-between)
-- **下方間距**: 32px
-- **標題字體**: 28px / 600 / #ffffff
-- **關閉按鈕**: 40×40px / hover 背景 rgba(255,255,255,0.1)
-
-#### 1.3 表單分區結構
-```
-┌─────────────────────────────────────┐
-│ 📋 基本資訊                         │ ← Section Title
-├─────────────────────────────────────┤
-│ [Email 欄位 - 禁用]                 │
-│ [頭像上傳區]                        │
-│ [暱稱欄位]                          │
-├─────────────────────────────────────┤ ← 分隔線
-│ 📝 個人簡介                         │
-├─────────────────────────────────────┤
-│ [自我介紹 Textarea]                 │
-├─────────────────────────────────────┤
-│ 🔗 社群平台                         │
-├─────────────────────────────────────┤
-│ [社群連結欄位]                      │
-├─────────────────────────────────────┤
-│ [取消] [儲存變更]                   │ ← 按鈕群組
-└─────────────────────────────────────┘
-```
+#### 1.2 響應式調整
+- **桌面** (lg+): 60/40 分割
+- **平板** (md): 50/50 分割
+- **手機** (sm): 隱藏預覽區，全寬表單
 
 ---
 
-### 2. 元件配置
+### 2. 分區標題系統
 
-#### 2.1 分區標題 (Section Title)
-- **字體大小**: 14px
-- **字重**: 600
-- **顏色**: `#10b981` (品牌綠)
+#### 2.1 標題樣式規範
+```tsx
+// 標準分區標題元件
+<div className="text-sm font-semibold text-green-500 uppercase tracking-wider mb-5">
+  📋 基本資訊
+</div>
+```
+
+**設計參數**:
+- **字體大小**: 14px (text-sm)
+- **字重**: 600 (font-semibold)
+- **顏色**: #10b981 (text-green-500)
 - **文字轉換**: uppercase
-- **字距**: 0.5px
-- **下方間距**: 20px
+- **字距**: 0.05em (tracking-wider)
+- **下方間距**: 20px (mb-5)
 
-#### 2.2 表單欄位標籤
-- **字體大小**: 15px
-- **字重**: 500
-- **顏色**: `#e5e7eb`
-- **下方間距**: 10px
-- **配合元素**: Badge (選填/不可編輯) + Lock Icon 🔒
+#### 2.2 分區規劃
+```tsx
+const sections = [
+  { emoji: '📋', title: '基本資訊', fields: ['關鍵字', '回覆內容', '限額數量'] },
+  { emoji: '⏰', title: '時效設定', fields: ['啟用限時領取', '天/小時/分鐘'] },
+  { emoji: '📦', title: '資料包包裝', fields: ['標題', '介紹', '必填欄位'] },
+  { emoji: '🎨', title: '視覺設計', fields: ['頁面模板', '圖片管理', '隱藏作者'] },
+  { emoji: '🧩', title: '進階規則', fields: ['多關鍵字規則'] },
+];
+```
 
-#### 2.3 輸入框 (Input/Textarea)
-- **基本樣式**:
-  - 寬度: 100%
-  - 內邊距: 14px 16px
-  - 背景: `#2d3748`
-  - 邊框: 2px solid transparent
-  - 圓角: 10px
-  - 字體: 15px / #ffffff
-
-- **Focus 狀態**:
-  - 邊框色: `#10b981`
-  - 背景: `#374151`
-  - 外框陰影: `0 0 0 3px rgba(16, 185, 129, 0.1)`
-
-- **Disabled 狀態**:
-  - 背景: `#1f2937`
-  - 文字色: `#9ca3af`
-  - 透明度: 0.7
-  - Cursor: not-allowed
-
-- **Placeholder**:
-  - 顏色: `#6b7280`
-
-#### 2.4 Textarea 特定樣式
-- **最小高度**: 100px
-- **行高**: 1.6
-- **Resize**: vertical (允許垂直調整)
+#### 2.3 分隔線設計
+```tsx
+<div className="pb-8 border-b border-gray-800">
+  {/* 分區內容 */}
+</div>
+```
 
 ---
 
-### 3. 圖片上傳區優化設計
+### 3. 表單欄位標籤系統
 
-#### 3.1 簡化版布局結構
-```
-┌────────────────────────────────────────────┐
-│ ┌─────┐  當前頭像                          │
-│ │ IMG │  建議尺寸 200×200 以上             │
-│ └─────┘                                    │
-│                                            │
-│ ┌──────────────────────────────────────┐  │
-│ │ 🔗 貼上圖片連結                       │  │
-│ └──────────────────────────────────────┘  │
-│ ✓ 圖片連結有效                             │
-│                                            │
-│ 📸 沒有圖片連結？[前往上傳圖片 🚀]         │
-│                                            │
-│ 💡 使用 duk.tw 可確保圖片穩定載入          │
-└────────────────────────────────────────────┘
+#### 3.1 標籤結構
+```tsx
+<div className="flex items-center gap-2 mb-2.5">
+  <Label htmlFor="fieldId" className="text-[15px] font-medium text-gray-200">
+    欄位名稱
+  </Label>
+  {/* Badge 狀態標示 */}
+  <span className="text-[11px] px-2 py-0.5 rounded bg-gray-700 text-gray-400 font-medium">
+    選填
+  </span>
+  {/* 特殊圖示（如鎖定） */}
+  <span className="text-sm">🔒</span>
+</div>
 ```
 
-#### 3.2 元件細節
-
-**頭像預覽區**:
-- 尺寸: 80×80px
-- 圓角: 50% (圓形)
-- 邊框: 3px solid #4b5563
-- Placeholder: 36px 圖示 / #6b7280
-
-**URL 輸入區**:
-- 輸入框左側圖示: 🔗 (絕對定位 left: 16px)
-- 輸入框左內邊距: 48px (騰出圖示空間)
-- 驗證訊息位置: 輸入框下方 8px
-- 驗證訊息字體: 13px / 包含圖示 (✓ 或 ⚠️)
-
-**上傳引導區** (精簡版):
-- 背景: `linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%)`
-- 內邊距: 16px
-- 圓角: 10px
-- 文字: 13px / #e0e7ff
-- 按鈕: inline 漸層綠色按鈕
-
-**移除的元素**:
-- ❌ 詳細的 3 步驟指引卡片 (過於冗長)
-- ❌ 獨立的提示卡片 (合併為簡短說明)
-- ✅ 保留單行提示 + CTA 按鈕即可
+#### 3.2 Badge 變體
+| 狀態 | 文字 | 背景色 | 文字色 | 使用時機 |
+|------|------|--------|--------|----------|
+| 選填 | 選填 | bg-gray-700 | text-gray-400 | 非必填欄位 |
+| 必填 | 必填 | bg-red-900/30 | text-red-400 | 必填欄位 |
+| 不可編輯 | 不可編輯 | bg-gray-700 | text-gray-400 | 禁用欄位 |
+| 進階功能 | Premium | bg-amber-900/30 | text-amber-400 | 付費功能 |
 
 ---
 
-### 4. 字數計數器設計
+### 4. 輸入欄位設計
 
-#### 4.1 布局
+#### 4.1 基本輸入框樣式
+```tsx
+<Input
+  className="bg-gray-700 border-2 border-transparent 
+             focus:border-green-500 focus:bg-gray-600 
+             text-white placeholder:text-gray-500 
+             rounded-lg py-3.5 px-4 
+             transition-all duration-300"
+/>
 ```
-[輔助文字]                    [7 / 20]
-```
-- 對齊: space-between
-- 上方間距: 8px
-- 字體大小: 13px
 
-#### 4.2 顏色狀態
-- **預設** (0 字元): `#9ca3af`
-- **正常** (< 80%): `#10b981` (綠色)
-- **警告** (80-100%): `#f59e0b` (橘色)
-- **超出** (100%+): `#ef4444` (紅色)
-
----
-
-### 5. 按鈕設計規範
-
-#### 5.1 主要按鈕 (Primary)
-- **背景**: `linear-gradient(135deg, #10b981 0%, #059669 100%)`
+**設計參數**:
+- **背景色**: #374151 (bg-gray-700)
+- **Focus 背景**: #4b5563 (bg-gray-600)
+- **邊框**: 2px transparent → green-500
+- **圓角**: 8px (rounded-lg)
+- **內邊距**: 14px 16px (py-3.5 px-4)
 - **文字色**: white
-- **內邊距**: 14px 24px
-- **圓角**: 10px
-- **字體**: 15px / 600
-- **陰影**: `0 4px 12px rgba(16, 185, 129, 0.3)`
-- **Hover**: 上移 2px + 陰影加深
+- **Placeholder**: #6b7280 (text-gray-500)
 
-#### 5.2 次要按鈕 (Secondary)
-- **背景**: transparent
-- **邊框**: 2px solid #374151
-- **文字色**: #9ca3af
-- **Hover**:
-  - 邊框色: #4b5563
-  - 文字色: #e5e7eb
-  - 背景: #1f2937
-
-#### 5.3 按鈕群組
-- **布局**: flex / gap: 12px
-- **比例**: 1:1 (flex: 1)
-- **上方間距**: 32px
-- **行動版**: column-reverse (取消在下,儲存在上)
-
----
-
-### 6. 間距標準
-
-#### 6.1 垂直間距系統
-```
-4px   - 細微間距 (label 內元素)
-8px   - 小間距 (驗證訊息、計數器)
-10px  - 標籤與輸入框間距
-12px  - 步驟項目間距
-16px  - 卡片內邊距
-20px  - 區塊內元素間距
-24px  - 表單欄位間距
-32px  - 分區間距、按鈕群組上方間距
-40px  - 容器內邊距 (桌面)
+#### 4.2 Textarea 特殊樣式
+```tsx
+<Textarea
+  className="min-h-[100px] bg-gray-700 border-2 border-transparent 
+             focus:border-green-500 focus:bg-gray-600 
+             text-white placeholder:text-gray-500 
+             rounded-lg py-3.5 px-4 resize-y leading-relaxed 
+             transition-all duration-300"
+/>
 ```
 
-#### 6.2 水平間距
-```
-8px   - 小元素 gap (icon + text)
-12px  - 中元素 gap (按鈕群組)
-16px  - 大元素 gap (頭像與說明)
+**額外參數**:
+- **最小高度**: 100px (min-h-[100px])
+- **行高**: 1.625 (leading-relaxed)
+- **Resize**: vertical (resize-y)
+
+#### 4.3 禁用狀態
+```tsx
+<Input
+  disabled
+  className="bg-gray-800/70 border-transparent 
+             text-gray-400 cursor-not-allowed opacity-70"
+/>
 ```
 
 ---
 
-### 7. 響應式設計
+### 5. 字數計數器設計
 
-#### 7.1 斷點
-- **桌面**: > 640px
-- **行動**: ≤ 640px
+#### 5.1 布局結構
+```tsx
+<div className="flex justify-between items-center mt-2">
+  <span className="text-[13px] text-gray-400">輔助說明文字</span>
+  <span className={`text-[13px] font-medium ${getCharCountColor(length, max)}`}>
+    {length} / {max}
+  </span>
+</div>
+```
 
-#### 7.2 行動版調整
-```css
-@media (max-width: 640px) {
-  .container {
-    padding: 24px;  /* 從 40px 縮小 */
-  }
+#### 5.2 動態顏色邏輯
+```tsx
+const getCharCountColor = (length: number, max: number) => {
+  if (length === 0) return 'text-gray-400';      // 未輸入
+  const percentage = length / max;
+  if (percentage >= 1) return 'text-red-500';    // 已達上限 ❌
+  if (percentage >= 0.8) return 'text-amber-500'; // 警告 ⚠️
+  return 'text-green-500';                       // 正常 ✓
+};
+```
+
+#### 5.3 應用範例
+| 欄位 | 上限 | 輔助文字 |
+|------|------|----------|
+| 關鍵字 | 50 | 建議使用簡短易記的詞彙 |
+| 回覆內容 | 2000 | 支援多行文字與 Markdown |
+| 資料包標題 | 50 | 顯示在頁面頂部 |
+| 資料包介紹 | 300 | 顯示在圖片上方 |
+| 暱稱 | 20 | 建議使用真實姓名或常用暱稱 |
+| 自我介紹 | 200 | 讓其他人更認識你 |
+
+---
+
+### 6. 圖片管理區設計
+
+#### 6.1 優化前問題
+```tsx
+// ❌ 舊設計：垂直列表，視覺混亂
+{newImageUrls.map((url, index) => (
+  <div key={index} className="flex gap-2">
+    <Input type="url" value={url} />
+    <Button variant="ghost"><Trash2 /></Button>
+  </div>
+))}
+```
+
+#### 6.2 優化後設計
+```tsx
+// ✅ 新設計：卡片式管理 + 批量貼入
+<div className="bg-gradient-to-br from-gray-800 to-gray-900 border-2 border-gray-700 rounded-xl p-6">
+  {/* 標題列 */}
+  <div className="flex items-center justify-between mb-4">
+    <div className="text-sm font-medium text-gray-200">
+      📷 資料包圖片 ({editImageUrls.length} / 5)
+    </div>
+    <div className="flex gap-2">
+      <AlertDialog>
+        <AlertDialogTrigger asChild>
+          <Button size="sm" variant="secondary">
+            上傳圖片
+          </Button>
+        </AlertDialogTrigger>
+        {/* AlertDialog 內容 */}
+      </AlertDialog>
+      <Button size="sm" variant="outline" onClick={() => setShowBatchImageDialog(true)}>
+        📋 批量貼入
+      </Button>
+    </div>
+  </div>
+
+  {/* 圖片預覽網格 */}
+  <div className="grid grid-cols-2 gap-3 mb-4">
+    {editImageUrls.filter(url => url.trim()).map((url, index) => (
+      <div key={index} className="relative group">
+        {/* 圖片預覽 */}
+        <div className="aspect-video bg-gray-700 rounded-lg overflow-hidden">
+          <img src={url} alt={`圖片 ${index + 1}`} className="w-full h-full object-cover" />
+        </div>
+        {/* Hover 顯示操作按鈕 */}
+        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center gap-2">
+          <Button size="sm" variant="ghost" className="text-white">
+            <Edit className="w-4 h-4" />
+          </Button>
+          <Button size="sm" variant="ghost" className="text-red-400">
+            <Trash2 className="w-4 h-4" />
+          </Button>
+        </div>
+        {/* 圖片編號 */}
+        <div className="absolute top-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
+          #{index + 1}
+        </div>
+      </div>
+    ))}
+    
+    {/* 新增圖片按鈕 */}
+    {editImageUrls.length < 5 && (
+      <button
+        type="button"
+        onClick={() => setEditImageUrls([...editImageUrls, ''])}
+        className="aspect-video border-2 border-dashed border-gray-600 rounded-lg flex flex-col items-center justify-center gap-2 hover:border-green-500 hover:bg-gray-800/50 transition-all"
+      >
+        <Plus className="w-6 h-6 text-gray-400" />
+        <span className="text-sm text-gray-400">新增圖片</span>
+      </button>
+    )}
+  </div>
+
+  {/* 摺疊式 URL 編輯區（進階使用者） */}
+  <details className="mt-4">
+    <summary className="text-xs text-gray-400 cursor-pointer hover:text-gray-300">
+      📝 直接編輯圖片 URL
+    </summary>
+    <div className="mt-3 space-y-2">
+      {editImageUrls.map((url, index) => (
+        <Input
+          key={index}
+          type="url"
+          value={url}
+          onChange={(e) => {
+            const updated = [...editImageUrls];
+            updated[index] = e.target.value;
+            setEditImageUrls(updated);
+          }}
+          placeholder={`圖片 ${index + 1} URL`}
+          className="h-9 text-sm"
+        />
+      ))}
+    </div>
+  </details>
+</div>
+```
+
+#### 6.3 批量貼入對話框
+```tsx
+<Dialog open={showBatchImageDialog} onOpenChange={setShowBatchImageDialog}>
+  <DialogContent>
+    <DialogHeader>
+      <DialogTitle>批量貼入圖片 URL</DialogTitle>
+    </DialogHeader>
+    <div className="space-y-4">
+      <Label>每行一個 URL（最多 5 個）</Label>
+      <Textarea
+        placeholder="https://example.com/image1.jpg&#10;https://example.com/image2.jpg"
+        value={batchImageInput}
+        onChange={(e) => setBatchImageInput(e.target.value)}
+        rows={8}
+        className="font-mono text-sm"
+      />
+      <div className="flex justify-end gap-2">
+        <Button variant="outline" onClick={() => setShowBatchImageDialog(false)}>
+          取消
+        </Button>
+        <Button onClick={handleBatchImagePaste}>
+          確定匯入
+        </Button>
+      </div>
+    </div>
+  </DialogContent>
+</Dialog>
+```
+
+---
+
+### 7. Checkbox 開關設計
+
+#### 7.1 基本結構
+```tsx
+<label className="flex items-center gap-2 cursor-pointer">
+  <input
+    type="checkbox"
+    checked={editEnableExpiry}
+    onChange={(e) => setEditEnableExpiry(e.target.checked)}
+    className="w-4 h-4 rounded border-gray-600 text-green-500 focus:ring-green-500 focus:ring-offset-0"
+  />
+  <span className="text-sm text-gray-200">啟用限時領取</span>
+</label>
+```
+
+#### 7.2 搭配展開內容
+```tsx
+<div className="space-y-2">
+  <label className="flex items-center gap-2">
+    <input type="checkbox" checked={editEnableExpiry} onChange={...} />
+    <span className="text-sm">啟用限時領取</span>
+  </label>
   
-  .button-group {
-    flex-direction: column-reverse;  /* 垂直排列,儲存在上 */
-  }
-  
-  .upload-header {
-    flex-direction: column;  /* 頭像與說明垂直排列 */
-    text-align: center;
-  }
-}
+  {/* 條件顯示展開內容 */}
+  {editEnableExpiry && (
+    <div className="ml-6 p-4 bg-gray-800/50 rounded-lg border border-gray-700 space-y-3">
+      {/* 展開內容 */}
+    </div>
+  )}
+</div>
 ```
 
 ---
 
-### 8. 色彩系統
+### 8. 進階功能區設計
 
-#### 8.1 主要色彩
-```
-品牌綠 (Primary):     #10b981
-品牌綠深 (Hover):     #059669
-背景深色:             #1e1e1e
-輸入框背景:           #2d3748
-輸入框背景 (Focus):   #374151
-邊框色:               #374151
-```
-
-#### 8.2 文字色彩
-```
-標題/主要文字:        #ffffff
-次要文字:             #e5e7eb
-輔助文字:             #9ca3af
-禁用文字:             #6b7280
-```
-
-#### 8.3 狀態色彩
-```
-成功 (Success):       #10b981
-警告 (Warning):       #f59e0b
-錯誤 (Error):         #ef4444
-資訊 (Info):          #1e40af → #1e3a8a (漸層)
-```
-
----
-
-### 9. 動畫與過渡
-
-#### 9.1 基本過渡
-- **屬性**: all
-- **時長**: 0.3s
-- **緩動**: ease
-
-#### 9.2 特殊動畫
-```css
-/* Toast 滑入動畫 */
-@keyframes slideIn {
-  from {
-    transform: translateX(400px);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
-}
-
-/* 按鈕 Hover 上移 */
-.btn-primary:hover {
-  transform: translateY(-2px);
-}
+#### 8.1 會員等級判斷
+```tsx
+<div className="space-y-2">
+  <Label>🧩 進階規則（多關鍵字）</Label>
+  {userProfile?.membership_tier === 'free' ? (
+    // 免費用戶：顯示升級提示
+    <div className="p-4 rounded-lg border-2 border-amber-500/30 bg-amber-900/10">
+      <div className="flex items-start gap-3">
+        <div className="text-2xl">⭐</div>
+        <div className="flex-1">
+          <p className="text-sm font-medium text-amber-400 mb-1">
+            Premium 專屬功能
+          </p>
+          <p className="text-xs text-gray-400 leading-relaxed">
+            升級至 Premium 即可使用多關鍵字規則，讓一個資料包支援多個解鎖關鍵字。
+          </p>
+          <Button size="sm" className="mt-3 bg-gradient-to-r from-amber-500 to-amber-600">
+            立即升級
+          </Button>
+        </div>
+      </div>
+    </div>
+  ) : (
+    // Premium 用戶：完整功能
+    <>
+      <label className="flex items-center gap-2">
+        <input type="checkbox" checked={editUnlockEnabled} onChange={...} />
+        <span className="text-sm">啟用多關鍵字規則（OR 模式）</span>
+      </label>
+      {editUnlockEnabled && (
+        <div className="ml-6 p-4 bg-gray-800/50 rounded-lg border border-gray-700">
+          <Label>關鍵字列表（逗號分隔）</Label>
+          <Textarea
+            value={editUnlockKeywords}
+            onChange={(e) => setEditUnlockKeywords(e.target.value)}
+            placeholder="alpha, beta, gamma"
+            rows={3}
+            className="mt-2"
+          />
+          <p className="text-xs text-gray-400 mt-2">
+            輸入 1 個或多個關鍵字，使用逗號分隔。任一符合即解鎖
+          </p>
+        </div>
+      )}
+    </>
+  )}
+</div>
 ```
 
 ---
 
-### 10. 無障礙設計
+### 9. 按鈕設計規範
 
-#### 10.1 對比度
-- 確保文字與背景對比度至少 4.5:1 (WCAG AA)
-- 重要操作按鈕對比度至少 7:1 (WCAG AAA)
+#### 9.1 主要動作按鈕（Primary）
+```tsx
+<Button
+  type="submit"
+  className="flex-1 bg-gradient-to-r from-green-500 to-green-600 
+             hover:from-green-600 hover:to-green-700 
+             text-white font-semibold rounded-lg py-3.5 
+             shadow-lg shadow-green-500/30 
+             hover:shadow-green-500/40 hover:-translate-y-0.5 
+             transition-all duration-300"
+>
+  <span className="mr-2">💾</span>
+  儲存變更
+</Button>
+```
 
-#### 10.2 鍵盤導航
-- 所有互動元素支援 Tab 鍵導航
-- Focus 狀態清晰可見 (綠色外框)
+#### 9.2 次要動作按鈕（Secondary）
+```tsx
+<Button
+  type="button"
+  variant="outline"
+  className="flex-1 bg-transparent border-2 border-gray-700 
+             text-gray-400 hover:border-gray-600 
+             hover:text-gray-200 hover:bg-gray-800 
+             rounded-lg py-3.5 font-semibold 
+             transition-all duration-300"
+>
+  取消
+</Button>
+```
 
-#### 10.3 語意化 HTML
-- 使用正確的 `<label>` 關聯
-- 使用 `disabled` 屬性而非樣式模擬
-- 使用 `type="url"` 提供原生驗證
+#### 9.3 小型輔助按鈕
+```tsx
+<Button size="sm" variant="secondary">
+  上傳圖片
+</Button>
+
+<Button size="sm" variant="outline" className="gap-2">
+  📋 批量貼入
+</Button>
+```
+
+---
+
+### 10. 色彩系統
+
+#### 10.1 主要色彩
+| 用途 | Tailwind Class | Hex 值 | 說明 |
+|------|---------------|--------|------|
+| 品牌綠 | text/bg-green-500 | #10b981 | 分區標題、焦點邊框、成功狀態 |
+| 品牌綠深 | text/bg-green-600 | #059669 | Hover 狀態 |
+| 背景深 | bg-gray-900 | #111827 | 主背景 |
+| 背景中 | bg-gray-800 | #1f2937 | 次要背景 |
+| 背景淺 | bg-gray-700 | #374151 | 輸入框背景 |
+| 邊框色 | border-gray-700 | #374151 | 分隔線、輸入框邊框 |
+
+#### 10.2 文字色彩
+| 用途 | Tailwind Class | Hex 值 |
+|------|---------------|--------|
+| 主要文字 | text-white | #ffffff |
+| 次要文字 | text-gray-200 | #e5e7eb |
+| 輔助文字 | text-gray-400 | #9ca3af |
+| 禁用文字 | text-gray-500 | #6b7280 |
+| Placeholder | text-gray-500 | #6b7280 |
+
+#### 10.3 狀態色彩
+| 狀態 | Tailwind Class | Hex 值 | 使用時機 |
+|------|---------------|--------|----------|
+| 成功 | text-green-500 | #10b981 | 字數正常、驗證通過 |
+| 警告 | text-amber-500 | #f59e0b | 字數 80%+、Premium 提示 |
+| 錯誤 | text-red-500 | #ef4444 | 字數超限、驗證失敗 |
+| 資訊 | text-blue-500 | #3b82f6 | 提示訊息 |
+
+---
+
+### 11. 間距標準
+
+#### 11.1 垂直間距系統
+```
+2px   - 極小間距 (gap-0.5)
+4px   - 微小間距 (gap-1)
+8px   - 小間距 (gap-2) - 標籤內元素
+10px  - 標籤與輸入框間距 (mb-2.5)
+12px  - 中間距 (gap-3)
+16px  - 大間距 (gap-4)
+20px  - 分區標題下方 (mb-5)
+24px  - 欄位間距 (space-y-6)
+32px  - 分區間距 (pb-8)
+```
+
+#### 11.2 內邊距標準
+```
+12px  - 小型按鈕 (px-3 py-1.5)
+14px  - 輸入框垂直 (py-3.5)
+16px  - 輸入框水平 (px-4)
+24px  - 卡片內邊距 (p-6)
+40px  - 對話框內邊距 (p-10)
+```
+
+---
+
+### 12. 動畫與過渡
+
+#### 12.1 基本過渡
+```tsx
+// 標準過渡時長：300ms
+className="transition-all duration-300"
+```
+
+#### 12.2 Hover 動畫
+```tsx
+// 按鈕上移效果
+className="hover:-translate-y-0.5 transition-all duration-300"
+
+// 陰影增強
+className="shadow-lg hover:shadow-xl transition-all duration-300"
+```
+
+#### 12.3 焦點動畫
+```tsx
+// 邊框 + 背景色過渡
+className="border-2 border-transparent 
+           focus:border-green-500 focus:bg-gray-600 
+           transition-all duration-300"
+```
 
 ---
 
 ## 三、實作建議
 
 ### 與現有元件整合
-現有 [`ProfileEditDialog.tsx`](src/components/ProfileEditDialog.tsx:1) 使用 shadcn/ui 元件庫,建議:
+現有 [`Creator.tsx:1870-2275`](src/pages/Creator.tsx:1870-2275) 側邊編輯面板建議優化：
 
-1. **保留現有元件**: Dialog, Input, Textarea, Button, Label
-2. **優化布局結構**: 參考此規範調整間距、分區
-3. **增強圖片上傳區**:
-   - 簡化步驟指引為單行提示
-   - 改善預覽區視覺層次
-   - 使用 AlertDialog 引導上傳流程 (已實作)
-4. **統一色彩系統**: 使用 Tailwind CSS 變數確保一致性
+1. **引入分區標題系統**
+   - 將表單分為 5 大區塊（基本資訊、時效設定、資料包包裝、視覺設計、進階規則）
+   - 每區使用綠色大寫標題 + emoji
+
+2. **統一標籤樣式**
+   - 所有 Label 改用 15px 字體 + text-gray-200
+   - 加入 Badge 狀態標示
+
+3. **實作字數計數器**
+   - 關鍵字、回覆內容、標題、介紹欄位加入動態計數器
+   - 使用 `getCharCountColor` 函數提供顏色回饋
+
+4. **優化圖片管理**
+   - 改用卡片式網格預覽（2 欄）
+   - 加入批量貼入功能
+   - URL 編輯區改為摺疊式（進階使用者）
+
+5. **改善進階功能區**
+   - 加入會員等級判斷邏輯
+   - 免費用戶顯示升級提示卡片
+   - Premium 用戶顯示完整功能
 
 ### 技術棧對應
 ```
-CSS 設計規範          →  Tailwind CSS 類別
-────────────────────────────────────────
-background: #1e1e1e   →  bg-gray-900
-color: #10b981        →  text-green-500
-padding: 40px         →  p-10
-gap: 12px             →  gap-3
-border-radius: 16px   →  rounded-2xl
+設計規範               →  React + Tailwind CSS
+────────────────────────────────────────────────
+分區標題               →  <div className="text-sm font-semibold text-green-500 uppercase tracking-wider mb-5">
+標籤 + Badge          →  <Label> + <span className="text-[11px] px-2 py-0.5 rounded bg-gray-700">
+輸入框                 →  <Input className="bg-gray-700 border-2 border-transparent focus:border-green-500">
+字數計數器             →  動態 className + getCharCountColor()
+圖片網格               →  <div className="grid grid-cols-2 gap-3">
+Checkbox              →  <input type="checkbox"> + <label className="flex items-center gap-2">
+按鈕                   →  <Button className="bg-gradient-to-r from-green-500 to-green-600">
 ```
 
 ---
 
 ## 四、設計決策記錄
 
-### 為何簡化圖片上傳引導?
-**決策**: 移除詳細的 3 步驟指引卡片,改為精簡的單行提示 + CTA 按鈕
+### 為何採用分區標題系統？
+**決策**: 引入 5 大分區（📋 基本資訊、⏰ 時效設定、📦 資料包包裝、🎨 視覺設計、🧩 進階規則）
 
 **理由**:
-1. 降低視覺負擔 - 原設計資訊密度過高,造成認知負荷
-2. 提升掃描效率 - 使用者通常不會仔細閱讀長說明
-3. 保留核心功能 - "前往上傳" 按鈕才是關鍵 CTA
-4. 符合現代設計趨勢 - Just-in-time help 優於 upfront instructions
+1. **降低認知負荷** - 將 15+ 欄位分組，使用者更容易理解表單結構
+2. **提升掃描效率** - emoji + 顏色標題提供視覺錨點
+3. **符合心智模型** - 分區符合「建立資料包」的自然流程（內容 → 包裝 → 進階）
+4. **保持一致性** - 與 ProfileEditDialog 設計語言統一
 
-### 為何使用漸層按鈕?
-**決策**: 主要 CTA 使用綠色漸層而非純色
-
-**理由**:
-1. 視覺吸引力 - 漸層比純色更有深度感
-2. 品牌識別 - 與系統其他 CTA 保持一致
-3. 引導注意力 - 漸層 + 陰影 + hover 動畫形成強烈視覺焦點
-
-### 為何分區使用 emoji 圖示?
-**決策**: 分區標題使用 emoji (📋📝🔗) 而非 icon 字體
+### 為何優化圖片管理區？
+**決策**: 從垂直列表改為卡片式網格 + 批量貼入
 
 **理由**:
-1. 免依賴 - 不需額外圖示庫
-2. 跨平台一致 - emoji 支援度高
-3. 視覺友善 - 增加親和力,降低嚴肅感
-4. 快速識別 - 色彩豐富的圖示比單色 icon 更易區分
+1. **提升視覺效率** - 網格預覽一眼看出所有圖片
+2. **降低操作成本** - 批量貼入減少重複操作
+3. **符合預期心智模型** - 圖片管理應以視覺為主，URL 為輔
+4. **漸進式披露** - 進階使用者可展開 URL 編輯區
+
+### 為何加入字數計數器？
+**決策**: 所有文字輸入欄位加入動態顏色計數器
+
+**理由**:
+1. **即時回饋** - 使用者即時知道字數狀態
+2. **避免錯誤** - 80% 警告預防超限
+3. **引導優化** - 鼓勵使用者精簡文字
+4. **提升專業度** - 與現代 SaaS 產品設計一致
+
+### 為何區分會員等級？
+**決策**: 進階功能顯示升級提示卡片
+
+**理由**:
+1. **商業模式需求** - 推動 Premium 轉換
+2. **避免混淆** - 免費用戶不會誤觸無法使用的功能
+3. **提供誘因** - 清楚說明 Premium 價值
+4. **保持友善** - 非強制打斷，僅提示升級
 
 ---
 
-<!DOCTYPE html>
-<html lang="zh-TW">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>個人資料編輯 - 優化引導版</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 40px 20px;
-        }
-
-        .container {
-            background: #1e1e1e;
-            border-radius: 16px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-            width: 100%;
-            max-width: 600px;
-            padding: 40px;
-        }
-
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 32px;
-        }
-
-        .header h1 {
-            font-size: 28px;
-            color: #ffffff;
-            font-weight: 600;
-        }
-
-        .close-btn {
-            background: transparent;
-            border: none;
-            color: #9ca3af;
-            font-size: 28px;
-            cursor: pointer;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 8px;
-            transition: all 0.2s;
-        }
-
-        .close-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
-            color: #ffffff;
-        }
-
-        .form-section {
-            margin-bottom: 32px;
-            padding-bottom: 32px;
-            border-bottom: 1px solid #2d2d2d;
-        }
-
-        .form-section:last-of-type {
-            border-bottom: none;
-        }
-
-        .section-title {
-            font-size: 14px;
-            font-weight: 600;
-            color: #10b981;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 20px;
-        }
-
-        .form-group {
-            margin-bottom: 24px;
-        }
-
-        .label-wrapper {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 10px;
-        }
-
-        label {
-            font-size: 15px;
-            font-weight: 500;
-            color: #e5e7eb;
-        }
-
-        .badge {
-            font-size: 11px;
-            padding: 3px 8px;
-            border-radius: 4px;
-            background: #374151;
-            color: #9ca3af;
-            font-weight: 500;
-        }
-
-        .lock-icon {
-            color: #6b7280;
-            font-size: 14px;
-        }
-
-        input[type="text"],
-        input[type="url"],
-        textarea {
-            width: 100%;
-            padding: 14px 16px;
-            background: #2d3748;
-            border: 2px solid transparent;
-            border-radius: 10px;
-            color: #ffffff;
-            font-size: 15px;
-            transition: all 0.3s ease;
-            font-family: inherit;
-        }
-
-        input[type="text"]:focus,
-        input[type="url"]:focus,
-        textarea:focus {
-            outline: none;
-            border-color: #10b981;
-            background: #374151;
-            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
-        }
-
-        input::placeholder,
-        textarea::placeholder {
-            color: #6b7280;
-        }
-
-        input:disabled {
-            background: #1f2937;
-            color: #9ca3af;
-            cursor: not-allowed;
-            opacity: 0.7;
-        }
-
-        textarea {
-            resize: vertical;
-            min-height: 100px;
-            line-height: 1.6;
-        }
-
-        .char-counter {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 8px;
-            font-size: 13px;
-        }
-
-        .char-counter .count {
-            color: #9ca3af;
-            font-weight: 500;
-        }
-
-        .char-counter .count.warning {
-            color: #f59e0b;
-        }
-
-        .char-counter .count.error {
-            color: #ef4444;
-        }
-
-        .char-counter .count.success {
-            color: #10b981;
-        }
-
-        .helper-text {
-            color: #9ca3af;
-            font-size: 13px;
-        }
-
-        /* 圖片上傳區 - 優化引導流程 */
-        .upload-section {
-            background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
-            border: 2px solid #374151;
-            border-radius: 12px;
-            padding: 24px;
-        }
-
-        .upload-header {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            margin-bottom: 20px;
-        }
-
-        .upload-preview {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            overflow: hidden;
-            background: #374151;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 3px solid #4b5563;
-            flex-shrink: 0;
-        }
-
-        .upload-preview img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .upload-preview .placeholder {
-            font-size: 36px;
-            color: #6b7280;
-        }
-
-        .upload-info {
-            flex: 1;
-        }
-
-        .upload-title {
-            color: #e5e7eb;
-            font-size: 15px;
-            font-weight: 600;
-            margin-bottom: 4px;
-        }
-
-        .upload-subtitle {
-            color: #9ca3af;
-            font-size: 13px;
-            line-height: 1.5;
-        }
-
-        /* 步驟指引 */
-        .steps-guide {
-            background: #0f172a;
-            border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-
-        .step-title {
-            color: #10b981;
-            font-size: 14px;
-            font-weight: 600;
-            margin-bottom: 16px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .steps {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .step {
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-        }
-
-        .step-number {
-            width: 28px;
-            height: 28px;
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 13px;
-            font-weight: 700;
-            flex-shrink: 0;
-        }
-
-        .step-content {
-            flex: 1;
-            padding-top: 4px;
-        }
-
-        .step-text {
-            color: #e5e7eb;
-            font-size: 14px;
-            line-height: 1.5;
-        }
-
-        /* 上傳按鈕 - 更顯眼 */
-        .upload-button {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 12px 24px;
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-        }
-
-        .upload-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
-        }
-
-        .upload-button .icon {
-            font-size: 18px;
-        }
-
-        /* URL 輸入區 */
-        .url-input-section {
-            margin-top: 20px;
-        }
-
-        .url-input-wrapper {
-            position: relative;
-        }
-
-        .input-icon {
-            position: absolute;
-            left: 16px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #6b7280;
-            font-size: 18px;
-        }
-
-        .url-input-wrapper input {
-            padding-left: 48px;
-        }
-
-        .validation-message {
-            display: none;
-            margin-top: 8px;
-            font-size: 13px;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .validation-message.show {
-            display: flex;
-        }
-
-        .validation-message.error {
-            color: #ef4444;
-        }
-
-        .validation-message.success {
-            color: #10b981;
-        }
-
-        /* 提示卡片 */
-        .tip-card {
-            background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
-            border-radius: 10px;
-            padding: 16px;
-            margin-top: 16px;
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-        }
-
-        .tip-icon {
-            font-size: 24px;
-            flex-shrink: 0;
-        }
-
-        .tip-text {
-            color: #e0e7ff;
-            font-size: 13px;
-            line-height: 1.6;
-        }
-
-        .tip-text strong {
-            color: #ffffff;
-            font-weight: 600;
-        }
-
-        .button-group {
-            display: flex;
-            gap: 12px;
-            margin-top: 32px;
-        }
-
-        .btn {
-            flex: 1;
-            padding: 14px 24px;
-            border-radius: 10px;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            color: white;
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
-        }
-
-        .btn-secondary {
-            background: transparent;
-            color: #9ca3af;
-            border: 2px solid #374151;
-        }
-
-        .btn-secondary:hover {
-            border-color: #4b5563;
-            color: #e5e7eb;
-            background: #1f2937;
-        }
-
-        .success-toast {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: #10b981;
-            color: white;
-            padding: 16px 24px;
-            border-radius: 10px;
-            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
-            display: none;
-            align-items: center;
-            gap: 12px;
-            animation: slideIn 0.3s ease;
-            z-index: 1000;
-        }
-
-        .success-toast.show {
-            display: flex;
-        }
-
-        @keyframes slideIn {
-            from {
-                transform: translateX(400px);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-
-        @media (max-width: 640px) {
-            .container {
-                padding: 24px;
-            }
-
-            .button-group {
-                flex-direction: column-reverse;
-            }
-
-            .btn {
-                width: 100%;
-            }
-
-            .upload-header {
-                flex-direction: column;
-                text-align: center;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>✏️ 編輯個人資料</h1>
-            <button class="close-btn">×</button>
-        </div>
-
-        <form id="profileForm">
-            <!-- 基本資訊區塊 -->
-            <div class="form-section">
-                <div class="section-title">📋 基本資訊</div>
-
-                <!-- Email - 不可編輯 -->
-                <div class="form-group">
-                    <div class="label-wrapper">
-                        <label>Email</label>
-                        <span class="lock-icon">🔒</span>
-                        <span class="badge">不可編輯</span>
-                    </div>
-                    <input type="text" value="jeffby8@gmail.com" disabled>
-                </div>
-
-                <!-- 頭像上傳 - 優化引導流程 -->
-                <div class="form-group">
-                    <div class="label-wrapper">
-                        <label>大頭貼圖片</label>
-                        <span class="badge">選填</span>
-                    </div>
-                    
-                    <div class="upload-section">
-                        <div class="upload-header">
-                            <div class="upload-preview">
-                                <img id="preview" src="https://duk.tw/JT37Yj.jpg" alt="預覽">
-                            </div>
-                            <div class="upload-info">
-                                <div class="upload-title">當前頭像</div>
-                                <div class="upload-subtitle">建議尺寸 200×200 以上，讓其他人更容易認識你</div>
-                            </div>
-                        </div>
-
-                        <!-- 步驟指引 -->
-                        <div class="steps-guide">
-                            <div class="step-title">
-                                <span>📸</span>
-                                <span>如何上傳圖片？</span>
-                            </div>
-                            <div class="steps">
-                                <div class="step">
-                                    <div class="step-number">1</div>
-                                    <div class="step-content">
-                                        <div class="step-text">點擊下方按鈕前往 <strong>duk.tw</strong> 上傳你的圖片</div>
-                                    </div>
-                                </div>
-                                <div class="step">
-                                    <div class="step-number">2</div>
-                                    <div class="step-content">
-                                        <div class="step-text">上傳完成後，複製圖片連結</div>
-                                    </div>
-                                </div>
-                                <div class="step">
-                                    <div class="step-number">3</div>
-                                    <div class="step-content">
-                                        <div class="step-text">將連結貼在下方的網址欄位中</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 上傳按鈕 -->
-                        <a href="https://duk.tw/" target="_blank" class="upload-button">
-                            <span class="icon">🚀</span>
-                            <span>前往上傳圖片</span>
-                        </a>
-
-                        <!-- URL 輸入 -->
-                        <div class="url-input-section">
-                            <div class="url-input-wrapper">
-                                <span class="input-icon">🔗</span>
-                                <input type="url" id="imageUrl" placeholder="貼上從 duk.tw 取得的圖片連結" value="https://duk.tw/JT37Yj.jpg">
-                            </div>
-                            <div class="validation-message success show" id="urlValidation">
-                                <span>✓</span>
-                                <span>圖片連結有效</span>
-                            </div>
-                        </div>
-
-                        <!-- 提示卡片 -->
-                        <div class="tip-card">
-                            <div class="tip-icon">💡</div>
-                            <div class="tip-text">
-                                <strong>為什麼要用 duk.tw？</strong><br>
-                                使用我們的圖床服務可確保圖片穩定、快速載入，並享有永久保存服務！
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 暱稱 -->
-                <div class="form-group">
-                    <div class="label-wrapper">
-                        <label>暱稱</label>
-                        <span class="badge">選填</span>
-                    </div>
-                    <input type="text" id="nickname" placeholder="請輸入暱稱" maxlength="20" value="切板職人低調貓">
-                    <div class="char-counter">
-                        <span class="helper-text">建議使用真實姓名或常用暱稱</span>
-                        <span class="count success" id="nicknameCount">7 / 20</span>
-                    </div>
-                </div>
+## 五、完整實作範例
+
+### 範例：優化後的側邊編輯面板
+
+```tsx
+<Sheet open={!!editingKeywordId} onOpenChange={(open) => !open && cancelEdit()}>
+  <SheetContent side="right" className="w-full sm:max-w-[90vw] md:max-w-[80vw] lg:max-w-[70vw] p-0 overflow-hidden">
+    <div className="flex h-full">
+      {/* 左側：預覽區 (60%) */}
+      <div className="w-3/5 bg-muted/30 overflow-y-auto border-r">
+        {/* 預覽內容 */}
+      </div>
+
+      {/* 右側：編輯表單區 (40%) */}
+      <div className="w-2/5 overflow-y-auto bg-gray-900">
+        <SheetHeader className="px-6 pt-6 pb-4">
+          <SheetTitle className="text-xl">編輯關鍵字</SheetTitle>
+        </SheetHeader>
+        
+        <form onSubmit={handleUpdateKeyword} className="px-6 pb-6 space-y-8">
+          {/* 📋 基本資訊 */}
+          <div className="pb-8 border-b border-gray-800">
+            <div className="text-sm font-semibold text-green-500 uppercase tracking-wider mb-5">
+              📋 基本資訊
+            </div>
+            
+            {/* 關鍵字 */}
+            <div className="mb-6">
+              <div className="flex items-center gap-2 mb-2.5">
+                <Label htmlFor="editKeyword" className="text-[15px] font-medium text-gray-200">
+                  關鍵字
+                </Label>
+                <span className="text-[11px] px-2 py-0.5 rounded bg-red-900/30 text-red-400 font-medium">
+                  必填
+                </span>
+              </div>
+              <Input
+                id="editKeyword"
+                value={editKeyword}
+                onChange={(e) => setEditKeyword(e.target.value)}
+                required
+                maxLength={50}
+                className="bg-gray-700 border-2 border-transparent focus:border-green-500 focus:bg-gray-600 text-white placeholder:text-gray-500 rounded-lg py-3.5 px-4 transition-all duration-300"
+              />
+              <div className="flex justify-between items-center mt-2">
+                <span className="text-[13px] text-gray-400">建議使用簡短易記的詞彙</span>
+                <span className={`text-[13px] font-medium ${getCharCountColor(editKeyword.length, 50)}`}>
+                  {editKeyword.length} / 50
+                </span>
+              </div>
             </div>
 
-            <!-- 個人簡介區塊 -->
-            <div class="form-section">
-                <div class="section-title">📝 個人簡介</div>
+            {/* 回覆內容 */}
+            <div className="mb-6">
+              <div className="flex items-center gap-2 mb-2.5">
+                <Label htmlFor="editContent" className="text-[15px] font-medium text-gray-200">
+                  回覆內容
+                </Label>
+                <span className="text-[11px] px-2 py-0.5 rounded bg-red-900/30 text-red-400 font-medium">
+                  必填
+                </span>
+              </div>
+              <Textarea
+                id="editContent"
+                value={editContent}
+                onChange={(e) => setEditContent(e.target.value)}
+                required
+                maxLength={2000}
+                className="min-h-[120px] bg-gray-700 border-2 border-transparent focus:border-green-500 focus:bg-gray-600 text-white placeholder:text-gray-500 rounded-lg py-3.5 px-4 resize-y leading-relaxed transition-all duration-300"
+              />
+              <div className="flex justify-between items-center mt-2">
+                <span className="text-[13px] text-gray-400">支援多行文字與 Markdown</span>
+                <span className={`text-[13px] font-medium ${getCharCountColor(editContent.length, 2000)}`}>
+                  {editContent.length} / 2000
+                </span>
+              </div>
+            </div>
 
-                <div class="form-group">
-                    <div class="label-wrapper">
-                        <label>自我介紹</label>
-                        <span class="badge">選填</span>
-                    </div>
-                    <textarea id="bio" placeholder="分享一些關於你的資訊..." maxlength="200">一個熱愛於分享資料包的神人
-請追蹤我的臉</textarea>
-                    <div class="char-counter">
-                        <span class="helper-text">讓其他人更認識你</span>
-                        <span class="count success" id="bioCount">23 / 200</span>
-                    </div>
+            {/* 限額數量 */}
+            <div>
+              <div className="flex items-center gap-2 mb-2.5">
+                <Label htmlFor="editQuota" className="text-[15px] font-medium text-gray-200">
+                  限額數量
+                </Label>
+                <span className="text-[11px] px-2 py-0.5 rounded bg-gray-700 text-gray-400 font-medium">
+                  選填
+                </span>
+              </div>
+              <Input
+                id="editQuota"
+                type="number"
+                value={editQuota}
+                onChange={(e) => setEditQuota(e.target.value)}
+                min="1"
+                placeholder="留空 = 無限制"
+                className="bg-gray-700 border-2 border-transparent focus:border-green-500 focus:bg-gray-600 text-white placeholder:text-gray-500 rounded-lg py-3.5 px-4 transition-all duration-300"
+              />
+            </div>
+          </div>
+
+          {/* ⏰ 時效設定 */}
+          <div className="pb-8 border-b border-gray-800">
+            <div className="text-sm font-semibold text-green-500 uppercase tracking-wider mb-5">
+              ⏰ 時效設定
+            </div>
+            
+            <div className="space-y-2">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={editEnableExpiry}
+                  onChange={(e) => setEditEnableExpiry(e.target.checked)}
+                  className="w-4 h-4 rounded border-gray-600 text-green-500 focus:ring-green-500 focus:ring-offset-0"
+                />
+                <span className="text-sm text-gray-200">啟用限時領取</span>
+              </label>
+              
+              {editEnableExpiry && (
+                <div className="ml-6 p-4 bg-gray-800/50 rounded-lg border border-gray-700 space-y-3">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Input
+                      type="text"
+                      inputMode="numeric"
+                      value={editExpiryDays}
+                      onChange={(e) => setEditExpiryDays(e.target.value.replace(/\D/g, ''))}
+                      placeholder="0"
+                      className="w-16 h-10 bg-gray-700 text-white text-center"
+                    />
+                    <span className="text-sm text-gray-300">天</span>
+                    <Input
+                      type="text"
+                      inputMode="numeric"
+                      value={editExpiryHours}
+                      onChange={(e) => setEditExpiryHours(e.target.value.replace(/\D/g, '').padStart(2, '0'))}
+                      placeholder="00"
+                      maxLength={2}
+                      className="w-16 h-10 bg-gray-700 text-white text-center"
+                    />
+                    <span className="text-sm text-gray-300">小時</span>
+                    <Input
+                      type="text"
+                      inputMode="numeric"
+                      value={editExpiryMinutes}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/\D/g, '');
+                        const num = parseInt(val || '0');
+                        if (num <= 59) {
+                          setEditExpiryMinutes(val.padStart(2, '0'));
+                        }
+                      }}
+                      placeholder="00"
+                      maxLength={2}
+                      className="w-16 h-10 bg-gray-700 text-white text-center"
+                    />
+                    <span className="text-sm text-gray-300">分鐘後失效</span>
+                  </div>
                 </div>
+              )}
             </div>
+          </div>
 
-            <!-- 社群連結區塊 -->
-            <div class="form-section">
-                <div class="section-title">🔗 社群平台</div>
-
-                <div class="form-group">
-                    <div class="label-wrapper">
-                        <label>社群平台連結</label>
-                        <span class="badge">選填</span>
-                    </div>
-                    <input type="url" id="socialUrl" placeholder="例如：https://facebook.com/yourname" value="https://duk.tw/">
-                    <div class="char-counter">
-                        <span class="helper-text">填寫你的社群媒體頁面連結</span>
-                    </div>
-                    <div class="validation-message success show" id="socialValidation">
-                        <span>✓</span>
-                        <span>連結格式正確</span>
-                    </div>
-                </div>
+          {/* 📦 資料包包裝 */}
+          <div className="pb-8 border-b border-gray-800">
+            <div className="text-sm font-semibold text-green-500 uppercase tracking-wider mb-5">
+              📦 資料包包裝
             </div>
+            
+            {/* 標題、介紹、必填欄位... */}
+          </div>
 
-            <!-- 按鈕群組 -->
-            <div class="button-group">
-                <button type="button" class="btn btn-secondary">
-                    <span>取消</span>
-                </button>
-                <button type="submit" class="btn btn-primary">
-                    <span>💾</span>
-                    <span>儲存變更</span>
-                </button>
+          {/* 🎨 視覺設計 */}
+          <div className="pb-8 border-b border-gray-800">
+            <div className="text-sm font-semibold text-green-500 uppercase tracking-wider mb-5">
+              🎨 視覺設計
             </div>
+            
+            {/* 頁面模板、圖片管理、隱藏作者... */}
+          </div>
+
+          {/* 🧩 進階規則 */}
+          <div className="pb-8">
+            <div className="text-sm font-semibold text-green-500 uppercase tracking-wider mb-5">
+              🧩 進階規則
+            </div>
+            
+            {/* 多關鍵字設定... */}
+          </div>
+
+          {/* 按鈕組 */}
+          <div className="flex gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={cancelEdit}
+              className="flex-1 bg-transparent border-2 border-gray-700 text-gray-400 hover:border-gray-600 hover:text-gray-200 hover:bg-gray-800 rounded-lg py-3.5 font-semibold transition-all duration-300"
+            >
+              取消
+            </Button>
+            <Button
+              type="submit"
+              disabled={loading}
+              className="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold rounded-lg py-3.5 shadow-lg shadow-green-500/30 hover:shadow-green-500/40 hover:-translate-y-0.5 transition-all duration-300"
+            >
+              <span className="mr-2">💾</span>
+              {loading ? '儲存中...' : '儲存變更'}
+            </Button>
+          </div>
         </form>
+      </div>
     </div>
-
-    <!-- 成功提示 -->
-    <div class="success-toast" id="successToast">
-        <span style="font-size: 24px;">✓</span>
-        <span>個人資料已成功更新！</span>
-    </div>
-
-    <script>
-        const imageUrl = document.getElementById('imageUrl');
-        const preview = document.getElementById('preview');
-        const urlValidation = document.getElementById('urlValidation');
-
-        // URL 驗證與預覽更新
-        imageUrl.addEventListener('input', (e) => {
-            const url = e.target.value;
-            
-            if (url && isValidUrl(url)) {
-                urlValidation.classList.add('show', 'success');
-                urlValidation.classList.remove('error');
-                urlValidation.innerHTML = '<span>✓</span><span>圖片連結有效</span>';
-                preview.src = url;
-            } else if (url) {
-                urlValidation.classList.add('show', 'error');
-                urlValidation.classList.remove('success');
-                urlValidation.innerHTML = '<span>⚠️</span><span>請輸入有效的網址</span>';
-            } else {
-                urlValidation.classList.remove('show');
-            }
-        });
-
-        function isValidUrl(string) {
-            try {
-                new URL(string);
-                return true;
-            } catch (_) {
-                return false;
-            }
-        }
-
-        // 字數計數器
-        const nickname = document.getElementById('nickname');
-        const nicknameCount = document.getElementById('nicknameCount');
-        const bio = document.getElementById('bio');
-        const bioCount = document.getElementById('bioCount');
-
-        nickname.addEventListener('input', () => {
-            updateCharCount(nickname, nicknameCount, 20);
-        });
-
-        bio.addEventListener('input', () => {
-            updateCharCount(bio, bioCount, 200);
-        });
-
-        function updateCharCount(input, counter, max) {
-            const length = input.value.length;
-            counter.textContent = `${length} / ${max}`;
-            
-            counter.classList.remove('success', 'warning', 'error');
-            
-            if (length === 0) {
-                counter.classList.add('');
-            } else if (length < max * 0.8) {
-                counter.classList.add('success');
-            } else if (length < max) {
-                counter.classList.add('warning');
-            } else {
-                counter.classList.add('error');
-            }
-        }
-
-        // 初始化計數器
-        updateCharCount(nickname, nicknameCount, 20);
-        updateCharCount(bio, bioCount, 200);
-
-        // 社群連結驗證
-        const socialUrl = document.getElementById('socialUrl');
-        const socialValidation = document.getElementById('socialValidation');
-
-        socialUrl.addEventListener('input', (e) => {
-            const url = e.target.value;
-            
-            if (url && isValidUrl(url)) {
-                socialValidation.classList.add('show', 'success');
-                socialValidation.classList.remove('error');
-                socialValidation.innerHTML = '<span>✓</span><span>連結格式正確</span>';
-            } else if (url) {
-                socialValidation.classList.add('show', 'error');
-                socialValidation.classList.remove('success');
-                socialValidation.innerHTML = '<span>⚠️</span><span>請輸入有效的網址</span>';
-            } else {
-                socialValidation.classList.remove('show');
-            }
-        });
-
-        // 表單提交
-        const form = document.getElementById('profileForm');
-        const successToast = document.getElementById('successToast');
-
-        form.addEventListener('submit', (e) => {
-            e.preventDefault();
-            successToast.classList.add('show');
-            setTimeout(() => {
-                successToast.classList.remove('show');
-            }, 3000);
-        });
-
-        // 關閉按鈕
-        document.querySelector('.close-btn').addEventListener('click', () => {
-            if (confirm('確定要離開嗎？未儲存的變更將會遺失。')) {
-                window.close();
-            }
-        });
-    </script>
-</body>
-</html>
-## Creator 頁面 - 新增關鍵字按鈕優化
-
-### 現況分析
-
-**當前實作位置**: [`src/pages/Creator.tsx:890-896`](src/pages/Creator.tsx:890-896)
-
-**現有樣式**:
-- 使用 `gradient-magic` class（專案內建的漸層樣式）
-- 尺寸: 預設按鈕尺寸
-- 圖示: `Plus` (w-4 h-4)
-- 間距: `gap-2`
-- 響應式: `w-full sm:w-auto`（手機全寬，桌面自動寬度）
-
-**現況問題**:
-1. 按鈕尺寸偏小，視覺存在感不足
-2. 漸層效果可能不夠突出（需查看 `gradient-magic` 定義）
-3. 沒有明顯的互動狀態變化（hover/active）
-
----
-
-### 優化方案
-
-#### 尺寸調整
-
-**建議參數**:
-- **size**: 改用 `size="lg"` 或自訂尺寸
-- **padding**: `px-8 py-4`（若不使用 size prop）
-- **font-size**: `text-lg` (18px)
-- **icon size**: `w-5 h-5` (從 16px 升級到 20px)
-
-**Tailwind CSS 組合**:
-```tsx
-className="px-8 py-4 text-lg gap-3 w-full sm:w-auto"
+  </SheetContent>
+</Sheet>
 ```
 
 ---
 
-#### 漸層設計
+## 六、優先實作清單
 
-##### 方案 A：活力綠橙漸層（推薦）
-- **配色名稱**: 成長能量漸層
-- **漸層配置**: `bg-gradient-to-r from-green-500 via-emerald-500 to-teal-500`
-- **適用場景**: 強調「創建」「成長」等正向行動
-- **程式碼範例**:
-```tsx
-<Button
-  onClick={() => setShowAddForm(!showAddForm)}
-  size="lg"
-  className="bg-gradient-to-r from-green-500 via-emerald-500 to-teal-500 
-             hover:from-green-600 hover:via-emerald-600 hover:to-teal-600
-             text-white font-semibold shadow-lg hover:shadow-xl 
-             transform hover:scale-105 transition-all duration-300
-             gap-3 w-full sm:w-auto"
->
-  <Plus className="w-5 h-5" />
-  新增關鍵字
-</Button>
-```
+### Phase 1: 基礎優化（建議先做）
+1. ✅ 引入分區標題系統（5 大區塊）
+2. ✅ 統一標籤樣式 + Badge 狀態
+3. ✅ 實作字數計數器（4 個欄位）
+4. ✅ 優化按鈕樣式（漸層 + 陰影）
 
-##### 方案 B：藍紫夢幻漸層
-- **配色名稱**: 創意啟發漸層
-- **漸層配置**: `bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500`
-- **適用場景**: 強調「創意」「靈感」等藝術感
-- **程式碼範例**:
-```tsx
-<Button
-  onClick={() => setShowAddForm(!showAddForm)}
-  size="lg"
-  className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500
-             hover:from-blue-600 hover:via-purple-600 hover:to-pink-600
-             text-white font-semibold shadow-lg hover:shadow-xl
-             transform hover:scale-105 transition-all duration-300
-             gap-3 w-full sm:w-auto"
->
-  <Plus className="w-5 h-5" />
-  新增關鍵字
-</Button>
-```
+### Phase 2: 圖片管理優化
+1. ✅ 改用卡片式網格預覽
+2. ✅ 加入批量貼入功能
+3. ✅ URL 編輯區改為摺疊式
 
-##### 方案 C：金黃陽光漸層
-- **配色名稱**: 璀璨魔法漸層
-- **漸層配置**: `bg-gradient-to-r from-yellow-400 via-orange-400 to-red-400`
-- **適用場景**: 強調「價值」「重要性」等高吸引力
-- **程式碼範例**:
-```tsx
-<Button
-  onClick={() => setShowAddForm(!showAddForm)}
-  size="lg"
-  className="bg-gradient-to-r from-yellow-400 via-orange-400 to-red-400
-             hover:from-yellow-500 hover:via-orange-500 hover:to-red-500
-             text-white font-bold shadow-lg hover:shadow-2xl
-             transform hover:scale-105 transition-all duration-300
-             gap-3 w-full sm:w-auto border-2 border-yellow-300/50"
->
-  <Plus className="w-5 h-5" />
-  新增關鍵字
-</Button>
-```
+### Phase 3: 進階功能
+1. ✅ 加入會員等級判斷
+2. ✅ 設計升級提示卡片
+3. ✅ Premium 功能完整實作
 
 ---
 
-#### 互動狀態設計
-
-**Hover 狀態**:
-```css
-/* 漸層加深 */
-hover:from-{color}-600 hover:via-{color}-600 hover:to-{color}-600
-
-/* 陰影增強 */
-shadow-lg hover:shadow-xl (或 hover:shadow-2xl)
-
-/* 微幅放大 */
-transform hover:scale-105
-
-/* 平滑過渡 */
-transition-all duration-300
-```
-
-**Active 狀態**:
-```css
-/* 按下時縮小 */
-active:scale-95
-
-/* 陰影內縮 */
-active:shadow-md
-```
-
-**Focus 狀態** (無障礙設計):
-```css
-/* 外框光暈 */
-focus:ring-4 focus:ring-green-500/50 focus:outline-none
-```
-
-**完整互動樣式範例**:
-```tsx
-className="
-  bg-gradient-to-r from-green-500 via-emerald-500 to-teal-500
-  hover:from-green-600 hover:via-emerald-600 hover:to-teal-600
-  active:scale-95
-  focus:ring-4 focus:ring-green-500/50 focus:outline-none
-  shadow-lg hover:shadow-xl active:shadow-md
-  transform hover:scale-105
-  transition-all duration-300 ease-in-out
-"
-```
-
----
-
-#### 與現有設計系統的一致性
-
-**檢查要點**:
-1. ✅ 漸層色系應與專案主色調協調（目前主色為綠色系，方案 A 最適合）
-2. ✅ 陰影樣式與其他 CTA 按鈕保持一致
-3. ✅ 動畫時長統一為 300ms（專案標準）
-4. ✅ 響應式設計維持現有邏輯（手機全寬，桌面自動寬度）
-
-**建議優先順序**:
-1. **方案 A（活力綠橙漸層）** - 與專案整體色調最匹配
-2. 方案 B（藍紫夢幻漸層）- 適合想要更有創意感的場景
-3. 方案 C（金黃陽光漸層）- 最吸睛但可能過於突出
-
----
-
-### 建議實作位置
-
-**檔案**: [`src/pages/Creator.tsx`](src/pages/Creator.tsx)  
-**行號**: 890-896  
-**修改方式**: 直接替換現有 Button 元件的 className
-
-**修改前**:
-```tsx
-<Button
-  onClick={() => setShowAddForm(!showAddForm)}
-  className="gradient-magic gap-2 w-full sm:w-auto"
->
-  <Plus className="w-4 h-4" />
-  新增關鍵字
-</Button>
-```
-
-**修改後（方案 A）**:
-```tsx
-<Button
-  onClick={() => setShowAddForm(!showAddForm)}
-  size="lg"
-  className="bg-gradient-to-r from-green-500 via-emerald-500 to-teal-500 
-             hover:from-green-600 hover:via-emerald-600 hover:to-teal-600
-             active:scale-95
-             focus:ring-4 focus:ring-green-500/50 focus:outline-none
-             text-white font-semibold shadow-lg hover:shadow-xl active:shadow-md
-             transform hover:scale-105
-             transition-all duration-300 ease-in-out
-             gap-3 w-full sm:w-auto"
->
-  <Plus className="w-5 h-5" />
-  新增關鍵字
-</Button>
-```
-
----
-
-### 設計決策說明
-
-**為何選擇漸層而非純色？**
-- 漸層提供更豐富的視覺層次
-- 符合現代 UI 設計趨勢
-- 與專案現有的 `gradient-magic` 風格保持一致
-
-**為何使用 transform scale？**
-- 提供直覺的互動回饋
-- 不影響周圍元素布局（使用 transform 而非改變尺寸）
-- 性能優於改變 padding/margin
-
-**為何加強陰影效果？**
-- 增強按鈕的「可按性」（affordance）
-- 與背景產生明確的視覺分離
-- hover 時陰影增強強化互動感
-
----
+此設計規範參考 ProfileEditDialog 的成功經驗，針對編輯關鍵字區塊進行全面優化，提供一致的使用者體驗與專業的視覺設計。
