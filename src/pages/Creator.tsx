@@ -1948,313 +1948,568 @@ const Creator = () => {
               <SheetHeader className="px-6 pt-6 pb-4">
                 <SheetTitle>編輯關鍵字</SheetTitle>
               </SheetHeader>
-              <form onSubmit={handleUpdateKeyword} className="px-6 pb-6 space-y-4">
-            <div>
-              <Label>關鍵字</Label>
-              <Input
-                value={editKeyword}
-                onChange={(e) => setEditKeyword(e.target.value)}
-                required
-                className="h-10 mt-1"
-              />
-            </div>
+              <form onSubmit={handleUpdateKeyword} className="px-6 pb-6 space-y-6">
+                {/* 📋 基本資訊 */}
+                <div className="pb-8 border-b border-gray-800">
+                  <div className="text-sm font-semibold text-green-500 uppercase tracking-wider mb-5">
+                    📋 基本資訊
+                  </div>
 
-            <div>
-              <Label>回覆內容</Label>
-              <Textarea
-                value={editContent}
-                onChange={(e) => setEditContent(e.target.value)}
-                required
-                className="min-h-[120px] resize-y mt-1"
-              />
-            </div>
+                  <div className="space-y-6">
+                    {/* 關鍵字 */}
+                    <div>
+                      <div className="flex items-center gap-2 mb-2.5">
+                        <Label htmlFor="edit-keyword" className="text-[15px] font-medium text-gray-200">
+                          關鍵字
+                        </Label>
+                        <span className="text-[11px] px-2 py-0.5 rounded bg-red-900/30 text-red-400 font-medium">
+                          必填
+                        </span>
+                      </div>
+                      <Input
+                        id="edit-keyword"
+                        value={editKeyword}
+                        onChange={(e) => setEditKeyword(e.target.value)}
+                        required
+                        maxLength={50}
+                        placeholder="例如：free2024"
+                        className="bg-gray-700 border-2 border-transparent focus:border-green-500 focus:bg-gray-600 text-white placeholder:text-gray-500 rounded-lg py-3.5 px-4 transition-all duration-300"
+                      />
+                      <div className="flex justify-between items-center mt-2">
+                        <span className="text-[13px] text-gray-400">簡短易記</span>
+                        <span className={`text-[13px] font-medium ${
+                          editKeyword.length === 0 ? 'text-gray-400' :
+                          editKeyword.length >= 50 ? 'text-red-500' :
+                          editKeyword.length >= 40 ? 'text-amber-500' :
+                          'text-green-500'
+                        }`}>
+                          {editKeyword.length} / 50
+                        </span>
+                      </div>
+                    </div>
 
-            <div>
-              <Label>限額數量（留空=無限制）</Label>
-              <Input
-                type="number"
-                value={editQuota}
-                onChange={(e) => setEditQuota(e.target.value)}
-                min="1"
-                className="h-10 mt-1"
-              />
-            </div>
+                    {/* 回覆內容 */}
+                    <div>
+                      <div className="flex items-center gap-2 mb-2.5">
+                        <Label htmlFor="edit-content" className="text-[15px] font-medium text-gray-200">
+                          回覆內容
+                        </Label>
+                        <span className="text-[11px] px-2 py-0.5 rounded bg-red-900/30 text-red-400 font-medium">
+                          必填
+                        </span>
+                      </div>
+                      <Textarea
+                        id="edit-content"
+                        value={editContent}
+                        onChange={(e) => setEditContent(e.target.value)}
+                        required
+                        maxLength={2000}
+                        placeholder="領取後顯示的內容"
+                        className="min-h-[100px] bg-gray-700 border-2 border-transparent focus:border-green-500 focus:bg-gray-600 text-white placeholder:text-gray-500 rounded-lg py-3.5 px-4 resize-y leading-relaxed transition-all duration-300"
+                      />
+                      <div className="flex justify-between items-center mt-2">
+                        <span className="text-[13px] text-gray-400">支援多行</span>
+                        <span className={`text-[13px] font-medium ${
+                          editContent.length === 0 ? 'text-gray-400' :
+                          editContent.length >= 2000 ? 'text-red-500' :
+                          editContent.length >= 1600 ? 'text-amber-500' :
+                          'text-green-500'
+                        }`}>
+                          {editContent.length} / 2000
+                        </span>
+                      </div>
+                    </div>
 
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={editEnableExpiry}
-                  onChange={(e) => setEditEnableExpiry(e.target.checked)}
-                  className="w-4 h-4"
-                />
-                <span className="text-sm">啟用限時領取</span>
-              </div>
-              {editEnableExpiry && (
-                <div className="flex items-center gap-2 flex-wrap">
-                  <Input
-                    type="text"
-                    inputMode="numeric"
-                    value={editExpiryDays}
-                    onChange={(e) => setEditExpiryDays(e.target.value.replace(/\D/g, ''))}
-                    placeholder="0"
-                    className="w-16 h-10"
-                  />
-                  <span className="text-sm">天</span>
-                  <Input
-                    type="text"
-                    inputMode="numeric"
-                    value={editExpiryHours}
-                    onChange={(e) => {
-                      const val = e.target.value.replace(/\D/g, '');
-                      setEditExpiryHours(val ? val.padStart(2, '0') : '');
-                    }}
-                    placeholder="00"
-                    maxLength={2}
-                    className="w-16 h-10"
-                  />
-                  <span className="text-sm">小時</span>
-                  <Input
-                    type="text"
-                    inputMode="numeric"
-                    value={editExpiryMinutes}
-                    onChange={(e) => {
-                      const val = e.target.value.replace(/\D/g, '');
-                      const num = parseInt(val || '0');
-                      if (num <= 59) {
-                        setEditExpiryMinutes(val ? val.padStart(2, '0') : '');
-                      }
-                    }}
-                    placeholder="00"
-                    maxLength={2}
-                    className="w-16 h-10"
-                  />
-                  <span className="text-sm">分鐘後失效</span>
+                    {/* 限額數量 */}
+                    <div>
+                      <div className="flex items-center gap-2 mb-2.5">
+                        <Label htmlFor="edit-quota" className="text-[15px] font-medium text-gray-200">
+                          限額數量
+                        </Label>
+                        <span className="text-[11px] px-2 py-0.5 rounded bg-gray-700 text-gray-400 font-medium">
+                          選填
+                        </span>
+                      </div>
+                      <Input
+                        id="edit-quota"
+                        type="number"
+                        value={editQuota}
+                        onChange={(e) => setEditQuota(e.target.value)}
+                        min="1"
+                        placeholder="無限制"
+                        className="bg-gray-700 border-2 border-transparent focus:border-green-500 focus:bg-gray-600 text-white placeholder:text-gray-500 rounded-lg py-3.5 px-4 transition-all duration-300"
+                      />
+                      <p className="text-[13px] text-gray-400 mt-2">
+                        留空為無限制
+                      </p>
+                    </div>
+                  </div>
                 </div>
-              )}
-            </div>
 
-            <div className="space-y-3">
-              <div>
-                <Label>📦 資料包標題（選填）</Label>
-                <Input
-                  value={editPackageTitle}
-                  onChange={(e) => setEditPackageTitle(e.target.value)}
-                  placeholder="例如：🎨 設計師專屬資源包"
-                  maxLength={50}
-                  className="h-10 mt-1"
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  顯示在資料包頁面頂部，最多 50 字
-                </p>
-              </div>
-              <div>
-                <Label>📝 資料包介紹（選填）</Label>
-                <Textarea
-                  value={editPackageDescription}
-                  onChange={(e) => setEditPackageDescription(e.target.value)}
-                  placeholder="介紹這個資料包的內容、適合誰使用..."
-                  rows={3}
-                  maxLength={300}
-                  className="mt-1"
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  顯示在資料包圖片上方，最多 300 字
-                </p>
-              </div>
-            </div>
+                {/* ⏰ 時效設定 */}
+                <div className="pb-8 border-b border-gray-800">
+                  <div className="text-sm font-semibold text-green-500 uppercase tracking-wider mb-5">
+                    ⏰ 時效設定
+                  </div>
 
-            <div className="space-y-2">
-              <Label>📝 要求領取者填寫（選填）</Label>
-              <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={editRequiredFields.nickname}
-                  onChange={(e) => setEditRequiredFields({ nickname: e.target.checked })}
-                  className="w-4 h-4"
-                />
-                <span className="text-sm">稱呼 / 暱稱</span>
-              </label>
-              <p className="text-xs text-muted-foreground">
-                勾選後,領取者需填寫稱呼才能解鎖
-              </p>
-            </div>
-            <div className="space-y-2">
-              <Label>👤 顯示設定</Label>
-              <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={editHideAuthor}
-                  onChange={(e) => setEditHideAuthor(e.target.checked)}
-                  className="w-4 h-4"
-                />
-                <span className="text-sm">隱藏作者資訊</span>
-              </label>
-              <p className="text-xs text-muted-foreground">
-                啟用後，前台將不顯示創作者頭像、名稱與社群連結
-              </p>
-            </div>
+                  <div className="space-y-2">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={editEnableExpiry}
+                        onChange={(e) => setEditEnableExpiry(e.target.checked)}
+                        className="w-4 h-4 rounded border-gray-600 text-green-500 focus:ring-green-500 focus:ring-offset-0"
+                      />
+                      <span className="text-sm text-gray-200">啟用限時領取</span>
+                    </label>
 
-            <div className="space-y-3">
-              <label className="text-sm font-medium">🎨 頁面模板</label>
-              <TemplateSelector
-                currentTemplate={editTemplateType}
-                onSelect={setEditTemplateType}
-              />
-            </div>
-
-            {/* 進階規則（簡化 UI） */}
-            <div className="space-y-2">
-              <Label>🧩 進階規則（多關鍵字）</Label>
-              {userProfile?.membership_tier === 'free' ? (
-                <div className="p-3 rounded border bg-muted/30 text-sm">
-                  此功能為進階功能，請升級後使用。
-                </div>
-              ) : (
-                <>
-                  <label className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={editUnlockEnabled}
-                      onChange={(e) => setEditUnlockEnabled(e.target.checked)}
-                      className="w-4 h-4"
-                    />
-                    <span className="text-sm">啟用多關鍵字規則（OR 模式）</span>
-                  </label>
-                  {editUnlockEnabled && (
-                    <div className="space-y-3">
-                      <div>
-                        <Label>關鍵字列表（逗號分隔）</Label>
-                        <Textarea
-                          value={editUnlockKeywords}
-                          onChange={(e) => setEditUnlockKeywords(e.target.value)}
-                          rows={3}
-                          placeholder="alpha, beta, gamma"
-                        />
-                        <p className="text-xs text-muted-foreground mt-1">
-                          輸入 1 個或多個關鍵字，使用逗號分隔。任一符合即解鎖
+                    {editEnableExpiry && (
+                      <div className="ml-6 p-4 bg-gray-800/50 rounded-lg border border-gray-700 space-y-3">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <Input
+                            type="text"
+                            inputMode="numeric"
+                            value={editExpiryDays}
+                            onChange={(e) => setEditExpiryDays(e.target.value.replace(/\D/g, ''))}
+                            placeholder="0"
+                            className="w-16 h-10 bg-gray-700 text-white text-center"
+                          />
+                          <span className="text-sm text-gray-300">天</span>
+                          <Input
+                            type="text"
+                            inputMode="numeric"
+                            value={editExpiryHours}
+                            onChange={(e) => {
+                              const val = e.target.value.replace(/\D/g, '');
+                              setEditExpiryHours(val ? val.padStart(2, '0') : '');
+                            }}
+                            placeholder="00"
+                            maxLength={2}
+                            className="w-16 h-10 bg-gray-700 text-white text-center"
+                          />
+                          <span className="text-sm text-gray-300">小時</span>
+                          <Input
+                            type="text"
+                            inputMode="numeric"
+                            value={editExpiryMinutes}
+                            onChange={(e) => {
+                              const val = e.target.value.replace(/\D/g, '');
+                              const num = parseInt(val || '0');
+                              if (num <= 59) {
+                                setEditExpiryMinutes(val ? val.padStart(2, '0') : '');
+                              }
+                            }}
+                            placeholder="00"
+                            maxLength={2}
+                            className="w-16 h-10 bg-gray-700 text-white text-center"
+                          />
+                          <span className="text-sm text-gray-300">分鐘後失效</span>
+                        </div>
+                        <p className="text-xs text-gray-400">
+                          超過時間無法領取
                         </p>
                       </div>
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
+                    )}
+                  </div>
+                </div>
 
-            <div className="space-y-2">
-              <div className="flex items-center justify-between mb-2">
-                <label className="text-sm font-medium">📷 資料包圖片（最多 5 張）</label>
-                <div className="flex gap-2">
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        size="sm"
-                      >
-                        上傳圖片
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>是否前往圖鴨上傳？</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          我們會在新分頁開啟 duk.tw。請完成上傳後，複製圖片連結並貼回「資料包圖片」欄位。
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>取消</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => window.open('https://duk.tw/u', '_blank')}>
-                          前往圖鴨
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                  <Dialog open={showBatchImageDialog && isEditMode} onOpenChange={(open) => {
-                    if (isEditMode) setShowBatchImageDialog(open);
-                  }}>
-                    <DialogTrigger asChild>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          setIsEditMode(true);
-                          setShowBatchImageDialog(true);
-                        }}
-                        className="gap-2"
-                      >
-                        📋 批量貼入
-                      </Button>
-                    </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>批量貼入圖片 URL</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                      <Label htmlFor="batch-images-edit">每行一個 URL（最多 5 個）</Label>
-                      <Textarea
-                        id="batch-images-edit"
-                        placeholder="https://example.com/image1.jpg&#10;https://example.com/image2.jpg&#10;https://example.com/image3.jpg"
-                        value={batchImageInput}
-                        onChange={(e) => setBatchImageInput(e.target.value)}
-                        rows={8}
+                {/* 📦 資料包包裝 */}
+                <div className="pb-8 border-b border-gray-800">
+                  <div className="text-sm font-semibold text-green-500 uppercase tracking-wider mb-5">
+                    📦 資料包包裝
+                  </div>
+
+                  <div className="space-y-6">
+                    {/* 資料包標題 */}
+                    <div>
+                      <div className="flex items-center gap-2 mb-2.5">
+                        <Label htmlFor="edit-package-title" className="text-[15px] font-medium text-gray-200">
+                          資料包標題
+                        </Label>
+                        <span className="text-[11px] px-2 py-0.5 rounded bg-gray-700 text-gray-400 font-medium">
+                          選填
+                        </span>
+                      </div>
+                      <Input
+                        id="edit-package-title"
+                        value={editPackageTitle}
+                        onChange={(e) => setEditPackageTitle(e.target.value)}
+                        placeholder="🎨 設計師資源包"
+                        maxLength={50}
+                        className="bg-gray-700 border-2 border-transparent focus:border-green-500 focus:bg-gray-600 text-white placeholder:text-gray-500 rounded-lg py-3.5 px-4 transition-all duration-300"
                       />
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          variant="outline"
-                          onClick={() => {
-                            setShowBatchImageDialog(false);
-                            setBatchImageInput('');
-                          }}
-                        >
-                          取消
-                        </Button>
-                        <Button onClick={handleBatchImagePaste}>
-                          確定匯入
-                        </Button>
+                      <div className="flex justify-between items-center mt-2">
+                        <span className="text-[13px] text-gray-400">顯示在頁面頂部</span>
+                        <span className={`text-[13px] font-medium ${
+                          editPackageTitle.length === 0 ? 'text-gray-400' :
+                          editPackageTitle.length >= 50 ? 'text-red-500' :
+                          editPackageTitle.length >= 40 ? 'text-amber-500' :
+                          'text-green-500'
+                        }`}>
+                          {editPackageTitle.length} / 50
+                        </span>
                       </div>
                     </div>
-                  </DialogContent>
-                </Dialog>
-              </div>
-            </div>
-            {editImageUrls.map((url, index) => (
-                <div key={index} className="flex gap-2">
-                  <Input
-                    type="url"
-                    value={url}
-                    onChange={(e) => {
-                      const updated = [...editImageUrls];
-                      updated[index] = e.target.value;
-                      setEditImageUrls(updated);
-                    }}
-                    placeholder={`圖片 ${index + 1} URL`}
-                    className="h-10"
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setEditImageUrls(editImageUrls.filter((_, i) => i !== index))}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
+
+                    {/* 資料包介紹 */}
+                    <div>
+                      <div className="flex items-center gap-2 mb-2.5">
+                        <Label htmlFor="edit-package-description" className="text-[15px] font-medium text-gray-200">
+                          資料包介紹
+                        </Label>
+                        <span className="text-[11px] px-2 py-0.5 rounded bg-gray-700 text-gray-400 font-medium">
+                          選填
+                        </span>
+                      </div>
+                      <Textarea
+                        id="edit-package-description"
+                        value={editPackageDescription}
+                        onChange={(e) => setEditPackageDescription(e.target.value)}
+                        placeholder="簡短介紹這個資料包"
+                        rows={3}
+                        maxLength={300}
+                        className="bg-gray-700 border-2 border-transparent focus:border-green-500 focus:bg-gray-600 text-white placeholder:text-gray-500 rounded-lg py-3.5 px-4 resize-y leading-relaxed transition-all duration-300"
+                      />
+                      <div className="flex justify-between items-center mt-2">
+                        <span className="text-[13px] text-gray-400">顯示在圖片上方</span>
+                        <span className={`text-[13px] font-medium ${
+                          editPackageDescription.length === 0 ? 'text-gray-400' :
+                          editPackageDescription.length >= 300 ? 'text-red-500' :
+                          editPackageDescription.length >= 240 ? 'text-amber-500' :
+                          'text-green-500'
+                        }`}>
+                          {editPackageDescription.length} / 300
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* 必填欄位 */}
+                    <div>
+                      <div className="flex items-center gap-2 mb-2.5">
+                        <Label className="text-[15px] font-medium text-gray-200">
+                          要求領取者填寫
+                        </Label>
+                        <span className="text-[11px] px-2 py-0.5 rounded bg-gray-700 text-gray-400 font-medium">
+                          選填
+                        </span>
+                      </div>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={editRequiredFields.nickname}
+                          onChange={(e) => setEditRequiredFields({ nickname: e.target.checked })}
+                          className="w-4 h-4 rounded border-gray-600 text-green-500 focus:ring-green-500 focus:ring-offset-0"
+                        />
+                        <span className="text-sm text-gray-200">稱呼 / 暱稱</span>
+                      </label>
+                      <p className="text-[13px] text-gray-400 mt-2">
+                        需額外填寫稱呼
+                      </p>
+                    </div>
+                  </div>
                 </div>
-              ))}
-              {editImageUrls.length < 5 && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setEditImageUrls([...editImageUrls, ''])}
-                  className="gap-2"
-                >
-                  <Plus className="w-4 h-4" />
-                  新增圖片
-                </Button>
-              )}
-            </div>
+
+                {/* 🎨 視覺設計 */}
+                <div className="pb-8 border-b border-gray-800">
+                  <div className="text-sm font-semibold text-green-500 uppercase tracking-wider mb-5">
+                    🎨 視覺設計
+                  </div>
+
+                  <div className="space-y-6">
+                    {/* 頁面模板 */}
+                    <div>
+                      <div className="flex items-center gap-2 mb-2.5">
+                        <Label className="text-[15px] font-medium text-gray-200">
+                          頁面模板
+                        </Label>
+                      </div>
+                      <TemplateSelector
+                        currentTemplate={editTemplateType}
+                        onSelect={setEditTemplateType}
+                      />
+                    </div>
+
+                    {/* 圖片管理 - 卡片式網格 */}
+                    <div>
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                          <Label className="text-[15px] font-medium text-gray-200">
+                            資料包圖片
+                          </Label>
+                          <span className="text-[11px] px-2 py-0.5 rounded bg-gray-700 text-gray-400 font-medium">
+                            {editImageUrls.filter(url => url.trim()).length} / 5
+                          </span>
+                        </div>
+                        <div className="flex gap-2">
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button type="button" variant="secondary" size="sm">
+                                上傳圖片
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>是否前往圖鴨上傳？</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  我們會在新分頁開啟 duk.tw。請完成上傳後，複製圖片連結並貼回「資料包圖片」欄位。
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>取消</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => window.open('https://duk.tw/u', '_blank')}>
+                                  前往圖鴨
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                          <Dialog open={showBatchImageDialog && isEditMode} onOpenChange={(open) => {
+                            if (isEditMode) setShowBatchImageDialog(open);
+                          }}>
+                            <DialogTrigger asChild>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  setIsEditMode(true);
+                                  setShowBatchImageDialog(true);
+                                }}
+                                className="gap-2"
+                              >
+                                📋 批量貼入
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent>
+                              <DialogHeader>
+                                <DialogTitle>批量貼入圖片 URL</DialogTitle>
+                              </DialogHeader>
+                              <div className="space-y-4">
+                                <Label htmlFor="batch-images-edit">每行一個 URL（最多 5 個）</Label>
+                                <Textarea
+                                  id="batch-images-edit"
+                                  placeholder="https://example.com/image1.jpg&#10;https://example.com/image2.jpg&#10;https://example.com/image3.jpg"
+                                  value={batchImageInput}
+                                  onChange={(e) => setBatchImageInput(e.target.value)}
+                                  rows={8}
+                                  className="font-mono text-sm"
+                                />
+                                <div className="flex justify-end gap-2">
+                                  <Button
+                                    variant="outline"
+                                    onClick={() => {
+                                      setShowBatchImageDialog(false);
+                                      setBatchImageInput('');
+                                    }}
+                                  >
+                                    取消
+                                  </Button>
+                                  <Button onClick={handleBatchImagePaste}>
+                                    確定匯入
+                                  </Button>
+                                </div>
+                              </div>
+                            </DialogContent>
+                          </Dialog>
+                        </div>
+                      </div>
+
+                      {/* 圖片卡片網格 */}
+                      <div className="grid grid-cols-2 gap-3 mb-4">
+                        {editImageUrls.filter(url => url.trim()).map((url, index) => {
+                          const actualIndex = editImageUrls.findIndex(u => u === url);
+                          return (
+                            <div key={actualIndex} className="relative group">
+                              {/* 圖片預覽 */}
+                              <div className="aspect-video bg-gray-700 rounded-lg overflow-hidden border-2 border-gray-600">
+                                <img
+                                  src={url}
+                                  alt={`圖片 ${index + 1}`}
+                                  className="w-full h-full object-cover"
+                                  onError={(e) => {
+                                    e.currentTarget.style.display = 'none';
+                                    e.currentTarget.parentElement!.innerHTML = '<div class="w-full h-full flex items-center justify-center text-gray-500"><svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg></div>';
+                                  }}
+                                />
+                              </div>
+                              {/* Hover 操作層 */}
+                              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center gap-2">
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant="secondary"
+                                  onClick={() => {
+                                    const newUrl = prompt('編輯圖片 URL', url);
+                                    if (newUrl !== null) {
+                                      const updated = [...editImageUrls];
+                                      updated[actualIndex] = newUrl;
+                                      setEditImageUrls(updated);
+                                    }
+                                  }}
+                                  className="bg-white/20 hover:bg-white/30 text-white border-0"
+                                >
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                  </svg>
+                                </Button>
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant="destructive"
+                                  onClick={() => setEditImageUrls(editImageUrls.filter((_, i) => i !== actualIndex))}
+                                  className="bg-red-500/80 hover:bg-red-600 border-0"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </div>
+                              {/* 圖片編號 */}
+                              <div className="absolute top-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
+                                #{index + 1}
+                              </div>
+                            </div>
+                          );
+                        })}
+
+                        {/* 新增圖片按鈕 */}
+                        {editImageUrls.length < 5 && (
+                          <button
+                            type="button"
+                            onClick={() => setEditImageUrls([...editImageUrls, ''])}
+                            className="aspect-video border-2 border-dashed border-gray-600 rounded-lg flex flex-col items-center justify-center gap-2 hover:border-green-500 hover:bg-gray-800/50 transition-all group"
+                          >
+                            <Plus className="w-6 h-6 text-gray-400 group-hover:text-green-500 transition-colors" />
+                            <span className="text-sm text-gray-400 group-hover:text-green-500 transition-colors">新增圖片</span>
+                          </button>
+                        )}
+                      </div>
+
+                      {/* 摺疊式 URL 編輯區 */}
+                      <details className="mt-4">
+                        <summary className="text-xs text-gray-400 cursor-pointer hover:text-gray-300 transition-colors">
+                          📝 直接編輯 URL
+                        </summary>
+                        <div className="mt-3 space-y-2">
+                          {editImageUrls.map((url, index) => (
+                            <div key={index} className="flex gap-2">
+                              <Input
+                                type="url"
+                                value={url}
+                                onChange={(e) => {
+                                  const updated = [...editImageUrls];
+                                  updated[index] = e.target.value;
+                                  setEditImageUrls(updated);
+                                }}
+                                placeholder={`圖片 ${index + 1} URL`}
+                                className="h-9 text-sm bg-gray-700 border-gray-600"
+                              />
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => setEditImageUrls(editImageUrls.filter((_, i) => i !== index))}
+                                className="h-9 w-9"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      </details>
+                    </div>
+
+                    {/* 隱藏作者資訊 */}
+                    <div>
+                      <div className="flex items-center gap-2 mb-2.5">
+                        <Label className="text-[15px] font-medium text-gray-200">
+                          顯示設定
+                        </Label>
+                      </div>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={editHideAuthor}
+                          onChange={(e) => setEditHideAuthor(e.target.checked)}
+                          className="w-4 h-4 rounded border-gray-600 text-green-500 focus:ring-green-500 focus:ring-offset-0"
+                        />
+                        <span className="text-sm text-gray-200">隱藏作者資訊</span>
+                      </label>
+                      <p className="text-[13px] text-gray-400 mt-2">
+                        隱藏頭像與名稱
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 🧩 進階規則 */}
+                <div className="pb-8">
+                  <div className="text-sm font-semibold text-green-500 uppercase tracking-wider mb-5">
+                    🧩 進階規則
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 mb-2.5">
+                      <Label className="text-[15px] font-medium text-gray-200">
+                        多關鍵字規則
+                      </Label>
+                      {userProfile?.membership_tier === 'free' && (
+                        <span className="text-[11px] px-2 py-0.5 rounded bg-amber-900/30 text-amber-400 font-medium">
+                          Premium
+                        </span>
+                      )}
+                    </div>
+
+                    {userProfile?.membership_tier === 'free' ? (
+                      <div className="p-4 rounded-lg border-2 border-amber-500/30 bg-amber-900/10">
+                        <div className="flex items-start gap-3">
+                          <div className="text-2xl">⭐</div>
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-amber-400 mb-1">
+                              Premium 專屬功能
+                            </p>
+                            <p className="text-xs text-gray-400 leading-relaxed mb-3">
+                              升級至 Premium 即可使用多關鍵字規則，讓一個資料包支援多個解鎖關鍵字。
+                            </p>
+                            <Button
+                              type="button"
+                              size="sm"
+                              className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white border-0"
+                            >
+                              立即升級
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={editUnlockEnabled}
+                            onChange={(e) => setEditUnlockEnabled(e.target.checked)}
+                            className="w-4 h-4 rounded border-gray-600 text-green-500 focus:ring-green-500 focus:ring-offset-0"
+                          />
+                          <span className="text-sm text-gray-200">啟用多關鍵字規則</span>
+                        </label>
+                        {editUnlockEnabled && (
+                          <div className="ml-6 p-4 bg-gray-800/50 rounded-lg border border-gray-700 space-y-3">
+                            <div>
+                              <Label className="text-sm text-gray-200">關鍵字列表（逗號分隔）</Label>
+                              <Textarea
+                                value={editUnlockKeywords}
+                                onChange={(e) => setEditUnlockKeywords(e.target.value)}
+                                rows={3}
+                                placeholder="alpha, beta, gamma"
+                                className="mt-2 bg-gray-700 border-gray-600 text-white"
+                              />
+                              <p className="text-xs text-gray-400 mt-2">
+                                使用逗號分隔，任一符合即可解鎖
+                              </p>
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </div>
 
             <SheetFooter className="flex flex-col sm:flex-row gap-2 pt-4">
               <Button type="submit" className="gradient-magic">
