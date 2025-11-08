@@ -1948,17 +1948,17 @@ const Creator = () => {
               <SheetHeader className="px-6 pt-6 pb-4">
                 <SheetTitle>編輯關鍵字</SheetTitle>
               </SheetHeader>
-              <form onSubmit={handleUpdateKeyword} className="px-6 pb-6 space-y-6">
+              <form onSubmit={handleUpdateKeyword} className="px-6 pb-6 space-y-1">
                 {/* 📋 基本資訊 */}
-                <div className="pb-8 border-b border-gray-800">
-                  <div className="text-sm font-semibold text-green-500 uppercase tracking-wider mb-5">
+                <div className="pb-10 mb-10 border-b border-gray-800">
+                  <div className="text-sm font-semibold text-green-500 uppercase tracking-wider mb-6">
                     📋 基本資訊
                   </div>
 
-                  <div className="space-y-6">
+                  <div className="space-y-8">
                     {/* 關鍵字 */}
                     <div>
-                      <div className="flex items-center gap-2 mb-2.5">
+                      <div className="flex items-center gap-2 mb-3.5">
                         <Label htmlFor="edit-keyword" className="text-[15px] font-medium text-gray-200">
                           關鍵字
                         </Label>
@@ -1973,11 +1973,11 @@ const Creator = () => {
                         required
                         maxLength={50}
                         placeholder="例如：free2024"
-                        className="bg-gray-700 border-2 border-transparent focus:border-green-500 focus:bg-gray-600 text-white placeholder:text-gray-500 rounded-lg py-3.5 px-4 transition-all duration-300"
+                        className="bg-gray-700 border-2 border-transparent focus:border-green-500 focus:bg-gray-600 text-white placeholder:text-gray-500 rounded-lg py-4 px-5 transition-all duration-300"
                       />
-                      <div className="flex justify-between items-center mt-2">
-                        <span className="text-[13px] text-gray-400">簡短易記</span>
-                        <span className={`text-[13px] font-medium ${
+                      <div className="flex justify-between items-center mt-3 pt-1">
+                        <span className="text-xs text-gray-400">簡短易記</span>
+                        <span className={`text-xs font-medium ${
                           editKeyword.length === 0 ? 'text-gray-400' :
                           editKeyword.length >= 50 ? 'text-red-500' :
                           editKeyword.length >= 40 ? 'text-amber-500' :
@@ -1990,7 +1990,7 @@ const Creator = () => {
 
                     {/* 回覆內容 */}
                     <div>
-                      <div className="flex items-center gap-2 mb-2.5">
+                      <div className="flex items-center gap-2 mb-3.5">
                         <Label htmlFor="edit-content" className="text-[15px] font-medium text-gray-200">
                           回覆內容
                         </Label>
@@ -2005,11 +2005,11 @@ const Creator = () => {
                         required
                         maxLength={2000}
                         placeholder="領取後顯示的內容"
-                        className="min-h-[100px] bg-gray-700 border-2 border-transparent focus:border-green-500 focus:bg-gray-600 text-white placeholder:text-gray-500 rounded-lg py-3.5 px-4 resize-y leading-relaxed transition-all duration-300"
+                        className="min-h-[100px] bg-gray-700 border-2 border-transparent focus:border-green-500 focus:bg-gray-600 text-white placeholder:text-gray-500 rounded-lg py-4 px-5 resize-y leading-relaxed transition-all duration-300"
                       />
-                      <div className="flex justify-between items-center mt-2">
-                        <span className="text-[13px] text-gray-400">支援多行</span>
-                        <span className={`text-[13px] font-medium ${
+                      <div className="flex justify-between items-center mt-3 pt-1">
+                        <span className="text-xs text-gray-400">支援多行</span>
+                        <span className={`text-xs font-medium ${
                           editContent.length === 0 ? 'text-gray-400' :
                           editContent.length >= 2000 ? 'text-red-500' :
                           editContent.length >= 1600 ? 'text-amber-500' :
@@ -2022,7 +2022,7 @@ const Creator = () => {
 
                     {/* 限額數量 */}
                     <div>
-                      <div className="flex items-center gap-2 mb-2.5">
+                      <div className="flex items-center gap-2 mb-3.5">
                         <Label htmlFor="edit-quota" className="text-[15px] font-medium text-gray-200">
                           限額數量
                         </Label>
@@ -2037,9 +2037,9 @@ const Creator = () => {
                         onChange={(e) => setEditQuota(e.target.value)}
                         min="1"
                         placeholder="無限制"
-                        className="bg-gray-700 border-2 border-transparent focus:border-green-500 focus:bg-gray-600 text-white placeholder:text-gray-500 rounded-lg py-3.5 px-4 transition-all duration-300"
+                        className="bg-gray-700 border-2 border-transparent focus:border-green-500 focus:bg-gray-600 text-white placeholder:text-gray-500 rounded-lg py-4 px-5 transition-all duration-300"
                       />
-                      <p className="text-[13px] text-gray-400 mt-2">
+                      <p className="text-xs text-gray-400 mt-3 pt-1">
                         留空為無限制
                       </p>
                     </div>
@@ -2047,13 +2047,13 @@ const Creator = () => {
                 </div>
 
                 {/* ⏰ 時效設定 */}
-                <div className="pb-8 border-b border-gray-800">
-                  <div className="text-sm font-semibold text-green-500 uppercase tracking-wider mb-5">
+                <div className="pb-10 mb-10 border-b border-gray-800">
+                  <div className="text-sm font-semibold text-green-500 uppercase tracking-wider mb-6">
                     ⏰ 時效設定
                   </div>
 
-                  <div className="space-y-2">
-                    <label className="flex items-center gap-2 cursor-pointer">
+                  <div className="space-y-3">
+                    <label className="flex items-center gap-3 cursor-pointer">
                       <input
                         type="checkbox"
                         checked={editEnableExpiry}
@@ -2064,7 +2064,7 @@ const Creator = () => {
                     </label>
 
                     {editEnableExpiry && (
-                      <div className="ml-6 p-4 bg-gray-800/50 rounded-lg border border-gray-700 space-y-3">
+                      <div className="ml-6 p-5 bg-gray-800/50 rounded-lg border border-gray-700 space-y-3">
                         <div className="flex items-center gap-2 flex-wrap">
                           <Input
                             type="text"
@@ -2114,15 +2114,15 @@ const Creator = () => {
                 </div>
 
                 {/* 📦 資料包包裝 */}
-                <div className="pb-8 border-b border-gray-800">
-                  <div className="text-sm font-semibold text-green-500 uppercase tracking-wider mb-5">
+                <div className="pb-10 mb-10 border-b border-gray-800">
+                  <div className="text-sm font-semibold text-green-500 uppercase tracking-wider mb-6">
                     📦 資料包包裝
                   </div>
 
-                  <div className="space-y-6">
+                  <div className="space-y-8">
                     {/* 資料包標題 */}
                     <div>
-                      <div className="flex items-center gap-2 mb-2.5">
+                      <div className="flex items-center gap-2 mb-3.5">
                         <Label htmlFor="edit-package-title" className="text-[15px] font-medium text-gray-200">
                           資料包標題
                         </Label>
@@ -2136,11 +2136,11 @@ const Creator = () => {
                         onChange={(e) => setEditPackageTitle(e.target.value)}
                         placeholder="🎨 設計師資源包"
                         maxLength={50}
-                        className="bg-gray-700 border-2 border-transparent focus:border-green-500 focus:bg-gray-600 text-white placeholder:text-gray-500 rounded-lg py-3.5 px-4 transition-all duration-300"
+                        className="bg-gray-700 border-2 border-transparent focus:border-green-500 focus:bg-gray-600 text-white placeholder:text-gray-500 rounded-lg py-4 px-5 transition-all duration-300"
                       />
-                      <div className="flex justify-between items-center mt-2">
-                        <span className="text-[13px] text-gray-400">顯示在頁面頂部</span>
-                        <span className={`text-[13px] font-medium ${
+                      <div className="flex justify-between items-center mt-3 pt-1">
+                        <span className="text-xs text-gray-400">顯示在頁面頂部</span>
+                        <span className={`text-xs font-medium ${
                           editPackageTitle.length === 0 ? 'text-gray-400' :
                           editPackageTitle.length >= 50 ? 'text-red-500' :
                           editPackageTitle.length >= 40 ? 'text-amber-500' :
@@ -2153,7 +2153,7 @@ const Creator = () => {
 
                     {/* 資料包介紹 */}
                     <div>
-                      <div className="flex items-center gap-2 mb-2.5">
+                      <div className="flex items-center gap-2 mb-3.5">
                         <Label htmlFor="edit-package-description" className="text-[15px] font-medium text-gray-200">
                           資料包介紹
                         </Label>
@@ -2170,9 +2170,9 @@ const Creator = () => {
                         maxLength={300}
                         className="bg-gray-700 border-2 border-transparent focus:border-green-500 focus:bg-gray-600 text-white placeholder:text-gray-500 rounded-lg py-3.5 px-4 resize-y leading-relaxed transition-all duration-300"
                       />
-                      <div className="flex justify-between items-center mt-2">
-                        <span className="text-[13px] text-gray-400">顯示在圖片上方</span>
-                        <span className={`text-[13px] font-medium ${
+                      <div className="flex justify-between items-center mt-3 pt-1">
+                        <span className="text-xs text-gray-400">顯示在圖片上方</span>
+                        <span className={`text-xs font-medium ${
                           editPackageDescription.length === 0 ? 'text-gray-400' :
                           editPackageDescription.length >= 300 ? 'text-red-500' :
                           editPackageDescription.length >= 240 ? 'text-amber-500' :
@@ -2185,7 +2185,7 @@ const Creator = () => {
 
                     {/* 必填欄位 */}
                     <div>
-                      <div className="flex items-center gap-2 mb-2.5">
+                      <div className="flex items-center gap-2 mb-3.5">
                         <Label className="text-[15px] font-medium text-gray-200">
                           要求領取者填寫
                         </Label>
@@ -2193,7 +2193,7 @@ const Creator = () => {
                           選填
                         </span>
                       </div>
-                      <label className="flex items-center gap-2 cursor-pointer">
+                      <label className="flex items-center gap-3 cursor-pointer">
                         <input
                           type="checkbox"
                           checked={editRequiredFields.nickname}
@@ -2202,7 +2202,7 @@ const Creator = () => {
                         />
                         <span className="text-sm text-gray-200">稱呼 / 暱稱</span>
                       </label>
-                      <p className="text-[13px] text-gray-400 mt-2">
+                      <p className="text-xs text-gray-400 mt-3 pt-1">
                         需額外填寫稱呼
                       </p>
                     </div>
@@ -2210,15 +2210,15 @@ const Creator = () => {
                 </div>
 
                 {/* 🎨 視覺設計 */}
-                <div className="pb-8 border-b border-gray-800">
-                  <div className="text-sm font-semibold text-green-500 uppercase tracking-wider mb-5">
+                <div className="pb-10 mb-10 border-b border-gray-800">
+                  <div className="text-sm font-semibold text-green-500 uppercase tracking-wider mb-6">
                     🎨 視覺設計
                   </div>
 
-                  <div className="space-y-6">
+                  <div className="space-y-8">
                     {/* 頁面模板 */}
                     <div>
-                      <div className="flex items-center gap-2 mb-2.5">
+                      <div className="flex items-center gap-2 mb-3.5">
                         <Label className="text-[15px] font-medium text-gray-200">
                           頁面模板
                         </Label>
@@ -2314,7 +2314,7 @@ const Creator = () => {
                       </div>
 
                       {/* 圖片卡片網格 */}
-                      <div className="grid grid-cols-2 gap-3 mb-4">
+                      <div className="grid grid-cols-2 gap-4 mb-4">
                         {editImageUrls.filter(url => url.trim()).map((url, index) => {
                           const actualIndex = editImageUrls.findIndex(u => u === url);
                           return (
@@ -2418,12 +2418,12 @@ const Creator = () => {
 
                     {/* 隱藏作者資訊 */}
                     <div>
-                      <div className="flex items-center gap-2 mb-2.5">
+                      <div className="flex items-center gap-2 mb-3.5">
                         <Label className="text-[15px] font-medium text-gray-200">
                           顯示設定
                         </Label>
                       </div>
-                      <label className="flex items-center gap-2 cursor-pointer">
+                      <label className="flex items-center gap-3 cursor-pointer">
                         <input
                           type="checkbox"
                           checked={editHideAuthor}
@@ -2432,7 +2432,7 @@ const Creator = () => {
                         />
                         <span className="text-sm text-gray-200">隱藏作者資訊</span>
                       </label>
-                      <p className="text-[13px] text-gray-400 mt-2">
+                      <p className="text-xs text-gray-400 mt-3 pt-1">
                         隱藏頭像與名稱
                       </p>
                     </div>
@@ -2440,13 +2440,13 @@ const Creator = () => {
                 </div>
 
                 {/* 🧩 進階規則 */}
-                <div className="pb-8">
-                  <div className="text-sm font-semibold text-green-500 uppercase tracking-wider mb-5">
+                <div className="pb-10">
+                  <div className="text-sm font-semibold text-green-500 uppercase tracking-wider mb-6">
                     🧩 進階規則
                   </div>
 
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 mb-2.5">
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 mb-3.5">
                       <Label className="text-[15px] font-medium text-gray-200">
                         多關鍵字規則
                       </Label>
@@ -2458,7 +2458,7 @@ const Creator = () => {
                     </div>
 
                     {userProfile?.membership_tier === 'free' ? (
-                      <div className="p-4 rounded-lg border-2 border-amber-500/30 bg-amber-900/10">
+                      <div className="p-5 rounded-lg border-2 border-amber-500/30 bg-amber-900/10">
                         <div className="flex items-start gap-3">
                           <div className="text-2xl">⭐</div>
                           <div className="flex-1">
@@ -2480,7 +2480,7 @@ const Creator = () => {
                       </div>
                     ) : (
                       <>
-                        <label className="flex items-center gap-2 cursor-pointer">
+                        <label className="flex items-center gap-3 cursor-pointer">
                           <input
                             type="checkbox"
                             checked={editUnlockEnabled}
@@ -2490,7 +2490,7 @@ const Creator = () => {
                           <span className="text-sm text-gray-200">啟用多關鍵字規則</span>
                         </label>
                         {editUnlockEnabled && (
-                          <div className="ml-6 p-4 bg-gray-800/50 rounded-lg border border-gray-700 space-y-3">
+                          <div className="ml-6 p-5 bg-gray-800/50 rounded-lg border border-gray-700 space-y-3">
                             <div>
                               <Label className="text-sm text-gray-200">關鍵字列表（逗號分隔）</Label>
                               <Textarea
@@ -2511,7 +2511,7 @@ const Creator = () => {
                   </div>
                 </div>
 
-            <SheetFooter className="flex flex-col sm:flex-row gap-2 pt-4">
+            <SheetFooter className="flex flex-col sm:flex-row gap-2 pt-8 mt-8 border-t border-gray-800">
               <Button type="submit" className="gradient-magic">
                 儲存變更
               </Button>
