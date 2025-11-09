@@ -19,6 +19,12 @@ import { ProfileEditDialog } from "@/components/ProfileEditDialog";
 import { TemplateSelector } from "@/components/TemplateSelector";
 import { Tables } from "@/integrations/supabase/types";
 import { getTemplateComponent } from "@/components/templates/registry";
+import { Layout5ConfigEditor } from "@/components/template-editors/Layout5ConfigEditor";
+import { Layout6ConfigEditor } from "@/components/template-editors/Layout6ConfigEditor";
+import { Layout7ConfigEditor } from "@/components/template-editors/Layout7ConfigEditor";
+import { Layout8ConfigEditor } from "@/components/template-editors/Layout8ConfigEditor";
+import type { TemplateConfig } from "@/types/template-config";
+import { DEFAULT_LAYOUT5_CONFIG, DEFAULT_LAYOUT6_CONFIG, DEFAULT_LAYOUT7_CONFIG, DEFAULT_LAYOUT8_CONFIG } from "@/types/template-config";
 
 interface Keyword {
   id: string;
@@ -100,6 +106,9 @@ const Creator = () => {
   const [editTemplateType, setEditTemplateType] = useState('default');
   const [newHideAuthor, setNewHideAuthor] = useState(false);
   const [editHideAuthor, setEditHideAuthor] = useState(false);
+  // 模板專屬配置
+  const [newTemplateConfig, setNewTemplateConfig] = useState<TemplateConfig>({});
+  const [editTemplateConfig, setEditTemplateConfig] = useState<TemplateConfig>({});
   // 進階規則（簡化 UI）
   const [newUnlockEnabled, setNewUnlockEnabled] = useState(false);
   const [newUnlockKeywords, setNewUnlockKeywords] = useState('');
@@ -381,6 +390,9 @@ const Creator = () => {
     setEditTemplateType(item.template_type || 'default');
     setEditHideAuthor(!!item.hide_author_info);
 
+    // 載入模板專屬配置
+    setEditTemplateConfig(item.template_config || {});
+
     // 設定簡化規則欄位（預設取舊 JSON 的第一組）
     setEditUnlockEnabled(!!item.unlock_rule_enabled);
     (() => {
@@ -474,6 +486,7 @@ const Creator = () => {
       package_description: editPackageDescription.trim() || null,
       required_fields: editRequiredFields,
       template_type: editTemplateType,
+      template_config: editTemplateConfig,
     };
     // 僅在欄位存在時送出，避免 schema cache 未含此欄位導致 400
     if (hasHideAuthorInfo === true) {
@@ -599,6 +612,7 @@ const Creator = () => {
     setEditUnlockEnabled(false);
     setEditUnlockKeywords('');
     setEditHideAuthor(false);
+    setEditTemplateConfig({});
   };
 
   const fetchEmailLogs = async (keywordId: string) => {
@@ -1904,6 +1918,7 @@ const Creator = () => {
                         short_code: 'preview',
                         template_type: editTemplateType,
                         hide_author_info: editHideAuthor,
+                        template_config: editTemplateConfig,
                       };
 
                       // 載入對應的模板元件
@@ -2510,6 +2525,52 @@ const Creator = () => {
                     )}
                   </div>
                 </div>
+
+                {/* ⚙️ 模板專屬設定（根據選擇的模板動態顯示） */}
+                {(editTemplateType === 'layout5' ||
+                  editTemplateType === 'layout6' ||
+                  editTemplateType === 'layout7' ||
+                  editTemplateType === 'layout8') && (
+                  <div className="pb-10 mb-10 border-b border-gray-800">
+                    <div className="text-sm font-semibold text-green-500 uppercase tracking-wider mb-6">
+                      ⚙️ 模板專屬設定
+                    </div>
+
+                    <div className="space-y-1">
+                      {/* Layout5: 特色卡片編輯器 */}
+                      {editTemplateType === 'layout5' && (
+                        <Layout5ConfigEditor
+                          value={editTemplateConfig.layout5 || DEFAULT_LAYOUT5_CONFIG}
+                          onChange={(config) => setEditTemplateConfig({ ...editTemplateConfig, layout5: config })}
+                        />
+                      )}
+
+                      {/* Layout6: 數據展示編輯器 */}
+                      {editTemplateType === 'layout6' && (
+                        <Layout6ConfigEditor
+                          value={editTemplateConfig.layout6 || DEFAULT_LAYOUT6_CONFIG}
+                          onChange={(config) => setEditTemplateConfig({ ...editTemplateConfig, layout6: config })}
+                        />
+                      )}
+
+                      {/* Layout7: 完整配置編輯器 */}
+                      {editTemplateType === 'layout7' && (
+                        <Layout7ConfigEditor
+                          value={editTemplateConfig.layout7 || DEFAULT_LAYOUT7_CONFIG}
+                          onChange={(config) => setEditTemplateConfig({ ...editTemplateConfig, layout7: config })}
+                        />
+                      )}
+
+                      {/* Layout8: 學習要點編輯器 */}
+                      {editTemplateType === 'layout8' && (
+                        <Layout8ConfigEditor
+                          value={editTemplateConfig.layout8 || DEFAULT_LAYOUT8_CONFIG}
+                          onChange={(config) => setEditTemplateConfig({ ...editTemplateConfig, layout8: config })}
+                        />
+                      )}
+                    </div>
+                  </div>
+                )}
 
             <SheetFooter className="flex flex-col sm:flex-row gap-2 pt-8 mt-8 border-t border-gray-800">
               <Button type="submit" className="gradient-magic">
