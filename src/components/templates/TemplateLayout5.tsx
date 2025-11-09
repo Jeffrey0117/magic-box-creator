@@ -3,7 +3,14 @@ import { BoxUnlockForm } from '@/components/BoxUnlockForm';
 import { UnlockSuccessView } from '@/components/UnlockSuccessView';
 import { CreatorCard } from '@/components/CreatorCard';
 import { PackageImageCarousel } from '@/components/PackageImageCarousel';
-import { Lightbulb, Target, Zap } from 'lucide-react';
+import { Lightbulb, Target, Zap, Star, Users, TrendingUp, Heart, Award, Shield, Rocket, Gift, Trophy, Sparkles, Crown, Flame, CheckCircle, Mail, Phone, Calendar, Clock } from 'lucide-react';
+import { DEFAULT_LAYOUT5_CONFIG } from '@/types/template-config';
+
+// 圖示映射表
+const iconMap: Record<string, any> = {
+  Lightbulb, Target, Zap, Star, Users, TrendingUp, Heart, Award, Shield, Rocket,
+  Gift, Trophy, Sparkles, Crown, Flame, CheckCircle, Mail, Phone, Calendar, Clock
+};
 
 export default function TemplateLayout5(props: BoxTemplateProps) {
   const { boxData, result } = props;
@@ -13,12 +20,8 @@ export default function TemplateLayout5(props: BoxTemplateProps) {
     return <UnlockSuccessView result={result} onReset={props.onReset} />;
   }
 
-  // 預設特色卡片 (如果創作者未自訂)
-  const defaultCards = [
-    { icon: Lightbulb, title: '智慧策略', desc: '學習經過驗證的技巧' },
-    { icon: Target, title: '明確目標', desc: '實現你的願景' },
-    { icon: Zap, title: '快速成果', desc: '看見立即影響' },
-  ];
+  // 讀取模板配置，使用預設值作為 fallback
+  const config = boxData.template_config?.layout5 || DEFAULT_LAYOUT5_CONFIG;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 py-20 px-6">
@@ -26,19 +29,22 @@ export default function TemplateLayout5(props: BoxTemplateProps) {
         
         {/* 特色網格 */}
         <div className="grid md:grid-cols-3 gap-6">
-          {defaultCards.map((card, idx) => (
-            <div
-              key={idx}
-              className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 animate-fade-in-up"
-              style={{ animationDelay: `${idx * 0.1}s` }}
-            >
-              <div className="bg-gradient-to-br from-purple-500 to-blue-600 w-14 h-14 rounded-xl flex items-center justify-center mb-4">
-                <card.icon className="w-7 h-7 text-white" />
+          {config.features.map((feature, idx) => {
+            const FeatureIcon = iconMap[feature.icon] || Lightbulb;
+            return (
+              <div
+                key={idx}
+                className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 animate-fade-in-up"
+                style={{ animationDelay: `${idx * 0.1}s` }}
+              >
+                <div className="bg-gradient-to-br from-purple-500 to-blue-600 w-14 h-14 rounded-xl flex items-center justify-center mb-4">
+                  <FeatureIcon className="w-7 h-7 text-white" />
+                </div>
+                <h3 className="text-xl font-bold mb-2 text-gray-900">{feature.title}</h3>
+                <p className="text-gray-600">{feature.description}</p>
               </div>
-              <h3 className="text-xl font-bold mb-2 text-gray-900">{card.title}</h3>
-              <p className="text-gray-600">{card.desc}</p>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* CTA Section */}
@@ -60,6 +66,7 @@ export default function TemplateLayout5(props: BoxTemplateProps) {
           {/* 解鎖表單 */}
           <div className="max-w-xl mx-auto space-y-4">
             <BoxUnlockForm
+              boxData={boxData}
               keyword={props.keyword}
               setKeyword={props.setKeyword}
               email={props.email}
@@ -68,7 +75,6 @@ export default function TemplateLayout5(props: BoxTemplateProps) {
               setExtraData={props.setExtraData}
               onUnlock={props.onUnlock}
               loading={props.loading}
-              requireNickname={boxData.required_fields?.nickname || false}
               isCreatorPreview={props.isCreatorPreview}
             />
 

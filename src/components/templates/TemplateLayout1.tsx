@@ -14,7 +14,6 @@ const TemplateLayout1 = (props: BoxTemplateProps) => {
     currentCount,
     isLoggedIn,
     isCreatorPreview,
-    ...formProps
   } = props;
 
   if (!result) {
@@ -84,8 +83,15 @@ const TemplateLayout1 = (props: BoxTemplateProps) => {
               </div>
               
               <BoxUnlockForm
-                {...formProps}
                 boxData={boxData}
+                keyword={props.keyword}
+                setKeyword={props.setKeyword}
+                email={props.email}
+                setEmail={props.setEmail}
+                extraData={props.extraData}
+                setExtraData={props.setExtraData}
+                onUnlock={props.onUnlock}
+                loading={props.loading}
                 variant="default"
                 isCreatorPreview={isCreatorPreview}
               />

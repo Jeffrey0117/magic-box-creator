@@ -38,6 +38,7 @@ export default function TemplateLayout2(props: BoxTemplateProps) {
 
           {/* Unlock Form */}
           <BoxUnlockForm
+            boxData={boxData}
             keyword={props.keyword}
             setKeyword={props.setKeyword}
             email={props.email}
@@ -46,7 +47,6 @@ export default function TemplateLayout2(props: BoxTemplateProps) {
             setExtraData={props.setExtraData}
             onUnlock={props.onUnlock}
             loading={props.loading}
-            requireNickname={boxData.required_fields?.nickname || false}
             isCreatorPreview={props.isCreatorPreview}
           />
 

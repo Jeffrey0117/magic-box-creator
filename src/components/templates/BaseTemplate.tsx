@@ -1,5 +1,7 @@
 // 模板元件的基礎 Props 介面
 
+import type { TemplateConfig } from '../../types/template-config';
+
 export interface BoxTemplateProps {
   // 資料包資訊
   boxData: {
@@ -16,6 +18,7 @@ export interface BoxTemplateProps {
     required_fields: { nickname?: boolean } | null;
     short_code: string;
     template_type: string;
+    template_config?: TemplateConfig; // 模板專屬配置（進階模板使用）
   };
   
   // 表單狀態

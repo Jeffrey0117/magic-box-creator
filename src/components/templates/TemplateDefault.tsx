@@ -18,7 +18,6 @@ const TemplateDefault = (props: BoxTemplateProps) => {
     waitlistCount,
     isLoggedIn,
     isCreatorPreview,
-    ...formProps
   } = props;
   
   const navigate = useNavigate();
@@ -126,8 +125,15 @@ const TemplateDefault = (props: BoxTemplateProps) => {
 
                 <div className="space-y-4">
                   <BoxUnlockForm
-                    {...formProps}
                     boxData={boxData}
+                    keyword={props.keyword}
+                    setKeyword={props.setKeyword}
+                    email={props.email}
+                    setEmail={props.setEmail}
+                    extraData={props.extraData}
+                    setExtraData={props.setExtraData}
+                    onUnlock={props.onUnlock}
+                    loading={props.loading}
                     isCreatorPreview={isCreatorPreview}
                   />
 

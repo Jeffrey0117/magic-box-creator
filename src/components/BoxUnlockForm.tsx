@@ -13,7 +13,7 @@ interface BoxUnlockFormProps {
   setEmail: (v: string) => void;
   extraData: { nickname: string };
   setExtraData: (v: any) => void;
-  onSubmit: (e: React.FormEvent) => void;
+  onUnlock: (e: React.FormEvent) => void;
   loading: boolean;
   variant?: 'default' | 'minimal';
   isCreatorPreview?: boolean;
@@ -27,13 +27,13 @@ export const BoxUnlockForm = ({
   setEmail,
   extraData,
   setExtraData,
-  onSubmit,
+  onUnlock,
   loading,
   variant = 'default',
   isCreatorPreview = false
 }: BoxUnlockFormProps) => {
   return (
-    <form onSubmit={onSubmit} className="space-y-4">
+    <form onSubmit={onUnlock} className="space-y-4">
       {/* 關鍵字欄位 */}
       <div>
         <Label htmlFor="keyword" className="text-sm font-medium mb-2 block">

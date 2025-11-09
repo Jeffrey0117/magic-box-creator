@@ -3,11 +3,21 @@ import { BoxUnlockForm } from '@/components/BoxUnlockForm';
 import { UnlockSuccessView } from '@/components/UnlockSuccessView';
 import { CreatorCard } from '@/components/CreatorCard';
 import { PackageImageCarousel } from '@/components/PackageImageCarousel';
-import { Menu, Star, Users, TrendingUp } from 'lucide-react';
+import { Menu, Star, Users, TrendingUp, Lightbulb, Target, Zap, Heart, Award, Shield, Rocket, Gift, Trophy, Sparkles, Crown, Flame, CheckCircle, Mail, Phone, Calendar, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { DEFAULT_LAYOUT7_CONFIG } from '@/types/template-config';
+
+// 圖示映射表
+const iconMap: Record<string, any> = {
+  Lightbulb, Target, Zap, Star, Users, TrendingUp, Heart, Award, Shield, Rocket,
+  Gift, Trophy, Sparkles, Crown, Flame, CheckCircle, Mail, Phone, Calendar, Clock
+};
 
 export default function TemplateLayout7(props: BoxTemplateProps) {
   const { boxData, result } = props;
+
+  // 讀取模板配置，使用預設值作為 fallback
+  const config = boxData.template_config?.layout7 || DEFAULT_LAYOUT7_CONFIG;
 
   // 成功畫面
   if (result) {
@@ -22,9 +32,12 @@ export default function TemplateLayout7(props: BoxTemplateProps) {
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-blue-600 rounded-lg flex items-center justify-center">
-              <Star className="w-6 h-6 text-white" />
+              {(() => {
+                const BrandIcon = iconMap[config.brand.logo_icon] || Star;
+                return <BrandIcon className="w-6 h-6 text-white" />;
+              })()}
             </div>
-            <span className="text-xl font-bold text-gray-900">KeyBox</span>
+            <span className="text-xl font-bold text-gray-900">{config.brand.name}</span>
           </div>
           <Button variant="ghost" size="icon">
             <Menu className="w-6 h-6" />
@@ -51,27 +64,21 @@ export default function TemplateLayout7(props: BoxTemplateProps) {
           )}
 
           <div className="grid md:grid-cols-3 gap-6">
-            <div className="flex items-start gap-3">
-              <Users className="w-6 h-6 text-purple-600 flex-shrink-0 mt-1" />
-              <div>
-                <h4 className="font-semibold mb-1 text-gray-900">社群</h4>
-                <p className="text-sm text-gray-600">加入 10K+ 會員</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <TrendingUp className="w-6 h-6 text-orange-500 flex-shrink-0 mt-1" />
-              <div>
-                <h4 className="font-semibold mb-1 text-gray-900">成長</h4>
-                <p className="text-sm text-gray-600">平均 300% ROI</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <Star className="w-6 h-6 text-purple-600 flex-shrink-0 mt-1" />
-              <div>
-                <h4 className="font-semibold mb-1 text-gray-900">驗證</h4>
-                <p className="text-sm text-gray-600">5 星評分指南</p>
-              </div>
-            </div>
+            {config.features.map((feature, index) => {
+              const FeatureIcon = iconMap[feature.icon] || Star;
+              const colors = ['text-purple-600', 'text-orange-500', 'text-blue-600', 'text-green-600', 'text-pink-600', 'text-indigo-600'];
+              const color = colors[index % colors.length];
+
+              return (
+                <div key={index} className="flex items-start gap-3">
+                  <FeatureIcon className={`w-6 h-6 ${color} flex-shrink-0 mt-1`} />
+                  <div>
+                    <h4 className="font-semibold mb-1 text-gray-900">{feature.title}</h4>
+                    <p className="text-sm text-gray-600">{feature.description}</p>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
 
@@ -83,6 +90,7 @@ export default function TemplateLayout7(props: BoxTemplateProps) {
           </p>
           <div className="space-y-4">
             <BoxUnlockForm
+              boxData={boxData}
               keyword={props.keyword}
               setKeyword={props.setKeyword}
               email={props.email}
@@ -91,7 +99,6 @@ export default function TemplateLayout7(props: BoxTemplateProps) {
               setExtraData={props.setExtraData}
               onUnlock={props.onUnlock}
               loading={props.loading}
-              requireNickname={boxData.required_fields?.nickname || false}
               isCreatorPreview={props.isCreatorPreview}
             />
 
@@ -107,11 +114,19 @@ export default function TemplateLayout7(props: BoxTemplateProps) {
 
         {/* Footer */}
         <footer className="text-center text-sm text-gray-600 pt-8 pb-4 animate-fade-in">
-          <p>© 2024 KeyBox. All rights reserved.</p>
+          <p>© 2024 {config.brand.name}. All rights reserved.</p>
           <div className="flex justify-center gap-6 mt-4">
-            <a href="#" className="hover:text-purple-600 transition-colors">Twitter</a>
-            <a href="#" className="hover:text-purple-600 transition-colors">LinkedIn</a>
-            <a href="#" className="hover:text-purple-600 transition-colors">Instagram</a>
+            {config.social_links.map((link, index) => (
+              <a
+                key={index}
+                href={link.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-purple-600 transition-colors"
+              >
+                {link.platform}
+              </a>
+            ))}
           </div>
         </footer>
       </div>

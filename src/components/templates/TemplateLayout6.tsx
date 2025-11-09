@@ -4,9 +4,13 @@ import { UnlockSuccessView } from '@/components/UnlockSuccessView';
 import { CreatorCard } from '@/components/CreatorCard';
 import { PackageImageCarousel } from '@/components/PackageImageCarousel';
 import { Flame } from 'lucide-react';
+import { DEFAULT_LAYOUT6_CONFIG } from '@/types/template-config';
 
 export default function TemplateLayout6(props: BoxTemplateProps) {
   const { boxData, result } = props;
+
+  // 讀取模板配置，使用預設值作為 fallback
+  const config = boxData.template_config?.layout6 || DEFAULT_LAYOUT6_CONFIG;
 
   // 成功畫面
   if (result) {
@@ -29,14 +33,24 @@ export default function TemplateLayout6(props: BoxTemplateProps) {
           
           {/* 數據展示 */}
           <div className="flex gap-8 pt-6">
-            <div>
-              <div className="text-4xl font-bold text-orange-500">10K+</div>
-              <div className="text-sm opacity-80">活躍用戶</div>
-            </div>
-            <div>
-              <div className="text-4xl font-bold text-blue-400">95%</div>
-              <div className="text-sm opacity-80">成功率</div>
-            </div>
+            {config.stats.map((stat, index) => {
+              const colorMap: Record<string, string> = {
+                orange: 'text-orange-500',
+                blue: 'text-blue-400',
+                green: 'text-green-400',
+                purple: 'text-purple-400',
+                red: 'text-red-400',
+                yellow: 'text-yellow-400',
+              };
+              const textColor = colorMap[stat.color || 'orange'] || 'text-orange-500';
+
+              return (
+                <div key={index}>
+                  <div className={`text-4xl font-bold ${textColor}`}>{stat.value}</div>
+                  <div className="text-sm opacity-80">{stat.label}</div>
+                </div>
+              );
+            })}
           </div>
 
           {/* 圖片輪播 (如果有) */}
@@ -61,6 +75,7 @@ export default function TemplateLayout6(props: BoxTemplateProps) {
           {/* 解鎖表單 */}
           <div className="space-y-4">
             <BoxUnlockForm
+              boxData={boxData}
               keyword={props.keyword}
               setKeyword={props.setKeyword}
               email={props.email}
@@ -69,7 +84,6 @@ export default function TemplateLayout6(props: BoxTemplateProps) {
               setExtraData={props.setExtraData}
               onUnlock={props.onUnlock}
               loading={props.loading}
-              requireNickname={boxData.required_fields?.nickname || false}
               isCreatorPreview={props.isCreatorPreview}
             />
 
