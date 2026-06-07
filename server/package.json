@@ -1,0 +1,13 @@
+{
+  "name": "keybox-server",
+  "private": true,
+  "version": "1.0.0",
+  "description": "KeyBox NG — self-hosted backend (SQLite + embed API + delivery modes)",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.10.0"
+  }
+}

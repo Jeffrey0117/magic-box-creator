@@ -124,7 +124,7 @@
     `
   }
 
-  async function unlock(payload: { email: string; name?: string; keyword?: string }): Promise<{ ok: boolean; content?: string; welcomeBack?: boolean; error?: string }> {
+  async function unlock(payload: { email: string; name?: string; keyword?: string }): Promise<{ ok: boolean; content?: string; sent?: boolean; welcomeBack?: boolean; error?: string }> {
     try {
       const r = await fetch(`${BASE}/api/embed/unlock`, {
         method: 'POST',
@@ -133,10 +133,20 @@
       })
       const data = await r.json().catch(() => ({}))
       if (!r.ok) return { ok: false, error: data.error || '解鎖失敗，請稍後再試' }
-      return { ok: true, content: data.content, welcomeBack: !!data.welcomeBack }
+      return { ok: true, content: data.content, sent: !!data.sent, welcomeBack: !!data.welcomeBack }
     } catch {
       return { ok: false, error: '連線失敗，請稍後再試' }
     }
+  }
+
+  // delivery=email 模式：內容不落地，只告知去收信
+  function renderSent(email: string) {
+    closeModal()
+    card.innerHTML = `
+      <p class="kb-title">📬 已寄到你的信箱！</p>
+      <p class="kb-desc">資源已寄到 <strong>${esc(email)}</strong>\n沒看到的話，翻一下垃圾信件夾。</p>
+      <div class="kb-brand"><a href="${esc(BASE)}" target="_blank" rel="noopener">🔑 Powered by KeyBox</a></div>
+    `
   }
 
   function buildModal(box: any) {
@@ -179,7 +189,8 @@
       const r = await unlock({ email, name, ...(needKeyword ? { keyword } : {}) })
       if (r.ok) {
         saveMember({ email, name })
-        renderContent(r.content || '', !!r.welcomeBack)
+        if (r.sent && !r.content) renderSent(email)
+        else renderContent(r.content || '', !!r.welcomeBack)
       } else {
         btn.disabled = false
         btn.textContent = '下載'
@@ -232,7 +243,10 @@
     const member = getMember()
     if (member && box.unlockMode === 'email' && !box.expired) {
       const r = await unlock({ email: member.email, name: member.name })
-      if (r.ok) return renderContent(r.content || '', true)
+      if (r.ok) {
+        if (r.sent && !r.content) return renderSent(member.email)
+        return renderContent(r.content || '', true)
+      }
     }
 
     if (box.expired || box.full) return renderClosed(box)
