@@ -3,6 +3,20 @@
 const http = require('http');
 const fs = require('fs');
 const { join } = require('path');
+
+// 自帶 .env 載入（repo 根目錄 + server/），不依賴 pm2/部署器注入；已存在的環境變數優先
+for (const envPath of [join(__dirname, '..', '.env'), join(__dirname, '.env')]) {
+  try {
+    if (!fs.existsSync(envPath)) continue;
+    for (const line of fs.readFileSync(envPath, 'utf8').split(/\r?\n/)) {
+      const m = line.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)\s*$/);
+      if (m && process.env[m[1]] === undefined) {
+        process.env[m[1]] = m[2].replace(/^["']|["']$/g, '');
+      }
+    }
+  } catch { /* ignore */ }
+}
+
 const embedApi = require('./embed-api');
 const adminApi = require('./admin-api');
 
