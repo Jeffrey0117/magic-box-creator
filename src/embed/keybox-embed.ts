@@ -7,6 +7,7 @@
  * 選配屬性：
  *   data-color="#27486f"   主色（按鈕/重點），預設 KeyBox 紫
  *   data-cta="解鎖下載"     按鈕文字
+ *   data-title / data-desc  覆寫包裝標題/描述（嵌入方自己的口吻，不動 box 資料）
  *
  * UX（與 SeedBlog free-gate 同邏輯）：
  * - 卡片只顯示鎖定狀態（標題/描述/領取鈕），點領取 → 跳 modal 填名字+信箱
@@ -22,6 +23,8 @@
 
   const COLOR = script.getAttribute('data-color') || '#7c5cff'
   const CTA = script.getAttribute('data-cta') || '🔓 解鎖領取'
+  const TITLE_OVERRIDE = script.getAttribute('data-title') || ''
+  const DESC_OVERRIDE = script.getAttribute('data-desc') || ''
   const BASE = (() => {
     try {
       return new URL(script.getAttribute('src') || '', window.location.href).origin
@@ -193,9 +196,11 @@
 
   function renderLocked(box: any) {
     const quotaLine = box.quota ? `已領取 ${box.claimed}/${box.quota}` : ''
+    const title = TITLE_OVERRIDE || box.title
+    const desc = DESC_OVERRIDE || box.description
     card.innerHTML = `
-      ${box.title ? `<p class="kb-title">📦 ${esc(box.title)}</p>` : ''}
-      ${box.description ? `<p class="kb-desc">${esc(box.description)}</p>` : ''}
+      ${title ? `<p class="kb-title">📦 ${esc(title)}</p>` : ''}
+      ${desc ? `<p class="kb-desc">${esc(desc)}</p>` : ''}
       ${quotaLine ? `<p class="kb-meta">${esc(quotaLine)}</p>` : ''}
       <button type="button" class="kb-btn">${esc(CTA)}</button>
       <div class="kb-brand"><a href="${esc(BASE)}" target="_blank" rel="noopener">🔑 Powered by KeyBox</a></div>
