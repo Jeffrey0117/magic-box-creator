@@ -8,11 +8,11 @@
  *   data-color="#27486f"   主色（按鈕/重點），預設 KeyBox 紫
  *   data-cta="解鎖下載"     按鈕文字
  *
- * 行為：
- * - 讀 GET /api/embed/box 畫鎖定卡片（標題/描述/額度），不碰祕密內容
+ * UX（與 SeedBlog free-gate 同邏輯）：
+ * - 卡片只顯示鎖定狀態（標題/描述/領取鈕），點領取 → 跳 modal 填名字+信箱
  * - 解鎖走 POST /api/embed/unlock（server-side 驗證 + email_logs 記錄 + webhook）
  * - localStorage 記會員（per origin）；回訪自動重打 unlock（冪等）→ 直接展開內容
- * - Shadow DOM 隔離樣式，不污染宿主頁面
+ * - Shadow DOM 隔離樣式；modal 用 position:fixed 蓋全頁
  */
 ;(function () {
   const script = document.currentScript as HTMLScriptElement | null
@@ -60,23 +60,31 @@
 
   const style = document.createElement('style')
   style.textContent = `
-    .kb { font-family: 'Noto Sans TC', -apple-system, 'Segoe UI', sans-serif; background:#fff; border:1px solid #e7e5e4; border-radius:14px; padding:24px; box-shadow:0 6px 24px rgba(20,30,50,.06); color:#1c1917; line-height:1.7; }
-    .kb-title { font-weight:900; font-size:1.15rem; margin:0 0 4px; }
-    .kb-desc { color:#78716c; font-size:.9rem; margin:0 0 14px; white-space:pre-line; }
+    .kb { font-family: 'Noto Sans TC', -apple-system, 'Segoe UI', sans-serif; background:#fff; border:1px solid #e7e5e4; border-radius:14px; padding:26px; box-shadow:0 6px 24px rgba(20,30,50,.06); color:#1c1917; line-height:1.7; text-align:center; }
+    .kb-title { font-weight:900; font-size:1.2rem; margin:0 0 6px; }
+    .kb-desc { color:#78716c; font-size:.9rem; margin:0 0 16px; white-space:pre-line; }
     .kb-meta { font-size:.78rem; color:#a8a29e; margin-bottom:12px; }
-    .kb-form { display:flex; flex-direction:column; gap:9px; }
-    .kb-input { width:100%; box-sizing:border-box; padding:11px 14px; border:1px solid #d6d3d1; border-radius:10px; font-size:.95rem; font-family:inherit; outline:none; }
-    .kb-input:focus { border-color:${COLOR}; }
-    .kb-btn { width:100%; box-sizing:border-box; background:${COLOR}; color:#fff; border:none; cursor:pointer; font-weight:900; font-size:1rem; padding:12px; border-radius:100px; font-family:inherit; }
+    .kb-btn { display:inline-block; background:${COLOR}; color:#fff; border:none; cursor:pointer; font-weight:900; font-size:1rem; padding:13px 40px; border-radius:100px; font-family:inherit; }
     .kb-btn:disabled { opacity:.6; cursor:default; }
-    .kb-note { text-align:center; color:#a8a29e; font-size:.72rem; margin:10px 0 0; }
-    .kb-error { color:#dc2626; font-size:.85rem; margin-top:8px; display:none; }
-    .kb-content { white-space:pre-wrap; word-break:break-word; font-size:.95rem; background:#fafaf9; border:1px solid #f0f1f4; border-radius:10px; padding:14px 16px; }
+    .kb-content { text-align:left; white-space:pre-wrap; word-break:break-word; font-size:.95rem; background:#fafaf9; border:1px solid #f0f1f4; border-radius:10px; padding:14px 16px; }
     .kb-content a { color:${COLOR}; font-weight:700; }
-    .kb-ok { font-size:.85rem; color:${COLOR}; font-weight:700; margin-bottom:8px; }
+    .kb-ok { font-size:.9rem; color:${COLOR}; font-weight:700; margin-bottom:10px; text-align:left; }
     .kb-brand { text-align:right; margin-top:10px; }
     .kb-brand a { color:#c7c2bd; font-size:.7rem; text-decoration:none; }
     .kb-skel { height:88px; display:flex; align-items:center; justify-content:center; color:#a8a29e; font-size:.85rem; }
+    /* ── register modal（比照頁寶庫 free-gate）── */
+    .kb-overlay { display:none; position:fixed; inset:0; z-index:999999; background:rgba(0,0,0,.6); padding:16px; overflow:auto; align-items:center; justify-content:center; }
+    .kb-overlay.open { display:flex; }
+    .kb-modal { max-width:380px; width:100%; margin:auto; background:#fff; border-radius:16px; padding:30px 26px; position:relative; text-align:center; font-family:'Noto Sans TC', -apple-system, 'Segoe UI', sans-serif; color:#1c1917; }
+    .kb-close { position:absolute; top:10px; right:14px; background:none; border:none; font-size:24px; line-height:1; cursor:pointer; color:#9aa0a8; }
+    .kb-emoji { font-size:2rem; }
+    .kb-mtitle { font-weight:900; font-size:1.3rem; margin:6px 0 18px; line-height:1.4; }
+    .kb-input { width:100%; box-sizing:border-box; padding:11px 14px; margin-bottom:10px; border:1px solid #d2d2d7; border-radius:10px; font-size:.95rem; font-family:inherit; outline:none; text-align:left; }
+    .kb-input:focus { border-color:${COLOR}; }
+    .kb-submit { width:100%; box-sizing:border-box; background:${COLOR}; color:#fff; border:none; cursor:pointer; font-weight:900; font-size:1.05rem; padding:13px; border-radius:100px; font-family:inherit; margin-top:4px; }
+    .kb-submit:disabled { opacity:.6; cursor:default; }
+    .kb-note { color:#9aa0a8; font-size:.74rem; margin-top:12px; line-height:1.6; }
+    .kb-error { color:#dc2626; font-size:.85rem; margin-top:8px; display:none; }
   `
   root.appendChild(style)
 
@@ -85,16 +93,27 @@
   card.innerHTML = '<div class="kb-skel">資料包載入中…</div>'
   root.appendChild(card)
 
+  // modal lives at shadow-root level so position:fixed covers the page
+  const overlay = document.createElement('div')
+  overlay.className = 'kb-overlay'
+  root.appendChild(overlay)
+
   function esc(s: string): string {
     return String(s == null ? '' : s).replace(/[<>&"]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' }[c] as string))
   }
 
-  // bare-URL lines → clickable links；其他行原樣
+  // bare URLs → clickable links；其他行原樣
   function linkify(text: string): string {
     return esc(text).replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>')
   }
 
+  function closeModal() {
+    overlay.classList.remove('open')
+    document.body.style.overflow = ''
+  }
+
   function renderContent(content: string, welcomeBack: boolean) {
+    closeModal()
     card.innerHTML = `
       <div class="kb-ok">${welcomeBack ? '🔓 歡迎回來，已為你自動解鎖' : '🔓 解鎖成功！'}</div>
       <div class="kb-content">${linkify(content)}</div>
@@ -117,25 +136,33 @@
     }
   }
 
-  function renderForm(box: any) {
+  function buildModal(box: any) {
     const needKeyword = box.unlockMode === 'keyword'
-    const quotaLine = box.quota ? `已領取 ${box.claimed}/${box.quota}` : ''
-    card.innerHTML = `
-      ${box.title ? `<p class="kb-title">📦 ${esc(box.title)}</p>` : ''}
-      ${box.description ? `<p class="kb-desc">${esc(box.description)}</p>` : ''}
-      ${quotaLine ? `<p class="kb-meta">${esc(quotaLine)}</p>` : ''}
-      <form class="kb-form">
-        <input class="kb-input" name="name" type="text" placeholder="你的名字" required>
-        <input class="kb-input" name="email" type="email" placeholder="you@example.com" required>
-        ${needKeyword ? '<input class="kb-input" name="keyword" type="text" placeholder="關鍵字" required>' : ''}
-        <button class="kb-btn" type="submit">${esc(CTA)}</button>
-      </form>
-      <p class="kb-error"></p>
-      <p class="kb-note">填一次，之後的免費資源都自動解鎖。不亂發信。</p>
-      <div class="kb-brand"><a href="${esc(BASE)}" target="_blank" rel="noopener">🔑 Powered by KeyBox</a></div>
+    overlay.innerHTML = `
+      <div class="kb-modal">
+        <button type="button" class="kb-close" aria-label="關閉">&times;</button>
+        <div class="kb-emoji">🔓</div>
+        <h3 class="kb-mtitle">填一次，之後免費資源都爽領</h3>
+        <form>
+          <input class="kb-input" name="name" type="text" placeholder="你的名字" required>
+          <input class="kb-input" name="email" type="email" placeholder="you@example.com" required>
+          ${needKeyword ? '<input class="kb-input" name="keyword" type="text" placeholder="關鍵字" required>' : ''}
+          <button class="kb-submit" type="submit">下載</button>
+        </form>
+        <p class="kb-error"></p>
+        <p class="kb-note">還會寄送真的有料的文章，不亂發。</p>
+      </div>
     `
-    const form = card.querySelector('form') as HTMLFormElement
-    const errEl = card.querySelector('.kb-error') as HTMLElement
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) closeModal()
+    })
+    ;(overlay.querySelector('.kb-close') as HTMLElement).addEventListener('click', closeModal)
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeModal()
+    })
+
+    const form = overlay.querySelector('form') as HTMLFormElement
+    const errEl = overlay.querySelector('.kb-error') as HTMLElement
     form.addEventListener('submit', async (e) => {
       e.preventDefault()
       const fd = new FormData(form)
@@ -143,7 +170,7 @@
       const name = String(fd.get('name') || '').trim()
       const keyword = String(fd.get('keyword') || '').trim()
       if (!email.includes('@') || !name) return
-      const btn = form.querySelector('button') as HTMLButtonElement
+      const btn = form.querySelector('.kb-submit') as HTMLButtonElement
       btn.disabled = true
       btn.textContent = '處理中…'
       const r = await unlock({ email, name, ...(needKeyword ? { keyword } : {}) })
@@ -152,11 +179,29 @@
         renderContent(r.content || '', !!r.welcomeBack)
       } else {
         btn.disabled = false
-        btn.textContent = CTA
+        btn.textContent = '下載'
         errEl.textContent = r.error || '解鎖失敗'
         errEl.style.display = 'block'
       }
     })
+  }
+
+  function openModal() {
+    overlay.classList.add('open')
+    document.body.style.overflow = 'hidden'
+  }
+
+  function renderLocked(box: any) {
+    const quotaLine = box.quota ? `已領取 ${box.claimed}/${box.quota}` : ''
+    card.innerHTML = `
+      ${box.title ? `<p class="kb-title">📦 ${esc(box.title)}</p>` : ''}
+      ${box.description ? `<p class="kb-desc">${esc(box.description)}</p>` : ''}
+      ${quotaLine ? `<p class="kb-meta">${esc(quotaLine)}</p>` : ''}
+      <button type="button" class="kb-btn">${esc(CTA)}</button>
+      <div class="kb-brand"><a href="${esc(BASE)}" target="_blank" rel="noopener">🔑 Powered by KeyBox</a></div>
+    `
+    buildModal(box)
+    ;(card.querySelector('.kb-btn') as HTMLElement).addEventListener('click', openModal)
   }
 
   function renderClosed(box: any) {
@@ -186,7 +231,7 @@
     }
 
     if (box.expired || box.full) return renderClosed(box)
-    renderForm(box)
+    renderLocked(box)
   }
 
   init()
