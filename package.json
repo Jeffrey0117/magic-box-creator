@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "npm run build:embed && vite build",
+    "build:embed": "esbuild src/embed/keybox-embed.ts --bundle --minify --target=es2019 --outfile=public/embed.js",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview",
