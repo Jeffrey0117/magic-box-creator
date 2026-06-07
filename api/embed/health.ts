@@ -1,5 +1,5 @@
 // GET /api/embed/health — config probe (booleans only, no secrets)
-import { applyCors } from '../_lib/embed'
+import { applyCors } from '../_lib/embed.js'
 
 export default async function handler(_req: any, res: any) {
   applyCors(res)

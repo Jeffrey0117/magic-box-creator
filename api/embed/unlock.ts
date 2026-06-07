@@ -2,7 +2,7 @@
 // Server-side unlock for the embed SDK: validates keyword/quota/expiry on the server
 // (unlike the SPA flow, the secret never reaches the client before validation),
 // records the claim in email_logs, returns content, and fires the box webhook.
-import { getServiceClient, applyCors, fireWebhook, isExpired, isFull } from '../_lib/embed'
+import { getServiceClient, applyCors, fireWebhook, isExpired, isFull } from '../_lib/embed.js'
 
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/
 

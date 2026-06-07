@@ -1,6 +1,6 @@
 // GET /api/embed/box?code=<short_code>
 // Public box metadata for the embed widget. Never returns `content` or the secret keyword.
-import { getServiceClient, applyCors, isExpired, isFull } from '../_lib/embed'
+import { getServiceClient, applyCors, isExpired, isFull } from '../_lib/embed.js'
 
 export default async function handler(req: any, res: any) {
   applyCors(res)
