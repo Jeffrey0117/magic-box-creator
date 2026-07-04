@@ -64,7 +64,7 @@ const Pricing = () => {
   return (
     <div className="min-h-screen py-10 px-4" style={{ backgroundColor: "#F8F7F5" }}>
       <div className="max-w-5xl mx-auto">
-        <Button variant="ghost" onClick={() => navigate(-1)} className="mb-6 gap-2 text-slate-600">
+        <Button variant="ghost" onClick={() => navigate(-1)} className="mb-6 gap-2 text-slate-600 hover:bg-slate-100 hover:text-slate-800">
           <ArrowLeft className="w-4 h-4" /> 返回
         </Button>
 
@@ -124,7 +124,7 @@ const Pricing = () => {
                   </div>
 
                   {p.tier === "free" ? (
-                    <Button variant="outline" className="w-full" disabled>
+                    <Button variant="outline" className="w-full bg-white border-slate-300 text-slate-500" disabled>
                       目前方案
                     </Button>
                   ) : (
@@ -175,7 +175,7 @@ const Pricing = () => {
             <Button size="lg" className="bg-green-500 hover:bg-green-600 text-white px-8" onClick={() => navigate("/checkout?tier=standard")}>
               <Zap className="w-4 h-4 mr-2" /> 升級標準版 NT$299/月
             </Button>
-            <Button size="lg" variant="outline" className="border-purple-300 text-purple-700 hover:bg-purple-50 px-8" onClick={() => navigate("/checkout?tier=premium")}>
+            <Button size="lg" variant="outline" className="bg-white border-purple-300 text-purple-700 hover:bg-purple-50 px-8" onClick={() => navigate("/checkout?tier=premium")}>
               <Crown className="w-4 h-4 mr-2" /> 升級專業版 NT$599/月
             </Button>
           </div>

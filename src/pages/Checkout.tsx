@@ -83,7 +83,7 @@ const Checkout = () => {
   return (
     <div className="min-h-screen py-8 px-4" style={{ backgroundColor: "#F8F7F5" }}>
       <div className="max-w-5xl mx-auto">
-        <Button variant="ghost" onClick={() => navigate(-1)} className="mb-6 gap-2 text-slate-600">
+        <Button variant="ghost" onClick={() => navigate(-1)} className="mb-6 gap-2 text-slate-600 hover:bg-slate-100 hover:text-slate-800">
           <ArrowLeft className="w-4 h-4" /> 返回
         </Button>
 
