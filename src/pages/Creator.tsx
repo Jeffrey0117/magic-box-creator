@@ -306,6 +306,13 @@ const Creator = () => {
 
     if (error) {
       console.error("新增關鍵字失敗:", error);
+      // 資料庫層免費版上限（防繞過前端）：導向升級
+      if ((error as any)?.message?.includes('FREE_PACKAGE_LIMIT_REACHED')) {
+        toast.info("免費版最多 3 個資料包，升級標準版即可建立無限資料包");
+        cancelAdd();
+        navigate('/pricing');
+        return;
+      }
       toast.error("新增失敗，請確認關鍵字是否重複");
     } else {
       // 同步進新表（使用新表；同時保留 JSON 作為相容備援）
