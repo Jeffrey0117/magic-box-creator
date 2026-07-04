@@ -167,9 +167,9 @@ export function PayuniEmbedCheckout(props: PayuniEmbedCheckoutProps) {
   return (
     <div className="space-y-4">
       {initState === "error" && (
-        <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-4 text-sm">
-          <p className="text-destructive font-medium">付款元件載入失敗</p>
-          <p className="text-muted-foreground mt-1">{initError}</p>
+        <div className="rounded-lg border border-red-300 bg-red-50 p-4 text-sm">
+          <p className="text-red-600 font-medium">付款元件載入失敗</p>
+          <p className="text-slate-500 mt-1">{initError}</p>
           <div className="mt-3 flex gap-2">
             <Button variant="outline" size="sm" onClick={() => init()}>重試</Button>
           </div>
@@ -178,34 +178,34 @@ export function PayuniEmbedCheckout(props: PayuniEmbedCheckoutProps) {
 
       <div className={initState === "ready" ? "space-y-3" : "space-y-3 opacity-50 pointer-events-none"}>
         <div className="space-y-1.5">
-          <label className="text-sm font-medium">信用卡號</label>
-          <div id="put_card_no" className="h-11 rounded-md border border-input bg-background px-3 flex items-center" />
+          <label className="text-sm font-medium text-slate-700">信用卡號</label>
+          <div id="put_card_no" className="h-11 rounded-md border border-slate-300 bg-white px-3 flex items-center" />
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1.5">
-            <label className="text-sm font-medium">有效期限 (MM/YY)</label>
-            <div id="put_card_exp" className="h-11 rounded-md border border-input bg-background px-3 flex items-center" />
+            <label className="text-sm font-medium text-slate-700">有效期限 (MM/YY)</label>
+            <div id="put_card_exp" className="h-11 rounded-md border border-slate-300 bg-white px-3 flex items-center" />
           </div>
           <div className="space-y-1.5">
-            <label className="text-sm font-medium">安全碼 (CVC)</label>
-            <div id="put_card_cvc" className="h-11 rounded-md border border-input bg-background px-3 flex items-center" />
+            <label className="text-sm font-medium text-slate-700">安全碼 (CVC)</label>
+            <div id="put_card_cvc" className="h-11 rounded-md border border-slate-300 bg-white px-3 flex items-center" />
           </div>
         </div>
       </div>
 
       {initState === "loading" && (
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <div className="flex items-center gap-2 text-sm text-slate-500">
           <Loader2 className="h-4 w-4 animate-spin" /> 載入安全付款元件…
         </div>
       )}
 
-      {payError && <p className="text-sm text-destructive">{payError}</p>}
+      {payError && <p className="text-sm text-red-600">{payError}</p>}
 
-      <Button onClick={handlePay} disabled={initState !== "ready" || !allValid || processing} size="lg" className="w-full">
+      <Button onClick={handlePay} disabled={initState !== "ready" || !allValid || processing} size="lg" className="w-full bg-green-500 hover:bg-green-600 text-white">
         {processing ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />授權中…</> : <><CreditCard className="mr-2 h-4 w-4" />確認付款 NT$ {amount.toLocaleString()}</>}
       </Button>
 
-      <p className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
+      <p className="flex items-center justify-center gap-1.5 text-xs text-slate-500">
         <ShieldCheck className="h-3.5 w-3.5" />
         卡號由 PAYUNi 加密處理，本站不會接觸您的完整卡號
       </p>

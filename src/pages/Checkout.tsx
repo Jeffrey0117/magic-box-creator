@@ -95,7 +95,7 @@ const Checkout = () => {
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
           {/* 左：訂單明細 */}
           <div className="lg:col-span-2 space-y-6">
-            <Card>
+            <Card className="bg-white border-slate-200 shadow-sm">
               <CardContent className="p-6">
                 <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-4">訂單明細</h2>
                 <div className="flex items-baseline justify-between mb-1">
@@ -103,7 +103,7 @@ const Checkout = () => {
                   <span className="text-lg font-bold text-slate-800">NT${price}</span>
                 </div>
                 <p className="text-sm text-slate-500 mb-4">每月自動續訂，可隨時取消</p>
-                <Separator className="my-4" />
+                <Separator className="my-4 bg-slate-200" />
                 <ul className="space-y-2 mb-4">
                   {info.features.map((f) => (
                     <li key={f} className="flex items-center gap-2 text-sm text-slate-600">
@@ -111,7 +111,7 @@ const Checkout = () => {
                     </li>
                   ))}
                 </ul>
-                <Separator className="my-4" />
+                <Separator className="my-4 bg-slate-200" />
                 <div className="flex items-baseline justify-between">
                   <span className="font-semibold text-slate-800">本次應付</span>
                   <div className="text-right">
@@ -130,56 +130,51 @@ const Checkout = () => {
 
           {/* 右：帳單資訊 + 刷卡 */}
           <div className="lg:col-span-3">
-            <Card>
+            <Card className="bg-white border-slate-200 shadow-sm">
               <CardContent className="p-6 space-y-6">
                 {/* 帳單資訊 */}
                 <div>
                   <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-4">帳單資訊</h2>
                   <div className="space-y-4">
                     <div>
-                      <Label htmlFor="billing-name" className="text-sm">姓名 / 抬頭</Label>
+                      <Label htmlFor="billing-name" className="text-sm text-slate-700">姓名 / 抬頭</Label>
                       <Input
                         id="billing-name"
                         value={billingName}
                         onChange={(e) => { setBillingName(e.target.value); setConfirmed(false); }}
                         placeholder="王小明"
                         maxLength={50}
-                        className="mt-1.5"
+                        className="mt-1.5 bg-white border-slate-300 text-slate-800 placeholder:text-slate-400"
                       />
                     </div>
                     <div>
-                      <Label htmlFor="billing-email" className="text-sm">電子郵件（收據寄送）</Label>
+                      <Label htmlFor="billing-email" className="text-sm text-slate-700">電子郵件（收據寄送）</Label>
                       <Input
                         id="billing-email"
                         type="email"
                         value={billingEmail}
                         onChange={(e) => { setBillingEmail(e.target.value); setConfirmed(false); }}
                         placeholder="you@example.com"
-                        className="mt-1.5"
+                        className="mt-1.5 bg-white border-slate-300 text-slate-800 placeholder:text-slate-400"
                       />
                     </div>
                   </div>
                 </div>
 
-                <Separator />
+                <Separator className="bg-slate-200" />
 
                 {/* 付款方式 */}
                 <div>
                   <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-4">付款方式</h2>
                   {!confirmed ? (
-                    <>
-                      <p className="text-sm text-slate-500 mb-4">
-                        填妥帳單資訊後，點擊下方按鈕輸入信用卡資料。
-                      </p>
-                      <Button
-                        size="lg"
-                        className="w-full gradient-magic"
-                        disabled={!canProceed}
-                        onClick={() => setConfirmed(true)}
-                      >
-                        {canProceed ? "前往輸入信用卡 →" : "請先填寫帳單資訊"}
-                      </Button>
-                    </>
+                    <Button
+                      size="lg"
+                      className="w-full bg-green-500 hover:bg-green-600 text-white"
+                      disabled={!canProceed}
+                      onClick={() => setConfirmed(true)}
+                    >
+                      {canProceed ? "確認結帳" : "請先填寫帳單資訊"}
+                    </Button>
                   ) : (
                     user && (
                       <PayuniEmbedCheckout
