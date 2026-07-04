@@ -14,6 +14,7 @@ import Privacy from "./pages/Privacy";
 import Help from "./pages/Help";
 import Admin from "./pages/Admin";
 import Paid from "./pages/Paid";
+import Checkout from "./pages/Checkout";
 import PackageDetail from "./pages/admin/PackageDetail";
 import UIPreview from "./pages/UIPreview";
 
@@ -42,6 +43,7 @@ const App = () => (
           <Route path="/login" element={<Login />} />
           <Route path="/creator" element={<Creator />} />
           <Route path="/paid" element={<Paid />} />
+          <Route path="/checkout" element={<Checkout />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/admin/packages/:packageId" element={<PackageDetail />} />
           <Route path="/ui-preview" element={<UIPreview />} />

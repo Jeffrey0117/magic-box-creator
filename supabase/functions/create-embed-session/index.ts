@@ -25,7 +25,7 @@ const json = (b: unknown, s = 200) =>
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: cors });
   try {
-    const { orderId, amount, itemId, itemDesc, buyerEmail, userId, iframeDomain } = await req.json();
+    const { orderId, amount, itemId, itemDesc, buyerEmail, buyerName, userId, iframeDomain } = await req.json();
     if (!orderId || !itemId || !itemDesc || !userId) return json({ error: "缺少必要參數" }, 400);
     if (!GATEWAY_SECRET) return json({ error: "PAYUNI_GATEWAY_SECRET 未設定" }, 500);
     if (!ALLOWED_ITEMS.has(itemId)) return json({ error: "無效的方案" }, 400);
@@ -61,7 +61,7 @@ serve(async (req) => {
       amount: expectedAmount,
       status: "pending",
       payment_method: "payuni",
-      extra_data: { sdkToken: td.token, itemDesc, buyerEmail: buyerEmail || null },
+      extra_data: { sdkToken: td.token, itemDesc, buyerEmail: buyerEmail || null, buyerName: buyerName || null },
       created_at: new Date().toISOString(),
     });
     if (insErr) return json({ error: "訂單建立失敗: " + insErr.message }, 500);

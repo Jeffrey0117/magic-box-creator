@@ -904,6 +904,43 @@ const Creator = () => {
           userEmail={userEmail}
         />
 
+        {/* 會員方案狀態 + 升級引導 */}
+        {(() => {
+          const tier = userProfile?.membership_tier || 'free';
+          const tierLabel = tier === 'premium' ? '專業版' : tier === 'standard' ? '標準版' : '免費版';
+          const tierBadge = tier === 'premium'
+            ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300'
+            : tier === 'standard'
+            ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300'
+            : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300';
+          return (
+            <Card className="mb-6 border-2 border-accent/20 bg-gradient-to-br from-accent/5 to-transparent">
+              <CardContent className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6">
+                <div className="flex items-center gap-3 min-w-0">
+                  <Badge className={`${tierBadge} border-0 text-sm px-3 py-1`}>{tierLabel}</Badge>
+                  <div className="min-w-0">
+                    <p className="font-semibold text-foreground">目前方案：{tierLabel}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {tier === 'free' && '升級解鎖無限資料包、全部模板與進階規則'}
+                      {tier === 'standard' && '升級專業版解鎖 API 整合與白標選項'}
+                      {tier === 'premium' && '你已解鎖所有功能，感謝訂閱 🎉'}
+                    </p>
+                  </div>
+                </div>
+                {tier !== 'premium' && (
+                  <Button
+                    onClick={() => navigate(`/checkout?tier=${tier === 'free' ? 'standard' : 'premium'}`)}
+                    className="gradient-magic shrink-0 gap-2 w-full sm:w-auto"
+                  >
+                    <TrendingUp className="w-4 h-4" />
+                    {tier === 'free' ? '升級標準版' : '升級專業版'}
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+          );
+        })()}
+
         <div className="glass-card rounded-2xl p-4 md:p-8 shadow-card">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6">
             <h2 className="text-lg md:text-xl font-semibold">關鍵字列表</h2>
@@ -2669,7 +2706,7 @@ const Creator = () => {
                             <Button
                               type="button"
                               size="sm"
-                              onClick={() => window.open('/#pricing', '_blank')}
+                              onClick={() => navigate('/checkout?tier=standard')}
                               className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white border-0"
                             >
                               立即升級

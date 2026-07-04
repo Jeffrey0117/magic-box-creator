@@ -19,6 +19,8 @@ export interface PayuniEmbedCheckoutProps {
   itemId: string;
   itemDesc: string;
   buyerEmail: string;
+  /** 帳單姓名/抬頭（選填，存入訂單供對帳/收據） */
+  buyerName?: string;
   /** 付款完成(含3D)導回的網址 */
   returnUrl: string;
   /** 非3D、當場授權成功時的 callback */
@@ -97,6 +99,7 @@ export function PayuniEmbedCheckout(props: PayuniEmbedCheckoutProps) {
           itemId: p.itemId,
           itemDesc: p.itemDesc,
           buyerEmail: p.buyerEmail,
+          buyerName: p.buyerName,
           userId: p.userId,
           iframeDomain: window.location.origin,
         }),
