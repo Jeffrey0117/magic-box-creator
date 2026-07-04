@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -31,9 +32,37 @@ import {
   Award
 } from "lucide-react";
 
+const PAYGATE_URL = "https://paygate.isnowfriend.com";
+
+interface PayGatePlan {
+  id: string;
+  tier: string;
+  price: number;
+  checkout_url: string | null;
+}
+
 const FeatureCreator = () => {
   const navigate = useNavigate();
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [plans, setPlans] = useState<PayGatePlan[]>([]);
+
+  // 從 PayGate 拉方案（checkout_url 由後台管理，前端不寫死）
+  useEffect(() => {
+    fetch(`${PAYGATE_URL}/api/plans?product=keybox`)
+      .then((res) => res.json())
+      .then((data) => setPlans(data.plans || []))
+      .catch((err) => console.error("載入方案失敗:", err));
+  }, []);
+
+  const handleCheckout = (tier: "standard" | "premium") => {
+    const plan = plans.find((p) => p.tier === tier);
+    if (plan?.checkout_url) {
+      toast.info("請使用與 KeyBox 登入相同的 Email 付款，訂閱才會自動生效");
+      window.open(plan.checkout_url, "_blank");
+    } else {
+      toast.info("線上付款即將開放，請先聯繫我們開通方案");
+    }
+  };
 
   const features = [
     {
@@ -115,17 +144,6 @@ const FeatureCreator = () => {
       description: "產品發布、用戶反饋收集",
       examples: "MVP 測試、市場調研、早期採用者招募"
     }
-  ];
-
-  const templates = [
-    { name: "簡潔經典", tag: "推薦", description: "適合所有類型內容" },
-    { name: "卡片風格", tag: "熱門", description: "現代感設計" },
-    { name: "極簡主義", tag: "簡約", description: "突出核心內容" },
-    { name: "圖片焦點", tag: "視覺", description: "圖像驅動展示" },
-    { name: "列表式", tag: "清晰", description: "條理分明" },
-    { name: "雜誌風格", tag: "專業", description: "媒體級質感" },
-    { name: "社群媒體風", tag: "互動", description: "社交友善" },
-    { name: "專業商務", tag: "企業", description: "商務場合適用" }
   ];
 
   const faqs = [
@@ -342,34 +360,8 @@ const FeatureCreator = () => {
         </div>
       </section>
 
-      {/* Templates Showcase */}
-      <section className="py-20 dark:bg-slate-900" style={{ backgroundColor: '#F8F7F5' }}>
-        <div className="max-w-6xl mx-auto px-8 sm:px-12 lg:px-16">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-slate-700">精美模板，隨心選擇</h2>
-            <p className="text-xl text-slate-600">8+ 專業設計模板，適應各種使用場景</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {templates.map((template, index) => (
-              <Card key={index} className="bg-slate-50 hover:scale-105 transition-all duration-300" style={{boxShadow: '0 0 6px 0 #3e8e9cff'}}>
-                <CardContent className="p-4">
-                  <div className="aspect-square bg-[#EEF5FF] rounded-lg mb-4 flex items-center justify-center border border-blue-200">
-                    <span className="text-4xl">🎨</span>
-                  </div>
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-semibold text-slate-700">{template.name}</h3>
-                    <Badge variant="secondary" className="text-xs">{template.tag}</Badge>
-                  </div>
-                  <p className="text-sm text-slate-600">{template.description}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* Pricing */}
-      <section className="py-20 dark:bg-slate-800" style={{ backgroundColor: '#F8F7F5' }}>
+      <section id="pricing" className="py-20 dark:bg-slate-800" style={{ backgroundColor: '#F8F7F5' }}>
         <div className="max-w-6xl mx-auto px-8 sm:px-12 lg:px-16">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold mb-4 text-slate-800">選擇適合你的方案</h2>
@@ -409,7 +401,7 @@ const FeatureCreator = () => {
                 <div className="text-center">
                   <h3 className="text-2xl font-bold text-slate-700">⭐ 標準版</h3>
                   <div className="mt-4">
-                    <span className="text-4xl font-bold text-green-500">$29</span>
+                    <span className="text-4xl font-bold text-green-500">NT$299</span>
                     <span className="text-slate-600">/月</span>
                   </div>
                   <p className="text-slate-600 mt-2">適合專業創作者</p>
@@ -422,8 +414,8 @@ const FeatureCreator = () => {
                   <li className="flex items-center text-slate-800"><Check className="w-5 h-5 text-green-500 mr-2" /> 進階數據分析</li>
                   <li className="flex items-center text-slate-800"><Check className="w-5 h-5 text-green-500 mr-2" /> Email 支援</li>
                 </ul>
-                <Button className="w-full gradient-magic" onClick={() => navigate("/login")}>
-                  選擇方案
+                <Button className="w-full gradient-magic" onClick={() => handleCheckout("standard")}>
+                  訂閱標準版
                 </Button>
               </CardContent>
             </Card>
@@ -434,7 +426,7 @@ const FeatureCreator = () => {
                 <div className="text-center">
                   <h3 className="text-2xl font-bold text-slate-700">💎 專業版</h3>
                   <div className="mt-4">
-                    <span className="text-4xl font-bold text-slate-700">$99</span>
+                    <span className="text-4xl font-bold text-slate-700">NT$599</span>
                     <span className="text-slate-600">/月</span>
                   </div>
                   <p className="text-slate-600 mt-2">適合企業團隊</p>
@@ -447,15 +439,18 @@ const FeatureCreator = () => {
                   <li className="flex items-center text-slate-800"><Check className="w-5 h-5 text-green-500 mr-2" /> 優先客服</li>
                   <li className="flex items-center text-slate-800"><Check className="w-5 h-5 text-green-500 mr-2" /> 白標選項</li>
                 </ul>
-                <Button className="w-full" variant="outline">
-                  聯繫銷售
+                <Button className="w-full" variant="outline" onClick={() => handleCheckout("premium")}>
+                  訂閱專業版
                 </Button>
               </CardContent>
             </Card>
           </div>
-          <div className="text-center mt-8">
+          <div className="text-center mt-8 space-y-2">
             <p className="text-slate-600">
               <strong>企業版</strong>：客製化需求，請聯繫我們獲取專屬方案
+            </p>
+            <p className="text-sm text-slate-500">
+              💡 付款時請使用與 KeyBox 登入相同的 Email，訂閱將自動生效
             </p>
           </div>
         </div>
