@@ -1,1 +1,5 @@
-project_id = "odlfeezminvgypscrdxp"
+project_id = "npwfsidmxvzkfzareeos"
+
+# PayUni NotifyURL 不帶 JWT，必須關 verify_jwt 否則被 401 擋住不開通
+[functions.payment-callback]
+verify_jwt = false

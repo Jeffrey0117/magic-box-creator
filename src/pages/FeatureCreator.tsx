@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { PayuniEmbedCheckout } from "@/components/PayuniEmbedCheckout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -32,7 +35,8 @@ import {
   Award
 } from "lucide-react";
 
-const PAYGATE_URL = "https://paygate.isnowfriend.com";
+// 訂閱方案 API（未設定時前端直接用預設價格顯示，結帳金額仍由後端驗證）
+const PAYGATE_URL = import.meta.env.VITE_PAYGATE_URL || "";
 
 interface PayGatePlan {
   id: string;
@@ -45,23 +49,35 @@ const FeatureCreator = () => {
   const navigate = useNavigate();
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [plans, setPlans] = useState<PayGatePlan[]>([]);
+  const [checkoutTier, setCheckoutTier] = useState<"standard" | "premium" | null>(null);
+  const [buyer, setBuyer] = useState<{ id: string; email: string } | null>(null);
 
-  // 從 PayGate 拉方案（checkout_url 由後台管理，前端不寫死）
+  const TIER_INFO = {
+    standard: { name: "標準版", fallbackPrice: 299 },
+    premium: { name: "專業版", fallbackPrice: 599 },
+  } as const;
+
+  // 從 PayGate 拉方案（價格單一來源，前端只顯示）
   useEffect(() => {
+    if (!PAYGATE_URL) return;
     fetch(`${PAYGATE_URL}/api/plans?product=keybox`)
       .then((res) => res.json())
       .then((data) => setPlans(data.plans || []))
       .catch((err) => console.error("載入方案失敗:", err));
   }, []);
 
-  const handleCheckout = (tier: "standard" | "premium") => {
-    const plan = plans.find((p) => p.tier === tier);
-    if (plan?.checkout_url) {
-      toast.info("請使用與 KeyBox 登入相同的 Email 付款，訂閱才會自動生效");
-      window.open(plan.checkout_url, "_blank");
-    } else {
-      toast.info("線上付款即將開放，請先聯繫我們開通方案");
+  const planPrice = (tier: "standard" | "premium") =>
+    plans.find((p) => p.tier === tier)?.price ?? TIER_INFO[tier].fallbackPrice;
+
+  const handleCheckout = async (tier: "standard" | "premium") => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      toast.info("請先登入，再訂閱方案");
+      navigate("/login");
+      return;
     }
+    setBuyer({ id: session.user.id, email: session.user.email || "" });
+    setCheckoutTier(tier);
   };
 
   const features = [
@@ -450,7 +466,7 @@ const FeatureCreator = () => {
               <strong>企業版</strong>：客製化需求，請聯繫我們獲取專屬方案
             </p>
             <p className="text-sm text-slate-500">
-              💡 付款時請使用與 KeyBox 登入相同的 Email，訂閱將自動生效
+              💡 站內安全刷卡（PAYUNi 加密），付款完成訂閱立即生效
             </p>
           </div>
         </div>
@@ -582,6 +598,31 @@ const FeatureCreator = () => {
           </p>
         </div>
       </section>
+
+      {/* 站內刷卡結帳 Dialog */}
+      <Dialog open={!!checkoutTier} onOpenChange={(open) => !open && setCheckoutTier(null)}>
+        <DialogContent className="w-[calc(100vw-2rem)] sm:w-full max-w-md rounded-lg">
+          <DialogHeader>
+            <DialogTitle>
+              訂閱 {checkoutTier ? TIER_INFO[checkoutTier].name : ""} — NT${checkoutTier ? planPrice(checkoutTier) : ""}/月
+            </DialogTitle>
+          </DialogHeader>
+          {checkoutTier && buyer && (
+            <PayuniEmbedCheckout
+              userId={buyer.id}
+              amount={planPrice(checkoutTier)}
+              itemId={`keybox:${checkoutTier}:monthly`}
+              itemDesc={`KeyBox ${TIER_INFO[checkoutTier].name} 月訂閱`}
+              buyerEmail={buyer.email}
+              returnUrl={`${window.location.origin}/paid`}
+              onSuccess={({ orderId }) => {
+                setCheckoutTier(null);
+                navigate(`/paid?order=${orderId}`);
+              }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Footer */}
       <footer className="py-12 bg-white text-slate-700 border-t border-black">
