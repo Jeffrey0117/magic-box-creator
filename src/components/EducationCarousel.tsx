@@ -346,14 +346,13 @@ const EducationCarousel = () => {
     >
       <div className="max-w-6xl mx-auto px-4">
         {/* 輪播主體 */}
-        <div className="carousel-container relative mx-auto" style={{ width: '1000px', height: '600px' }}>
+        <div className="carousel-container relative mx-auto w-full max-w-[1000px] h-[600px]">
           {slides.map((slide, index) => (
             <div
               key={slide.id}
               className={`slide ${slide.bgClass} ${index === activeSlide ? 'block' : 'hidden'}
-                         rounded-2xl p-8 text-white relative overflow-hidden
+                         w-full h-full rounded-2xl p-8 text-white relative overflow-hidden
                          transition-all duration-500 ease-in-out`}
-              style={{ width: '1000px', height: '600px' }}
             >
               {/* 背景裝飾 */}
               <div className="absolute inset-0 bg-black/10"></div>

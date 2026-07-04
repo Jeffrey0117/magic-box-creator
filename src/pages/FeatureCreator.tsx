@@ -4,8 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import EducationCarousel from "@/components/EducationCarousel";
+import KeyBoxLogo from "@/components/KeyBoxLogo";
 import {
-  Key,
   Users,
   TrendingUp,
   Package,
@@ -166,10 +166,7 @@ const FeatureCreator = () => {
       <nav className="bg-white border-b border-black py-4">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center">
-            <div className="flex items-center">
-              <Key className="w-8 h-8 text-green-400 mr-2" />
-              <span className="text-2xl font-bold text-slate-700">KeyBox</span>
-            </div>
+            <KeyBoxLogo />
             <div className="flex gap-3 items-center">
               <Button
                 variant="outline"
@@ -204,8 +201,8 @@ const FeatureCreator = () => {
               用關鍵字解鎖機制，輕鬆建立專屬資料包，收集潛在客戶，提升內容變現效率
             </p>
             
-            {/* Education Carousel */}
-            <div className="mt-12 mb-8">
+            {/* Education Carousel - 桌機限定，手機版隱藏避免爆版 */}
+            <div className="mt-12 mb-8 hidden lg:block">
               <EducationCarousel />
             </div>
             
@@ -596,8 +593,7 @@ const FeatureCreator = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <div className="flex justify-center items-center mb-4">
-              <Key className="w-8 h-8 text-green-400 mr-2" />
-              <span className="text-2xl font-bold text-slate-700">KeyBox</span>
+              <KeyBoxLogo />
             </div>
             <p className="text-slate-600 mb-6">用關鍵字解鎖無限可能</p>
             <div className="flex justify-center space-x-6 mb-6">
