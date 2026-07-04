@@ -39,7 +39,6 @@ const Checkout = () => {
   const [price, setPrice] = useState<number>(info.fallbackPrice);
   const [billingName, setBillingName] = useState("");
   const [billingEmail, setBillingEmail] = useState("");
-  const [confirmed, setConfirmed] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -72,8 +71,6 @@ const Checkout = () => {
       setLoading(false);
     })();
   }, [tier, navigate]);
-
-  const canProceed = billingName.trim().length > 0 && /\S+@\S+\.\S+/.test(billingEmail);
 
   if (loading) {
     return (
@@ -141,7 +138,7 @@ const Checkout = () => {
                       <Input
                         id="billing-name"
                         value={billingName}
-                        onChange={(e) => { setBillingName(e.target.value); setConfirmed(false); }}
+                        onChange={(e) => setBillingName(e.target.value)}
                         placeholder="王小明"
                         maxLength={50}
                         className="mt-1.5 bg-white border-slate-300 text-slate-800 placeholder:text-slate-400"
@@ -153,7 +150,7 @@ const Checkout = () => {
                         id="billing-email"
                         type="email"
                         value={billingEmail}
-                        onChange={(e) => { setBillingEmail(e.target.value); setConfirmed(false); }}
+                        onChange={(e) => setBillingEmail(e.target.value)}
                         placeholder="you@example.com"
                         className="mt-1.5 bg-white border-slate-300 text-slate-800 placeholder:text-slate-400"
                       />
@@ -163,31 +160,20 @@ const Checkout = () => {
 
                 <Separator className="bg-slate-200" />
 
-                {/* 付款方式 */}
+                {/* 付款方式 — 信用卡欄位直接顯示 */}
                 <div>
-                  <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-4">付款方式</h2>
-                  {!confirmed ? (
-                    <Button
-                      size="lg"
-                      className="w-full bg-green-500 hover:bg-green-600 text-white"
-                      disabled={!canProceed}
-                      onClick={() => setConfirmed(true)}
-                    >
-                      {canProceed ? "確認結帳" : "請先填寫帳單資訊"}
-                    </Button>
-                  ) : (
-                    user && (
-                      <PayuniEmbedCheckout
-                        userId={user.id}
-                        amount={price}
-                        itemId={`keybox:${tier}:monthly`}
-                        itemDesc={`KeyBox ${info.name} 月訂閱`}
-                        buyerEmail={billingEmail}
-                        buyerName={billingName}
-                        returnUrl={`${window.location.origin}/paid`}
-                        onSuccess={({ orderId }) => navigate(`/paid?order=${orderId}`)}
-                      />
-                    )
+                  <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-4">信用卡付款</h2>
+                  {user && (
+                    <PayuniEmbedCheckout
+                      userId={user.id}
+                      amount={price}
+                      itemId={`keybox:${tier}:monthly`}
+                      itemDesc={`KeyBox ${info.name} 月訂閱`}
+                      buyerEmail={billingEmail}
+                      buyerName={billingName}
+                      returnUrl={`${window.location.origin}/paid`}
+                      onSuccess={({ orderId }) => navigate(`/paid?order=${orderId}`)}
+                    />
                   )}
                 </div>
               </CardContent>
