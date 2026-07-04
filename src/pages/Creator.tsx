@@ -69,6 +69,7 @@ const Creator = () => {
   const [newContent, setNewContent] = useState("");
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [showAddSheet, setShowAddSheet] = useState(false);
   const [selectedKeywordId, setSelectedKeywordId] = useState<string | null>(null);
   const [emailLogs, setEmailLogs] = useState<EmailLog[]>([]);
   const [showMyRecords, setShowMyRecords] = useState(false);
@@ -333,22 +334,7 @@ const Creator = () => {
         console.warn('同步 unlock_rules 失敗（將使用 JSON 作為備援）:', e);
       }
       toast.success("關鍵字已新增！");
-      setNewKeyword("");
-      setNewContent("");
-      setNewQuota("");
-      setNewExpiryDays("");
-      setNewExpiryHours("");
-      setNewExpiryMinutes("");
-      setEnableExpiry(false);
-      setNewImageUrls([]);
-      setNewPackageTitle('');
-      setNewPackageDescription('');
-      setNewRequiredFields({ nickname: false });
-      setNewTemplateType('default');
-      setNewHideAuthor(false);
-      setNewUnlockEnabled(false);
-      setNewUnlockKeywords('');
-      setShowAddForm(false);
+      cancelAdd();
       fetchKeywords();
     }
   };
@@ -613,6 +599,26 @@ const Creator = () => {
     setEditUnlockKeywords('');
     setEditHideAuthor(false);
     setEditTemplateConfig({});
+  };
+
+  const cancelAdd = () => {
+    setShowAddSheet(false);
+    setNewKeyword("");
+    setNewContent("");
+    setNewQuota("");
+    setNewExpiryDays("");
+    setNewExpiryHours("");
+    setNewExpiryMinutes("");
+    setEnableExpiry(false);
+    setNewImageUrls([]);
+    setNewPackageTitle('');
+    setNewPackageDescription('');
+    setNewRequiredFields({ nickname: false });
+    setNewTemplateType('default');
+    setNewHideAuthor(false);
+    setNewUnlockEnabled(false);
+    setNewUnlockKeywords('');
+    setNewTemplateConfig({});
   };
 
   const fetchEmailLogs = async (keywordId: string) => {
@@ -898,12 +904,12 @@ const Creator = () => {
           userEmail={userEmail}
         />
 
-        <div className="glass-card rounded-2xl p-6 md:p-8 shadow-card">
+        <div className="glass-card rounded-2xl p-4 md:p-8 shadow-card">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6">
             <h2 className="text-lg md:text-xl font-semibold">關鍵字列表</h2>
             <Button
               size="lg"
-              onClick={() => setShowAddForm(!showAddForm)}
+              onClick={() => setShowAddSheet(true)}
               className="px-8 py-5 md:py-6 text-lg font-semibold hover:bg-yellow-50 hover:text-yellow-700 hover:border-yellow-300 transition-colors w-full sm:w-auto"
             >
               <Plus className="w-5 h-5 mr-2" />
@@ -964,9 +970,9 @@ const Creator = () => {
               </div>
 
               {/* 過期狀態篩選 */}
-              <div className="border-l pl-3">
+              <div className="lg:border-l lg:pl-3">
                 <Select value={expiryFilter} onValueChange={(value: 'all' | 'active' | 'expired') => setExpiryFilter(value)}>
-                  <SelectTrigger className="w-[140px] h-9">
+                  <SelectTrigger className="w-full lg:w-[140px] h-9">
                     <SelectValue placeholder="時效篩選" />
                   </SelectTrigger>
                   <SelectContent>
@@ -978,12 +984,12 @@ const Creator = () => {
               </div>
 
               {/* 視圖模式切換 */}
-              <div className="flex gap-2 border-l pl-3">
+              <div className="flex gap-2 lg:border-l lg:pl-3">
                 <Button
                   variant={viewMode === 'card' ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setViewMode('card')}
-                  className="gap-2"
+                  className="flex-1 lg:flex-none gap-2"
                   title="卡片模式"
                 >
                   <LayoutGrid className="w-4 h-4" />
@@ -993,7 +999,7 @@ const Creator = () => {
                   variant={viewMode === 'list' ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setViewMode('list')}
-                  className="gap-2"
+                  className="flex-1 lg:flex-none gap-2"
                   title="列表模式"
                 >
                   <List className="w-4 h-4" />
@@ -1063,334 +1069,6 @@ const Creator = () => {
                 </div>
               )}
             </div>
-          )}
-
-          {showAddForm && (
-            <form onSubmit={handleAddKeyword} className="mb-6 p-4 md:p-6 rounded-lg bg-muted/50 space-y-3 md:space-y-4">
-              <Input
-                placeholder="關鍵字（例如：hello）"
-                value={newKeyword}
-                onChange={(e) => setNewKeyword(e.target.value)}
-                required
-                className="h-12 md:h-10"
-              />
-              <Textarea
-                placeholder="回覆內容（支援多行）&#10;例如：&#10;🎉 恭喜領取！&#10;&#10;📋 Notion 連結：https://notion.so/xxx&#10;🎨 素材包：https://drive.google.com/xxx"
-                value={newContent}
-                onChange={(e) => setNewContent(e.target.value)}
-                required
-                className="min-h-[120px] resize-y"
-              />
-              <Input
-                type="number"
-                placeholder="限額數量（留空=無限制）"
-                value={newQuota}
-                onChange={(e) => setNewQuota(e.target.value)}
-                min="1"
-                className="h-12 md:h-10"
-              />
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={enableExpiry}
-                    onChange={(e) => setEnableExpiry(e.target.checked)}
-                    className="w-4 h-4"
-                  />
-                  <span className="text-sm">啟用限時領取</span>
-                </div>
-                {enableExpiry && (
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <Input
-                      type="text"
-                      inputMode="numeric"
-                      value={newExpiryDays}
-                      onChange={(e) => setNewExpiryDays(e.target.value.replace(/\D/g, ''))}
-                      placeholder="0"
-                      className="w-16 h-10"
-                    />
-                    <span className="text-sm">天</span>
-                    <Input
-                      type="text"
-                      inputMode="numeric"
-                      value={newExpiryHours}
-                      onChange={(e) => {
-                        const val = e.target.value.replace(/\D/g, '');
-                        setNewExpiryHours(val ? val.padStart(2, '0') : '');
-                      }}
-                      placeholder="00"
-                      maxLength={2}
-                      className="w-16 h-10"
-                    />
-                    <span className="text-sm">小時</span>
-                    <Input
-                      type="text"
-                      inputMode="numeric"
-                      value={newExpiryMinutes}
-                      onChange={(e) => {
-                        const val = e.target.value.replace(/\D/g, '');
-                        const num = parseInt(val || '0');
-                        if (num <= 59) {
-                          setNewExpiryMinutes(val ? val.padStart(2, '0') : '');
-                        }
-                      }}
-                      placeholder="00"
-                      maxLength={2}
-                      className="w-16 h-10"
-                    />
-                    <span className="text-sm">分鐘後失效</span>
-                  </div>
-                )}
-              <div className="space-y-3">
-                <div>
-                  <Label>📦 資料包標題（選填）</Label>
-                  <Input
-                    value={newPackageTitle}
-                    onChange={(e) => setNewPackageTitle(e.target.value)}
-                    placeholder="例如：🎨 設計師專屬資源包"
-                    maxLength={50}
-                    className="h-10 mt-1"
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    顯示在資料包頁面頂部，最多 50 字
-                  </p>
-                </div>
-                <div>
-                  <Label>📝 資料包介紹（選填）</Label>
-                  <Textarea
-                    value={newPackageDescription}
-                    onChange={(e) => setNewPackageDescription(e.target.value)}
-                    placeholder="介紹這個資料包的內容、適合誰使用..."
-                    rows={3}
-                    maxLength={300}
-                    className="mt-1"
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    顯示在資料包圖片上方，最多 300 字
-                   </p>
-                 </div>
-               </div>
-               <div className="space-y-2">
-                 <Label>📝 要求領取者填寫（選填）</Label>
-                 <label className="flex items-center gap-2">
-                   <input
-                     type="checkbox"
-                     checked={newRequiredFields.nickname}
-                     onChange={(e) => setNewRequiredFields({ nickname: e.target.checked })}
-                     className="w-4 h-4"
-                   />
-                   <span className="text-sm">稱呼 / 暱稱</span>
-                 </label>
-                 <p className="text-xs text-muted-foreground">
-                   勾選後,領取者需填寫稱呼才能解鎖
-                 </p>
-               </div>
-               <div className="space-y-2">
-                 <Label>👤 顯示設定</Label>
-                 <label className="flex items-center gap-2">
-                   <input
-                     type="checkbox"
-                     checked={newHideAuthor}
-                     onChange={(e) => setNewHideAuthor(e.target.checked)}
-                     className="w-4 h-4"
-                   />
-                   <span className="text-sm">隱藏作者資訊</span>
-                 </label>
-                 <p className="text-xs text-muted-foreground">
-                   啟用後，前台將不顯示創作者頭像、名稱與社群連結
-                 </p>
-               </div>
-               <div className="space-y-3">
-                 <label className="text-sm font-medium">🎨 頁面模板</label>
-                 <TemplateSelector
-                   currentTemplate={newTemplateType}
-                   onSelect={setNewTemplateType}
-                 />
-               </div>
-
-               {/* 進階規則（JSON 編輯器 - Phase 1 簡版） */}
-               <div className="space-y-2">
-                 <Label>🧩 進階規則（多關鍵字）</Label>
-                 {userProfile?.membership_tier === 'free' ? (
-                   <div className="p-3 rounded border bg-muted/30 text-sm">
-                     此功能為進階功能，請升級後使用。
-                   </div>
-                 ) : (
-                   <>
-                     <label className="flex items-center gap-2">
-                       <input
-                         type="checkbox"
-                         checked={newUnlockEnabled}
-                         onChange={(e) => setNewUnlockEnabled(e.target.checked)}
-                         className="w-4 h-4"
-                       />
-                       <span className="text-sm">啟用多關鍵字規則（OR 模式）</span>
-                     </label>
-                     {newUnlockEnabled && (
-                       <div className="space-y-3">
-                         <div>
-                           <Label>關鍵字列表（逗號分隔）</Label>
-                           <Textarea
-                             value={newUnlockKeywords}
-                             onChange={(e) => setNewUnlockKeywords(e.target.value)}
-                             rows={3}
-                             placeholder="alpha, beta, gamma"
-                           />
-                           <p className="text-xs text-muted-foreground mt-1">
-                             輸入 1 個或多個關鍵字，使用逗號分隔。任一符合即解鎖
-                           </p>
-                         </div>
-                       </div>
-                     )}
-                   </>
-                 )}
-               </div>
-               </div>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between mb-2">
-                  <label className="text-sm font-medium">📷 資料包圖片（最多 5 張）</label>
-                  <div className="flex gap-2">
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button
-                          type="button"
-                          variant="secondary"
-                          size="sm"
-                        >
-                          上傳圖片
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>是否前往圖鴨上傳？</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            我們會在新分頁開啟 duk.tw。請完成上傳後，複製圖片連結並貼回「資料包圖片」欄位。
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>取消</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => window.open('https://duk.tw/u', '_blank')}>
-                            前往圖鴨
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                    <Dialog open={showBatchImageDialog && !isEditMode} onOpenChange={(open) => {
-                      if (!isEditMode) setShowBatchImageDialog(open);
-                    }}>
-                      <DialogTrigger asChild>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setIsEditMode(false);
-                            setShowBatchImageDialog(true);
-                          }}
-                          className="gap-2"
-                        >
-                          📋 批量貼入
-                        </Button>
-                      </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>批量貼入圖片 URL</DialogTitle>
-                      </DialogHeader>
-                      <div className="space-y-4">
-                        <Label htmlFor="batch-images">每行一個 URL（最多 5 個）</Label>
-                        <Textarea
-                          id="batch-images"
-                          placeholder="https://example.com/image1.jpg&#10;https://example.com/image2.jpg&#10;https://example.com/image3.jpg"
-                          value={batchImageInput}
-                          onChange={(e) => setBatchImageInput(e.target.value)}
-                          rows={8}
-                        />
-                        <div className="flex justify-end gap-2">
-                          <Button
-                            variant="outline"
-                            onClick={() => {
-                              setShowBatchImageDialog(false);
-                              setBatchImageInput('');
-                            }}
-                          >
-                            取消
-                          </Button>
-                          <Button onClick={handleBatchImagePaste}>
-                            確定匯入
-                          </Button>
-                        </div>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
-                  </div>
-                </div>
-                {newImageUrls.map((url, index) => (
-                  <div key={index} className="flex gap-2">
-                    <Input
-                      type="url"
-                      value={url}
-                      onChange={(e) => {
-                        const updated = [...newImageUrls];
-                        updated[index] = e.target.value;
-                        setNewImageUrls(updated);
-                      }}
-                      placeholder={`圖片 ${index + 1} URL`}
-                      className="h-10"
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setNewImageUrls(newImageUrls.filter((_, i) => i !== index))}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                ))}
-                {newImageUrls.length < 5 && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setNewImageUrls([...newImageUrls, ''])}
-                    className="gap-2"
-                  >
-                    <Plus className="w-4 h-4" />
-                    新增圖片
-                  </Button>
-                )}
-              </div>
-              <div className="flex flex-col sm:flex-row gap-2">
-                <Button type="submit" className="gradient-magic">
-                  確認新增
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={() => {
-                    setShowAddForm(false);
-                    setNewKeyword("");
-                    setNewContent("");
-                    setNewQuota("");
-                    setNewExpiryDays("");
-                    setNewExpiryHours("");
-                    setNewExpiryMinutes("");
-                    setEnableExpiry(false);
-                    setNewImageUrls([]);
-                    setNewPackageTitle('');
-                    setNewPackageDescription('');
-                    setNewRequiredFields({ nickname: false });
-                    setNewTemplateType('default');
-                    // reset simplified unlock rule editor states
-                    setNewUnlockEnabled(false);
-                    setNewUnlockKeywords('');
-                    setNewHideAuthor(false);
-                  }}
-                >
-                  取消
-                </Button>
-              </div>
-            </form>
           )}
 
           {loading ? (
@@ -1464,7 +1142,7 @@ const Creator = () => {
 
                           {/* 專屬連結資訊 */}
                           <div className="text-xs text-muted-foreground">
-                            <span className="font-mono">
+                            <span className="font-mono break-all">
                               {item.short_code
                                 ? `${window.location.origin}/${item.short_code}`
                                 : `${window.location.origin}/box/${item.id}`}
@@ -1524,9 +1202,9 @@ const Creator = () => {
                             </div>
                           </div>
                           
-                          {/* 倒數計時器 - 桌面版 */}
+                          {/* 倒數計時器 */}
                           {item.expires_at && !isExpired(item) && (
-                            <div className="hidden lg:block mt-3">
+                            <div className="mt-3">
                               <CountdownTimer expiresAt={item.expires_at} />
                             </div>
                           )}
@@ -1777,7 +1455,7 @@ const Creator = () => {
 
           {/* 領取記錄弹窗 */}
           <Dialog open={openRecordsDialog} onOpenChange={setOpenRecordsDialog}>
-            <DialogContent className="max-w-3xl max-h-[80vh] overflow-hidden flex flex-col">
+            <DialogContent className="w-[calc(100vw-2rem)] sm:w-full max-w-3xl max-h-[80vh] overflow-hidden flex flex-col rounded-lg">
               <DialogHeader>
                 <DialogTitle>領取記錄 ({emailLogs.length})</DialogTitle>
               </DialogHeader>
@@ -1880,12 +1558,517 @@ const Creator = () => {
           </div>
         </div>
       </div>
+
+      {/* 側邊新增面板 */}
+      <Sheet open={showAddSheet} onOpenChange={(open) => !open && cancelAdd()}>
+        <SheetContent side="right" className="w-full sm:max-w-[90vw] md:max-w-[80vw] lg:max-w-[70vw] p-0 overflow-hidden">
+          <div className="flex h-full">
+            {/* 左側：完整頁面預覽區 */}
+            <div className="hidden md:block md:w-3/5 bg-muted/30 overflow-y-auto border-r">
+              <SheetHeader className="p-6 pb-4 sticky top-0 bg-muted/30 backdrop-blur-sm z-10 border-b">
+                <SheetTitle className="text-sm text-muted-foreground">即時預覽</SheetTitle>
+              </SheetHeader>
+              <div className="relative">
+                {/* 半透明遮罩層 */}
+                <div className="absolute inset-0 z-10 pointer-events-none bg-background/5"></div>
+                {/* 完整模板預覽 */}
+                <div className="pointer-events-none select-none scale-90 origin-top">
+                  <Suspense fallback={
+                    <div className="flex items-center justify-center min-h-screen">
+                      <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                    </div>
+                  }>
+                    {(() => {
+                      // 準備模擬的 boxData
+                      const previewBoxData = {
+                        id: 'preview-id',
+                        keyword: newKeyword || 'preview',
+                        created_at: new Date().toISOString(),
+                        quota: newQuota ? parseInt(newQuota) : null,
+                        current_count: 0,
+                        expires_at: enableExpiry && (newExpiryDays || newExpiryHours || newExpiryMinutes)
+                          ? new Date(Date.now() + (parseInt(newExpiryDays || "0") * 24 * 60 + parseInt(newExpiryHours || "0") * 60 + parseInt(newExpiryMinutes || "0")) * 60 * 1000).toISOString()
+                          : null,
+                        creator_id: userId,
+                        images: newImageUrls.filter(url => url.trim()) || null,
+                        package_title: newPackageTitle || null,
+                        package_description: newPackageDescription || null,
+                        required_fields: newRequiredFields,
+                        short_code: 'preview',
+                        template_type: newTemplateType,
+                        hide_author_info: newHideAuthor,
+                        template_config: newTemplateConfig,
+                      };
+
+                      // 載入對應的模板元件
+                      const TemplateComponent = getTemplateComponent(newTemplateType);
+
+                      // 準備傳給模板的 props
+                      const templateProps = {
+                        boxData: previewBoxData,
+                        keyword: '',
+                        setKeyword: () => {},
+                        email: '',
+                        setEmail: () => {},
+                        extraData: { nickname: '' },
+                        setExtraData: () => {},
+                        onUnlock: (e: React.FormEvent) => { e.preventDefault(); },
+                        onReset: () => {},
+                        loading: false,
+                        result: null,
+                        currentCount: 0,
+                        waitlistCount: 0,
+                        isLoggedIn: false,
+                        isCreatorPreview: false,
+                      };
+
+                      return <TemplateComponent {...templateProps} />;
+                    })()}
+                  </Suspense>
+                </div>
+                {/* 提示文字 */}
+                <div className="absolute bottom-4 left-0 right-0 text-center z-20 pointer-events-none">
+                  <div className="inline-block bg-background/90 backdrop-blur-sm px-4 py-2 rounded-full border shadow-lg">
+                    <p className="text-xs text-muted-foreground">
+                      ℹ️ 即時預覽模式 - 修改右側表單即可看到效果
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 右側：新增表單區 */}
+            <div className="w-full md:w-2/5 overflow-y-auto">
+              <SheetHeader className="px-6 pt-6 pb-4">
+                <SheetTitle>新增關鍵字</SheetTitle>
+              </SheetHeader>
+              <form onSubmit={handleAddKeyword} className="px-6 pb-6 space-y-1">
+                {/* TODO: 這裡將插入所有新增表單欄位 */}
+                <div className="pb-10 mb-10 border-b border-gray-800">
+                  <div className="text-sm font-semibold text-green-500 uppercase tracking-wider mb-6">
+                    📋 基本資訊
+                  </div>
+                  <div className="space-y-8">
+                    {/* 關鍵字 */}
+                    <div>
+                      <div className="flex items-center gap-2 mb-3.5">
+                        <Label htmlFor="new-keyword" className="text-[15px] font-medium text-gray-200">
+                          關鍵字
+                        </Label>
+                        <span className="text-[11px] px-2 py-0.5 rounded bg-red-900/30 text-red-400 font-medium">
+                          必填
+                        </span>
+                      </div>
+                      <Input
+                        id="new-keyword"
+                        value={newKeyword}
+                        onChange={(e) => setNewKeyword(e.target.value)}
+                        required
+                        maxLength={50}
+                        placeholder="例如：free2024"
+                        className="bg-gray-700 border-2 border-transparent focus:border-green-500 focus:bg-gray-600 text-white placeholder:text-gray-500 rounded-lg py-4 px-5 transition-all duration-300"
+                      />
+                      <div className="flex justify-between items-center mt-3 pt-1">
+                        <span className="text-xs text-gray-400">簡短易記</span>
+                        <span className={`text-xs font-medium ${
+                          newKeyword.length === 0 ? 'text-gray-400' :
+                          newKeyword.length >= 50 ? 'text-red-500' :
+                          newKeyword.length >= 40 ? 'text-amber-500' :
+                          'text-green-500'
+                        }`}>
+                          {newKeyword.length} / 50
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* 回覆內容 */}
+                    <div>
+                      <div className="flex items-center gap-2 mb-3.5">
+                        <Label htmlFor="new-content" className="text-[15px] font-medium text-gray-200">
+                          回覆內容
+                        </Label>
+                        <span className="text-[11px] px-2 py-0.5 rounded bg-red-900/30 text-red-400 font-medium">
+                          必填
+                        </span>
+                      </div>
+                      <Textarea
+                        id="new-content"
+                        value={newContent}
+                        onChange={(e) => setNewContent(e.target.value)}
+                        required
+                        maxLength={2000}
+                        placeholder="領取後顯示的內容"
+                        className="min-h-[100px] bg-gray-700 border-2 border-transparent focus:border-green-500 focus:bg-gray-600 text-white placeholder:text-gray-500 rounded-lg py-4 px-5 resize-y leading-relaxed transition-all duration-300"
+                      />
+                      <div className="flex justify-between items-center mt-3 pt-1">
+                        <span className="text-xs text-gray-400">支援多行</span>
+                        <span className={`text-xs font-medium ${
+                          newContent.length === 0 ? 'text-gray-400' :
+                          newContent.length >= 2000 ? 'text-red-500' :
+                          newContent.length >= 1600 ? 'text-amber-500' :
+                          'text-green-500'
+                        }`}>
+                          {newContent.length} / 2000
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* 限額數量 */}
+                    <div>
+                      <div className="flex items-center gap-2 mb-3.5">
+                        <Label htmlFor="new-quota" className="text-[15px] font-medium text-gray-200">
+                          限額數量
+                        </Label>
+                        <span className="text-[11px] px-2 py-0.5 rounded bg-gray-700 text-gray-400 font-medium">
+                          選填
+                        </span>
+                      </div>
+                      <Input
+                        id="new-quota"
+                        type="number"
+                        value={newQuota}
+                        onChange={(e) => setNewQuota(e.target.value)}
+                        min="1"
+                        placeholder="無限制"
+                        className="bg-gray-700 border-2 border-transparent focus:border-green-500 focus:bg-gray-600 text-white placeholder:text-gray-500 rounded-lg py-4 px-5 transition-all duration-300"
+                      />
+                      <p className="text-xs text-gray-400 mt-3 pt-1">
+                        留空為無限制
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* ⏰ 時效設定 */}
+                <div className="pb-10 mb-10 border-b border-gray-800">
+                  <div className="text-sm font-semibold text-green-500 uppercase tracking-wider mb-6">
+                    ⏰ 時效設定
+                  </div>
+
+                  <div className="space-y-3">
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={enableExpiry}
+                        onChange={(e) => setEnableExpiry(e.target.checked)}
+                        className="w-4 h-4 rounded border-gray-600 text-green-500 focus:ring-green-500 focus:ring-offset-0"
+                      />
+                      <span className="text-sm text-gray-200">啟用限時領取</span>
+                    </label>
+
+                    {enableExpiry && (
+                      <div className="ml-6 p-5 bg-gray-800/50 rounded-lg border border-gray-700 space-y-3">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <Input
+                            type="text"
+                            inputMode="numeric"
+                            value={newExpiryDays}
+                            onChange={(e) => setNewExpiryDays(e.target.value.replace(/\D/g, ''))}
+                            placeholder="0"
+                            className="w-16 h-10 bg-gray-700 text-white text-center"
+                          />
+                          <span className="text-sm text-gray-300">天</span>
+                          <Input
+                            type="text"
+                            inputMode="numeric"
+                            value={newExpiryHours}
+                            onChange={(e) => {
+                              const val = e.target.value.replace(/\D/g, '');
+                              setNewExpiryHours(val ? val.padStart(2, '0') : '');
+                            }}
+                            placeholder="00"
+                            maxLength={2}
+                            className="w-16 h-10 bg-gray-700 text-white text-center"
+                          />
+                          <span className="text-sm text-gray-300">小時</span>
+                          <Input
+                            type="text"
+                            inputMode="numeric"
+                            value={newExpiryMinutes}
+                            onChange={(e) => {
+                              const val = e.target.value.replace(/\D/g, '');
+                              const num = parseInt(val || '0');
+                              if (num <= 59) {
+                                setNewExpiryMinutes(val ? val.padStart(2, '0') : '');
+                              }
+                            }}
+                            placeholder="00"
+                            maxLength={2}
+                            className="w-16 h-10 bg-gray-700 text-white text-center"
+                          />
+                          <span className="text-sm text-gray-300">分鐘後失效</span>
+                        </div>
+                        <p className="text-xs text-gray-400">
+                          超過時間無法領取
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* 📦 資料包包裝 */}
+                <div className="pb-10 mb-10 border-b border-gray-800">
+                  <div className="text-sm font-semibold text-green-500 uppercase tracking-wider mb-6">
+                    📦 資料包包裝
+                  </div>
+
+                  <div className="space-y-8">
+                    {/* 資料包標題 */}
+                    <div>
+                      <div className="flex items-center gap-2 mb-3.5">
+                        <Label htmlFor="new-package-title" className="text-[15px] font-medium text-gray-200">
+                          資料包標題
+                        </Label>
+                        <span className="text-[11px] px-2 py-0.5 rounded bg-gray-700 text-gray-400 font-medium">
+                          選填
+                        </span>
+                      </div>
+                      <Input
+                        id="new-package-title"
+                        value={newPackageTitle}
+                        onChange={(e) => setNewPackageTitle(e.target.value)}
+                        placeholder="🎨 設計師資源包"
+                        maxLength={50}
+                        className="bg-gray-700 border-2 border-transparent focus:border-green-500 focus:bg-gray-600 text-white placeholder:text-gray-500 rounded-lg py-4 px-5 transition-all duration-300"
+                      />
+                      <div className="flex justify-between items-center mt-3 pt-1">
+                        <span className="text-xs text-gray-400">顯示在頁面頂部</span>
+                        <span className={`text-xs font-medium ${
+                          newPackageTitle.length === 0 ? 'text-gray-400' :
+                          newPackageTitle.length >= 50 ? 'text-red-500' :
+                          newPackageTitle.length >= 40 ? 'text-amber-500' :
+                          'text-green-500'
+                        }`}>
+                          {newPackageTitle.length} / 50
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* 資料包介紹 */}
+                    <div>
+                      <div className="flex items-center gap-2 mb-3.5">
+                        <Label htmlFor="new-package-description" className="text-[15px] font-medium text-gray-200">
+                          資料包介紹
+                        </Label>
+                        <span className="text-[11px] px-2 py-0.5 rounded bg-gray-700 text-gray-400 font-medium">
+                          選填
+                        </span>
+                      </div>
+                      <Textarea
+                        id="new-package-description"
+                        value={newPackageDescription}
+                        onChange={(e) => setNewPackageDescription(e.target.value)}
+                        placeholder="簡短介紹這個資料包"
+                        rows={3}
+                        maxLength={300}
+                        className="bg-gray-700 border-2 border-transparent focus:border-green-500 focus:bg-gray-600 text-white placeholder:text-gray-500 rounded-lg py-3.5 px-4 resize-y leading-relaxed transition-all duration-300"
+                      />
+                      <div className="flex justify-between items-center mt-3 pt-1">
+                        <span className="text-xs text-gray-400">顯示在圖片上方</span>
+                        <span className={`text-xs font-medium ${
+                          newPackageDescription.length === 0 ? 'text-gray-400' :
+                          newPackageDescription.length >= 300 ? 'text-red-500' :
+                          newPackageDescription.length >= 240 ? 'text-amber-500' :
+                          'text-green-500'
+                        }`}>
+                          {newPackageDescription.length} / 300
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* 必填欄位 */}
+                    <div>
+                      <div className="flex items-center gap-2 mb-3.5">
+                        <Label className="text-[15px] font-medium text-gray-200">
+                          要求領取者填寫
+                        </Label>
+                        <span className="text-[11px] px-2 py-0.5 rounded bg-gray-700 text-gray-400 font-medium">
+                          選填
+                        </span>
+                      </div>
+                      <label className="flex items-center gap-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={newRequiredFields.nickname}
+                          onChange={(e) => setNewRequiredFields({ nickname: e.target.checked })}
+                          className="w-4 h-4 rounded border-gray-600 text-green-500 focus:ring-green-500 focus:ring-offset-0"
+                        />
+                        <span className="text-sm text-gray-200">稱呼 / 暱稱</span>
+                      </label>
+                      <p className="text-xs text-gray-400 mt-3 pt-1">
+                        需額外填寫稱呼
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 🎨 視覺設計 */}
+                <div className="pb-10 mb-10 border-b border-gray-800">
+                  <div className="text-sm font-semibold text-green-500 uppercase tracking-wider mb-6">
+                    🎨 視覺設計
+                  </div>
+
+                  <div className="space-y-8">
+                    {/* 頁面模板 */}
+                    <div>
+                      <div className="flex items-center gap-2 mb-3.5">
+                        <Label className="text-[15px] font-medium text-gray-200">
+                          頁面模板
+                        </Label>
+                      </div>
+                      <TemplateSelector
+                        currentTemplate={newTemplateType}
+                        onSelect={setNewTemplateType}
+                      />
+                    </div>
+
+                    {/* 圖片管理 - 簡化版 */}
+                    <div>
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                          <Label className="text-[15px] font-medium text-gray-200">
+                            資料包圖片
+                          </Label>
+                          <span className="text-[11px] px-2 py-0.5 rounded bg-gray-700 text-gray-400 font-medium">
+                            {newImageUrls.filter(url => url.trim()).length} / 5
+                          </span>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => window.open('https://duk.tw/u', '_blank')}
+                        >
+                          上傳圖片
+                        </Button>
+                      </div>
+
+                      {/* 圖片輸入欄位 */}
+                      <div className="space-y-3">
+                        {newImageUrls.map((url, index) => (
+                          <div key={index} className="flex gap-2">
+                            <Input
+                              type="url"
+                              value={url}
+                              onChange={(e) => {
+                                const updated = [...newImageUrls];
+                                updated[index] = e.target.value;
+                                setNewImageUrls(updated);
+                              }}
+                              placeholder={`圖片 ${index + 1} URL`}
+                              className="bg-gray-700 border-2 border-transparent focus:border-green-500 text-white placeholder:text-gray-500 rounded-lg"
+                            />
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => setNewImageUrls(newImageUrls.filter((_, i) => i !== index))}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        ))}
+                        {newImageUrls.length < 5 && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setNewImageUrls([...newImageUrls, ''])}
+                            className="gap-2 w-full"
+                          >
+                            <Plus className="w-4 h-4" />
+                            新增圖片欄位
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* 隱藏作者資訊 */}
+                    <div>
+                      <div className="flex items-center gap-2 mb-3.5">
+                        <Label className="text-[15px] font-medium text-gray-200">
+                          顯示設定
+                        </Label>
+                      </div>
+                      <label className="flex items-center gap-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={newHideAuthor}
+                          onChange={(e) => setNewHideAuthor(e.target.checked)}
+                          className="w-4 h-4 rounded border-gray-600 text-green-500 focus:ring-green-500 focus:ring-offset-0"
+                        />
+                        <span className="text-sm text-gray-200">隱藏作者資訊</span>
+                      </label>
+                      <p className="text-xs text-gray-400 mt-3 pt-1">
+                        不顯示創作者頭像與社群連結
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 🧩 進階規則 */}
+                {userProfile?.membership_tier !== 'free' && (
+                  <div className="pb-10 mb-10 border-b border-gray-800">
+                    <div className="text-sm font-semibold text-green-500 uppercase tracking-wider mb-6">
+                      🧩 進階規則
+                    </div>
+
+                    <div className="space-y-3">
+                      <label className="flex items-center gap-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={newUnlockEnabled}
+                          onChange={(e) => setNewUnlockEnabled(e.target.checked)}
+                          className="w-4 h-4 rounded border-gray-600 text-green-500 focus:ring-green-500 focus:ring-offset-0"
+                        />
+                        <span className="text-sm text-gray-200">啟用多關鍵字規則（OR 模式）</span>
+                      </label>
+
+                      {newUnlockEnabled && (
+                        <div className="ml-6 p-5 bg-gray-800/50 rounded-lg border border-gray-700 space-y-3">
+                          <div>
+                            <Label className="text-sm text-gray-200 mb-2 block">關鍵字列表（逗號分隔）</Label>
+                            <Textarea
+                              value={newUnlockKeywords}
+                              onChange={(e) => setNewUnlockKeywords(e.target.value)}
+                              rows={3}
+                              placeholder="alpha, beta, gamma"
+                              className="bg-gray-700 border-2 border-transparent focus:border-green-500 text-white placeholder:text-gray-500 rounded-lg"
+                            />
+                            <p className="text-xs text-gray-400 mt-2">
+                              輸入多個關鍵字，使用逗號分隔。任一符合即解鎖
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                <SheetFooter className="flex flex-col sm:flex-row gap-2 pt-8 mt-8 border-t border-gray-800">
+                  <Button type="submit" className="gradient-magic">
+                    確認新增
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={cancelAdd}
+                  >
+                    取消
+                  </Button>
+                </SheetFooter>
+              </form>
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
+
       {/* 側邊編輯面板 */}
       <Sheet open={!!editingKeywordId} onOpenChange={(open) => !open && cancelEdit()}>
         <SheetContent side="right" className="w-full sm:max-w-[90vw] md:max-w-[80vw] lg:max-w-[70vw] p-0 overflow-hidden">
           <div className="flex h-full">
             {/* 左側：完整頁面預覽區 */}
-            <div className="w-3/5 bg-muted/30 overflow-y-auto border-r">
+            <div className="hidden md:block md:w-3/5 bg-muted/30 overflow-y-auto border-r">
               <SheetHeader className="p-6 pb-4 sticky top-0 bg-muted/30 backdrop-blur-sm z-10 border-b">
                 <SheetTitle className="text-sm text-muted-foreground">即時預覽</SheetTitle>
               </SheetHeader>
@@ -1959,7 +2142,7 @@ const Creator = () => {
             </div>
 
             {/* 右側：編輯表單區 */}
-            <div className="w-2/5 overflow-y-auto">
+            <div className="w-full md:w-2/5 overflow-y-auto">
               <SheetHeader className="px-6 pt-6 pb-4">
                 <SheetTitle>編輯關鍵字</SheetTitle>
               </SheetHeader>
