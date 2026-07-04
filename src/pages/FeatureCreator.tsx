@@ -366,7 +366,10 @@ const FeatureCreator = () => {
       {/* Pricing */}
       <section id="pricing" className="py-20 dark:bg-slate-800" style={{ backgroundColor: '#F8F7F5' }}>
         <div className="max-w-6xl mx-auto px-8 sm:px-12 lg:px-16">
-          <div className="text-center mb-16">
+          <div className="text-center mb-10">
+            <div className="inline-flex items-center gap-2 bg-red-50 border border-red-200 text-red-600 px-4 py-2 rounded-full text-sm font-semibold mb-6">
+              🔥 早鳥限時 5 折 · 恢復原價前把握機會
+            </div>
             <h2 className="text-3xl md:text-4xl font-bold mb-4 text-slate-800">選擇適合你的方案</h2>
             <p className="text-xl text-slate-700">從個人創作者到企業團隊，我們都有完美方案</p>
           </div>
@@ -404,9 +407,11 @@ const FeatureCreator = () => {
                 <div className="text-center">
                   <h3 className="text-2xl font-bold text-slate-700">⭐ 標準版</h3>
                   <div className="mt-4">
+                    <span className="text-lg text-slate-400 line-through mr-2">NT$599</span>
                     <span className="text-4xl font-bold text-green-500">NT$299</span>
                     <span className="text-slate-600">/月</span>
                   </div>
+                  <p className="text-xs text-red-500 mt-1 font-medium">⏰ 早鳥價，活動後恢復 NT$599</p>
                   <p className="text-slate-600 mt-2">適合專業創作者</p>
                 </div>
               </CardHeader>
@@ -429,9 +434,11 @@ const FeatureCreator = () => {
                 <div className="text-center">
                   <h3 className="text-2xl font-bold text-slate-700">💎 專業版</h3>
                   <div className="mt-4">
+                    <span className="text-lg text-slate-400 line-through mr-2">NT$1180</span>
                     <span className="text-4xl font-bold text-slate-700">NT$599</span>
                     <span className="text-slate-600">/月</span>
                   </div>
+                  <p className="text-xs text-red-500 mt-1 font-medium">⏰ 早鳥價，活動後恢復 NT$1180</p>
                   <p className="text-slate-600 mt-2">適合企業團隊</p>
                 </div>
               </CardHeader>

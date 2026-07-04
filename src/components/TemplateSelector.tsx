@@ -53,10 +53,11 @@ export const TemplateSelector = ({
     const allTemplates = Object.values(templatesByCategory).flat();
     const template = allTemplates.find(t => t.id === templateId);
     
-    // 檢查是否為進階模板且使用者為免費會員
-    if (template?.tier === 'premium' && userTier !== 'premium') {
-      // 未來可以顯示升級提示或開啟付費頁面
-      alert('🔒 此模板為進階會員專屬\n\n即將開放付費功能,敬請期待!');
+    // 進階模板：免費版鎖定，標準版以上解鎖
+    if (template?.tier === 'premium' && userTier === 'free') {
+      if (window.confirm('🔒 進階模板需要標準版以上方案\n\n升級即可解鎖全部模板，前往查看方案？')) {
+        window.location.href = '/pricing';
+      }
       return;
     }
 
@@ -78,7 +79,7 @@ export const TemplateSelector = ({
                   {category}
                 </div>
                 {templates.map(template => {
-                  const isLocked = template.tier === 'premium' && userTier !== 'premium';
+                  const isLocked = template.tier === 'premium' && userTier === 'free';
                   
                   return (
                     <SelectItem 
@@ -115,7 +116,7 @@ export const TemplateSelector = ({
 
         {/* 會員等級提示 */}
         <div className="mt-2 text-xs text-muted-foreground">
-          目前方案: {userTier === 'premium' ? '⭐ 進階會員' : '免費會員'}
+          目前方案: {userTier === 'premium' ? '💎 專業版' : userTier === 'standard' ? '⭐ 標準版' : '免費版'}
         </div>
       </div>
       
