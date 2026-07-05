@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -60,6 +61,13 @@ const cell = (v: boolean | string) => {
 
 const Pricing = () => {
   const navigate = useNavigate();
+
+  // 淺色方案頁：body 暫時蓋淺色，避免深色主題 body 從下方露出
+  useEffect(() => {
+    const prev = document.body.style.background;
+    document.body.style.background = "#F8F7F5";
+    return () => { document.body.style.background = prev; };
+  }, []);
 
   return (
     <div className="min-h-screen py-10 px-4" style={{ backgroundColor: "#F8F7F5" }}>

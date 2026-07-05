@@ -40,6 +40,13 @@ const Checkout = () => {
   const [billingName, setBillingName] = useState("");
   const [billingEmail, setBillingEmail] = useState("");
 
+  // 淺色結帳頁：把深色主題的 body 背景暫時蓋成淺色，避免手機下方露出深色（body 是 fixed 深色漸層）
+  useEffect(() => {
+    const prev = document.body.style.background;
+    document.body.style.background = "#F8F7F5";
+    return () => { document.body.style.background = prev; };
+  }, []);
+
   useEffect(() => {
     (async () => {
       const { data: { session } } = await supabase.auth.getSession();
