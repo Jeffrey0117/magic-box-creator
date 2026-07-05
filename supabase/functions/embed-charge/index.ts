@@ -7,7 +7,8 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { requireUser } from "../_shared/require-user.ts";
 
-const GATEWAY_URL = Deno.env.get("PAYUNI_GATEWAY_URL")!;
+// ⚠️ VPS 固定 IP gateway(payuni-gw.pipee.tw)為預設;家機 isnowfriend 版是複製品,勿用。
+const GATEWAY_URL = Deno.env.get("PAYUNI_GATEWAY_URL") || "https://payuni-gw.pipee.tw";
 const GATEWAY_SECRET = Deno.env.get("PAYUNI_GATEWAY_SECRET") || "";
 
 const cors = {

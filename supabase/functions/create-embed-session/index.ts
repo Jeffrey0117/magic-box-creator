@@ -7,7 +7,9 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { requireUser } from "../_shared/require-user.ts";
 
-const GATEWAY_URL = Deno.env.get("PAYUNI_GATEWAY_URL")!;
+// ⚠️ 一律走 VPS 固定 IP gateway(payuni-gw.pipee.tw / 159.223.68.114,PayUni 限定API 白名單那顆)。
+// 家機 payuni-gateway.isnowfriend.com 是會關機+動態IP的複製品,勿當預設。Supabase secret 沒設時退回 VPS。
+const GATEWAY_URL = Deno.env.get("PAYUNI_GATEWAY_URL") || "https://payuni-gw.pipee.tw";
 const GATEWAY_SECRET = Deno.env.get("PAYUNI_GATEWAY_SECRET") || "";
 const IFRAME_DOMAIN = Deno.env.get("PAYUNI_IFRAME_DOMAIN") || "https://magic-box-creator.vercel.app";
 const PAYGATE_URL = Deno.env.get("PAYGATE_URL") || "";
