@@ -102,11 +102,9 @@ const Checkout = () => {
             <Card className="bg-white border-slate-200 shadow-sm">
               <CardContent className="p-6">
                 <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-4">訂單明細</h2>
-                <div className="flex items-baseline justify-between mb-1">
-                  <span className="text-lg font-bold text-slate-800">KeyBox {info.name}</span>
-                  <span className="text-lg font-bold text-slate-800">NT${price}</span>
-                </div>
-                <p className="text-sm text-slate-500 mb-4">每月自動續訂，可隨時取消</p>
+                {/* 方案名獨立一行，價錢只在下方「本次應付」出現一次，不擠不重複 */}
+                <div className="text-xl font-bold text-slate-800 tracking-tight">KeyBox {info.name}</div>
+                <p className="text-sm text-slate-500 mt-1 mb-4">每月自動續訂，可隨時取消</p>
                 <Separator className="my-4 bg-slate-200" />
                 <ul className="space-y-2 mb-4">
                   {info.features.map((f) => (
