@@ -16,11 +16,13 @@ const TIERS = {
   standard: {
     name: "標準版",
     fallbackPrice: 299,
+    originalPrice: 599, // 早鳥定錨原價（劃線用）；實際扣款以 PayGate 的 price 為準，與 Pricing 頁一致
     features: ["無限資料包", "全部模板", "進階數據分析", "多關鍵字規則", "Email 支援"],
   },
   premium: {
     name: "專業版",
     fallbackPrice: 599,
+    originalPrice: 1180,
     features: ["標準版所有功能", "API 整合", "白標選項", "優先客服"],
   },
 } as const;
@@ -114,13 +116,22 @@ const Checkout = () => {
                   ))}
                 </ul>
                 <Separator className="my-4 bg-slate-200" />
+                {/* 價錢只出現這一次：原價劃線收斂 → 特價當主角 → 折扣/現省一條在下（與 Pricing 頁一致） */}
                 <div className="flex items-baseline justify-between">
                   <span className="font-semibold text-slate-800">本次應付</span>
-                  <div className="text-right">
-                    <span className="text-2xl font-bold text-green-600">NT${price}</span>
-                    <span className="text-sm text-slate-500"> / 月</span>
+                  <div className="flex items-baseline whitespace-nowrap">
+                    {info.originalPrice && info.originalPrice > price && (
+                      <span className="text-sm text-slate-400 line-through mr-2">NT${info.originalPrice}</span>
+                    )}
+                    <span className="text-[1.7rem] leading-none font-extrabold text-green-600 tracking-tight">NT${price}</span>
+                    <span className="text-sm text-slate-500 ml-1.5">/ 月</span>
                   </div>
                 </div>
+                {info.originalPrice && info.originalPrice > price && (
+                  <div className="mt-3 inline-block text-xs font-bold text-green-700 bg-green-50 rounded-full px-3 py-1">
+                    早鳥優惠 -{Math.round((1 - price / info.originalPrice) * 100)}%　·　現省 NT${info.originalPrice - price}
+                  </div>
+                )}
               </CardContent>
             </Card>
 
