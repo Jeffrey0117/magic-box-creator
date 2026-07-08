@@ -129,20 +129,15 @@ export default function Admin() {
 
       if (error) throw error;
       
-      const keywordsWithEmailPromises = (data || []).map(async (kw) => {
-        const { data: userStat } = await supabase
-          .from('user_stats')
-          .select('email')
-          .eq('user_id', kw.creator_id)
-          .single();
-        
-        return {
-          ...kw,
-          creator_email: userStat?.email || 'Unknown'
-        };
-      });
-      
-      const keywordsWithEmail = await Promise.all(keywordsWithEmailPromises);
+      const { data: statsData } = await supabase.rpc('get_user_stats');
+      const emailByUserId = new Map(
+        (statsData || []).map((s: any) => [s.user_id, s.email])
+      );
+
+      const keywordsWithEmail = (data || []).map((kw) => ({
+        ...kw,
+        creator_email: emailByUserId.get(kw.creator_id) || 'Unknown'
+      }));
       setKeywords(keywordsWithEmail);
     } catch (error) {
       console.error('Failed to fetch keywords:', error);
@@ -152,9 +147,7 @@ export default function Admin() {
 
   const fetchUsers = async () => {
     try {
-      const { data, error } = await supabase
-        .from('user_stats')
-        .select('*');
+      const { data, error } = await supabase.rpc('get_user_stats');
 
       if (error) throw error;
 

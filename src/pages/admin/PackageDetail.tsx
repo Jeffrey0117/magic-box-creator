@@ -83,11 +83,10 @@ export default function PackageDetail() {
       if (keywordError) throw keywordError;
       setPackageData(keyword);
 
-      const { data: userStat } = await supabase
-        .from('user_stats')
-        .select('email')
-        .eq('user_id', keyword.creator_id)
-        .single();
+      const { data: statsData } = await supabase.rpc('get_user_stats');
+      const userStat = (statsData || []).find(
+        (s: any) => s.user_id === keyword.creator_id
+      );
 
       setCreatorEmail(userStat?.email || 'Unknown');
 
