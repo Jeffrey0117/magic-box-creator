@@ -114,7 +114,9 @@ export function PayuniEmbedCheckout(props: PayuniEmbedCheckoutProps) {
         elements: { CardNo: "put_card_no", CardExp: "put_card_exp", CardCvc: "put_card_cvc" },
         style: { color: "#0f172a", errorColor: "#dc2626", fontSize: "15px", fontWeight: "400", lineHeight: "24px" },
       });
-      sdk.onUpdate((u: any) => { if (u?.status) setFields(u.status as FieldStatus); });
+      // SDK 每次原地改同一個 status 物件再丟出來 → 直接塞進 state 會因參考相同被 React 跳過重繪，
+      // 按鈕永遠鎖在第一次的驗證狀態。必須淺拷貝成新物件。
+      sdk.onUpdate((u: any) => { if (u?.status) setFields({ ...u.status } as FieldStatus); });
       await sdk.start();
       sdkRef.current = sdk;
       setInitState("ready");
