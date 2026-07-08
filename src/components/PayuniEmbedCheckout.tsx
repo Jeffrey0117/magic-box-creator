@@ -183,13 +183,13 @@ export function PayuniEmbedCheckout(props: PayuniEmbedCheckoutProps) {
           <label className="text-sm font-medium text-slate-700">信用卡號</label>
           <div id="put_card_no" className="h-11 rounded-md border border-slate-300 bg-white px-3 flex items-center" />
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1.5">
-            <label className="text-sm font-medium text-slate-700">有效期限 (MM/YY)</label>
+            <label className="text-[13px] font-normal whitespace-nowrap text-slate-700">有效期限 (MM/YY)</label>
             <div id="put_card_exp" className="h-11 rounded-md border border-slate-300 bg-white px-3 flex items-center" />
           </div>
           <div className="space-y-1.5">
-            <label className="text-sm font-medium text-slate-700">安全碼 (CVC)</label>
+            <label className="text-[13px] font-normal whitespace-nowrap text-slate-700">安全碼 (CVC)</label>
             <div id="put_card_cvc" className="h-11 rounded-md border border-slate-300 bg-white px-3 flex items-center" />
           </div>
         </div>
